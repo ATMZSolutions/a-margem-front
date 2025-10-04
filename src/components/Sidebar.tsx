@@ -23,7 +23,7 @@ export default function Sidebar() {
   return (
     <div>
       {/* Barra superior com logo à esquerda e hamburguer à direita */}
-      <div className="w-full flex justify-between items-center px-6 py-4">
+      <div className="w-full flex justify-between items-center px-4 py-1 fixed top-0 left-0 z-50  bg-black/60 backdrop-blur-[5px]">
         <div className="text-white text-2xl font-bold">A Margem</div>
         <button
           onClick={() => setOpen(true)}
