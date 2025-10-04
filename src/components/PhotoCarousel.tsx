@@ -29,30 +29,30 @@ export default function PhotoCarousel({ images = [], topButton }: PhotoCarouselP
   if (!images.length) return null;
 
   return (
-    <div className="relative max-w-md mx-auto flex items-center">
+    <div className="relative w-full max-w-lg mx-auto flex items-center justify-center sm:max-w-xl md:max-w-2xl">
       {/* Botão opcional no topo */}
       {topButton?.show && (
         <div className="absolute top-4 left-4 z-10">
           <Link
             href={topButton.href || "#"}
-            className="bg-[#00000080] text-white text-sm px-2 py-1 rounded hover:bg-opacity-70 transition"
+            className="bg-black/50 text-white text-sm px-2 py-1 rounded hover:bg-opacity-70 transition"
           >
             {topButton.label}
           </Link>
         </div>
       )}
 
-      {/* Botão esquerdo - fora da imagem */}
+      {/* Botão esquerdo */}
       <button
         onClick={prevSlide}
-        className="absolute -left-14 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center text-white text-3xl z-20 focus:outline-none"
+        className="absolute left-0 sm:-left-10 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center text-white text-2xl sm:text-3xl z-20 focus:outline-none"
         aria-label="Previous slide"
       >
         <LeftOutlined />
       </button>
 
-      {/* Imagem atual */}
-      <div className="overflow-hidden border-b-8 border-[#F38901] w-full rounded-t-lg">
+      {/* Imagem */}
+      <div className="overflow-hidden w-full rounded-t-lg border-b-8 border-[#F38901]">
         <img
           src={images[currentIndex]}
           alt={`Slide ${currentIndex + 1}`}
@@ -60,10 +60,10 @@ export default function PhotoCarousel({ images = [], topButton }: PhotoCarouselP
         />
       </div>
 
-      {/* Botão direito - fora da imagem */}
+      {/* Botão direito */}
       <button
         onClick={nextSlide}
-        className="absolute -right-14 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center text-white text-3xl z-20 focus:outline-none"
+        className="absolute right-0 sm:-right-10 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center text-white text-2xl sm:text-3xl z-20 focus:outline-none"
         aria-label="Next slide"
       >
         <RightOutlined />
