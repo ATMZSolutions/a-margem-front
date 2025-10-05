@@ -2,6 +2,7 @@
 
 import BackBtn from "@/components/BackBtn";
 import { Mail, Instagram, Phone, AtSign } from "lucide-react";
+import ContactItem from "@/components/ContactItem"; // import do subcomponente
 
 export default function ContatoPage() {
   return (
@@ -21,57 +22,49 @@ export default function ContatoPage() {
           {/* Logo */}
           <div className="w-36 h-36 sm:w-40 sm:h-40 rounded-full border-4 border-white overflow-hidden mb-4 shadow-lg">
             <img
-              src="/amargem-logo-insta.webp" // imagem temporária
+              src="/amargem-logo-insta.webp"
               alt="Logo"
               className="w-full h-full object-cover"
             />
           </div>
 
           {/* Lista de contatos */}
-            <div className="space-y-3 font-medium">
+          <div className="space-y-3 font-medium">
             <ContactItem
               icon={
-              <span className="flex items-center justify-center w-8 h-8 rounded-full bg-white">
-                <Phone size={18} color="#412551" />
-              </span>
+                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-white">
+                  <Phone size={18} color="#412551" />
+                </span>
               }
               text="+55 (81) 9 8600-9096"
             />
             <ContactItem
               icon={
-              <span className="flex items-center justify-center w-8 h-8 rounded-full bg-white">
-                <Mail size={18} color="#412551" />
-              </span>
+                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-white">
+                  <Mail size={18} color="#412551" />
+                </span>
               }
               text="coletivoamargem1@gmail.com"
             />
             <ContactItem
               icon={
-              <span className="flex items-center justify-center w-8 h-8 rounded-full bg-white">
-                <Instagram size={18} color="#412551" />
-              </span>
+                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-white">
+                  <Instagram size={18} color="#412551" />
+                </span>
               }
               text="@amargemcoletivo"
             />
             <ContactItem
               icon={
-              <span className="flex items-center justify-center w-8 h-8 rounded-full bg-white">
-                <AtSign size={18} color="#412551" />
-              </span>
+                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-white">
+                  <AtSign size={18} color="#412551" />
+                </span>
               }
               text="@coletivoamargem"
             />
-            </div>
+          </div>
         </div>
       </div>
     </section>
   );
 }
-
-/* Subcomponente reutilizável */
-const ContactItem = ({ icon, text }: { icon: React.ReactNode; text: string }) => (
-  <div className="flex items-center justify-center gap-2">
-    {icon}
-    <span>{text}</span>
-  </div>
-);
