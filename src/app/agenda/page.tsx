@@ -78,39 +78,47 @@ export default function AgendaPage({
   ];
 
   // Agrupamento por cidade
-  const eventsByCity = events.reduce<Record<string, EventItem[]>>((acc, event) => {
-    if (!acc[event.city]) acc[event.city] = [];
-    acc[event.city].push(event);
-    return acc;
-  }, {});
+  const eventsByCity = events.reduce<Record<string, EventItem[]>>(
+    (acc, event) => {
+      if (!acc[event.city]) acc[event.city] = [];
+      acc[event.city].push(event);
+      return acc;
+    },
+    {}
+  );
 
   return (
     <div
       className="min-h-screen w-full flex justify-center py-24 relative"
       style={{ backgroundColor: bgColor }}
     >
-        {bgImage && (
-          <div
-            className="absolute inset-0 bg-cover bg-center opacity-5 pointer-events-none"
-            style={{ backgroundImage: `url(${bgImage})` }}
-          />
-        )}
+      {bgImage && (
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-5 pointer-events-none"
+          style={{ backgroundImage: `url(${bgImage})` }}
+        />
+      )}
+      <BackBtn label="Agenda" />
 
-        {/* Conteúdo central */}
-      <div className="relative w-full max-w-md text-white font-sans mx-4 z-10">
-        <BackBtn label="Agenda" />
-
+      {/* Conteúdo central */}
+      <div className="relative w-full max-w-md text-white font-sans mx-4 z-10 mt-16">
         {/* Calendário */}
         <div className="bg-[#F38901] rounded-lg p-4 shadow-lg mb-6">
           {/* Cabeçalho do calendário */}
           <div className="flex justify-between items-center mb-3">
-            <button type="button" onClick={() => setCurrentDate(subMonths(currentDate, 1))}>
+            <button
+              type="button"
+              onClick={() => setCurrentDate(subMonths(currentDate, 1))}
+            >
               <ChevronLeft className="text-[#5C1E0F]" />
             </button>
             <span className="uppercase font-bold text-lg text-[#5C1E0F]">
               {format(currentDate, "MMMM yyyy", { locale: ptBR })}
             </span>
-            <button type="button" onClick={() => setCurrentDate(addMonths(currentDate, 1))}>
+            <button
+              type="button"
+              onClick={() => setCurrentDate(addMonths(currentDate, 1))}
+            >
               <ChevronRight className="text-[#5C1E0F]" />
             </button>
           </div>
@@ -133,18 +141,25 @@ export default function AgendaPage({
               const calendarCells = [...allDays, ...blanksAfter];
 
               return calendarCells.map((day, idx) => {
-                if (!day) return <div key={`blank-${idx}`} className="h-7 w-7" />;
+                if (!day)
+                  return <div key={`blank-${idx}`} className="h-7 w-7" />;
 
                 const dayNum = day.getDate();
                 const hasEvent = events.some(
-                  (ev) => ev.date && format(ev.date, "dd/MM/yyyy") === format(day, "dd/MM/yyyy")
+                  (ev) =>
+                    ev.date &&
+                    format(ev.date, "dd/MM/yyyy") === format(day, "dd/MM/yyyy")
                 );
 
                 return (
                   <div
                     key={day.toISOString()}
                     className={`relative flex items-center justify-center h-7 w-7 rounded-full
-                      ${isToday(day) ? "bg-[#5C1E0F] text-white font-bold" : "text-[#5C1E0F]"}
+                      ${
+                        isToday(day)
+                          ? "bg-[#5C1E0F] text-white font-bold"
+                          : "text-[#5C1E0F]"
+                      }
                       ${!isSameMonth(day, currentDate) ? "opacity-30" : ""}
                       ${hasEvent ? "border-2 border-[#5C1E0F]" : ""}
                     `}
@@ -168,13 +183,20 @@ export default function AgendaPage({
               </div>
               <div className="space-y-4">
                 {cityEvents.map((event: EventItem, i: number) => (
-                  <div key={i} className="w-full border-b-3 border-white/20 pb-2 flex justify-start">
+                  <div
+                    key={i}
+                    className="w-full border-b-3 border-white/20 pb-2 flex justify-start"
+                  >
                     <div className="flex items-center gap-3">
                       {event.date && (
                         <div className="text-[#F38901] font-bold text-lg flex flex-col items-end leading-tight gap-0">
-                          {format(event.date, "dd MMM", { locale: ptBR }).toUpperCase()}
+                          {format(event.date, "dd MMM", {
+                            locale: ptBR,
+                          }).toUpperCase()}
                           {event.time && (
-                          <div className="font-light text-[12px] text-white/80 mt-[-2px]">{event.time}</div>
+                            <div className="font-light text-[12px] text-white/80 mt-[-2px]">
+                              {event.time}
+                            </div>
                           )}
                         </div>
                       )}

@@ -14,7 +14,7 @@ export default function BackBtn({ label }: { label?: string }) {
   return (
     <button
       onClick={() => router.back()}
-      className="flex items-center gap-2 text-white hover:text-gray-300 transition-colors mb-8"
+      className="absolute top-20 md:left-40 left-4 flex flex-row items-center"
       aria-label="Voltar"
     >
       <ChevronLeft size={22} strokeWidth={2.5} />
