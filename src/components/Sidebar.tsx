@@ -14,6 +14,7 @@ const menuItems = [
   { label: "Espetáculos", href: "/espetaculos" },
   { label: "Projetos", href: "/projetos" },
   { label: "Notícias", href: "/noticias" },
+  { label: "Indicações", href: "/indicacoes" },
   { label: "Contato", href: "/contato" },
 ];
 
