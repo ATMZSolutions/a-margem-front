@@ -6,9 +6,10 @@ interface AppDrawerProps {
   onClose: () => void;
   title: string;
   contents: string[]
+  bgColor?: string;
 }
 
-const AppDrawer: React.FC<AppDrawerProps> = ({ open, onClose, title, contents }) => {
+const AppDrawer: React.FC<AppDrawerProps> = ({ open, onClose, title, contents, bgColor }) => {
   
   return (
     <AntDrawer
@@ -16,7 +17,7 @@ const AppDrawer: React.FC<AppDrawerProps> = ({ open, onClose, title, contents })
       closable={{ 'aria-label': 'Close Button' }}
       onClose={onClose}
       open={open}
-      style={{ backgroundColor: '#fd9917', fontSize: '16px'}}
+      style={{ backgroundColor: bgColor ?? '#fd9917', fontSize: '16px'}}
 >
       {contents.map((paragraph, index) => (
         <p key={index}>{paragraph}</p>
