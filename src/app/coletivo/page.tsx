@@ -11,12 +11,12 @@ interface Integrante {
 }
 
 const integrantes: Integrante[] = [
-  { id: "bento", nome: "Bento", image: "https://picsum.photos/200?random=11" },
-  { id: "cas", nome: "Cas", image: "https://picsum.photos/200?random=12" },
-  { id: "duda", nome: "Duda", image: "https://picsum.photos/200?random=13" },
-  { id: "guerra", nome: "Guerra", image: "https://picsum.photos/200?random=14" },
-  { id: "ina", nome: "Iná", image: "https://picsum.photos/200?random=15" },
-  { id: "torres", nome: "Torres", image: "https://picsum.photos/200?random=16" },
+  { id: "bento", nome: "Bento", image: "/coletivo/bento.webp" },
+  { id: "cas", nome: "Cas", image: "/coletivo/cas.webp" },
+  { id: "duda", nome: "Duda", image: "/coletivo/duda.webp" },
+  { id: "guerra", nome: "Guerra", image: "/coletivo/guerra.webp" },
+  { id: "ina", nome: "Iná", image: "/coletivo/ina.webp" },
+  { id: "torres", nome: "Torres", image: "/coletivo/torres.webp" },
 ];
 
 export default function ColetivoPage() {

@@ -6,12 +6,10 @@ import Contato from "@/components/home/Contato";
 export default function Home() {
   return (
     <div className="font-sans">
-
       <Main />
-      <Sobre />
       <Agenda />
+      <Sobre />
       <Contato />
-      
     </div>
   );
 }
