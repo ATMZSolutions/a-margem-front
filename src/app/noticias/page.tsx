@@ -7,6 +7,7 @@ interface NewsItem {
   id: number;
   titulo: string;
   conteudo: string;
+  link: string;
   createdAt: string;
 }
 
@@ -89,6 +90,9 @@ export default function NoticiasPage() {
                   <p className="text-sm sm:text-base text-justify text-gray-200 mt-1 line-clamp-3">
                     {item.conteudo}
                   </p>
+                  <a href={item.link} className="text-blue-400 hover:underline mt-2 break-all">
+                    {item.link}
+                  </a>
                 </div>
               </div>
             </article>

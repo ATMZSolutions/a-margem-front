@@ -4,6 +4,7 @@ interface NoticiaItem {
   id: number;
   titulo: string;
   conteudo: string;
+  link: string;
   createdAt: string;
 }
 
@@ -58,7 +59,11 @@ const Main = ({ noticias }: MainProps) => {
                     <p className="text-white/80 text-sm line-clamp-3 mb-4">
                       {noticia.conteudo}
                     </p>
-                    
+
+                    <a href={noticia.link} className="text-blue-400 hover:underline mt-2 break-all">
+                      {noticia.link}
+                    </a>
+
                     <div className="text-right">
                       <span className="text-[#F5A623] text-sm hover:underline cursor-pointer">
                         Leia mais →

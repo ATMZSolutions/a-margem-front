@@ -13,11 +13,21 @@ type NoticiaItem = {
   id?: number;
   titulo: string;
   conteudo: string;
+  link: string;
+};
+
+type LivroItem = {
+  id?: number;
+  titulo: string;
+  autor: string;
+  descricao: string;
+  imagem?: string;
 };
 
 export default function AdminClient() {
   const [agendas, setAgendas] = useState<AgendaItem[]>([]);
   const [noticias, setNoticias] = useState<NoticiaItem[]>([]);
+  const [livros, setLivros] = useState<LivroItem[]>([]);
 
   const [newAgenda, setNewAgenda] = useState<AgendaItem>({
     titulo: "",
@@ -28,13 +38,23 @@ export default function AdminClient() {
   const [newNoticia, setNewNoticia] = useState<NoticiaItem>({
     titulo: "",
     conteudo: "",
+    link: "",
   });
+  const [newLivro, setNewLivro] = useState<LivroItem>({
+    titulo: "",
+    autor: "",
+    descricao: "",
+    imagem: "",
+  });
+  const [uploadingImage, setUploadingImage] = useState<boolean>(false);
 
   async function load() {
     const a = await fetch("/api/admin/agenda").then((r) => r.json());
     const n = await fetch("/api/admin/noticias").then((r) => r.json());
+    const l = await fetch("/api/admin/livros").then((r) => r.json());
     setAgendas(a || []);
     setNoticias(n || []);
+    setLivros(l || []);
   }
 
   useEffect(() => {
@@ -76,13 +96,55 @@ export default function AdminClient() {
       body: JSON.stringify(newNoticia),
       headers: { "Content-Type": "application/json" },
     });
-    setNewNoticia({ titulo: "", conteudo: "" });
+    setNewNoticia({ titulo: "", conteudo: "", link: "" });
     load();
   }
 
   async function deleteNoticia(id?: number) {
     if (!id) return;
     await fetch("/api/admin/noticias?id=" + id, { method: "DELETE" });
+    load();
+  }
+
+  // Livro functions
+  async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingImage(true);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await response.json();
+      if (data.url) {
+        setNewLivro({ ...newLivro, imagem: data.url });
+      }
+    } catch (error) {
+      console.error("Upload failed:", error);
+    } finally {
+      setUploadingImage(false);
+    }
+  }
+
+  async function createLivro(e: React.FormEvent) {
+    e.preventDefault();
+    await fetch("/api/admin/livros", {
+      method: "POST",
+      body: JSON.stringify(newLivro),
+      headers: { "Content-Type": "application/json" },
+    });
+    setNewLivro({ titulo: "", autor: "", descricao: "", imagem: "" });
+    load();
+  }
+
+  async function deleteLivro(id?: number) {
+    if (!id) return;
+    await fetch("/api/admin/livros?id=" + id, { method: "DELETE" });
     load();
   }
 
@@ -203,6 +265,14 @@ export default function AdminClient() {
               }
               className="p-2 border border-white rounded"
             />
+            <input
+              placeholder="Link"
+              value={newNoticia.link || ""}
+              onChange={(e) =>
+                setNewNoticia({ ...newNoticia, link: e.target.value })
+              }
+              className="p-2 border border-white rounded"
+            />
             <button className="bg-orange-500 px-3 rounded py-2 mb-4 hover:cursor-pointer active:bg-orange-700">
               Adicionar
             </button>
@@ -222,10 +292,115 @@ export default function AdminClient() {
                   <div className="text-sm text-gray-300 line-clamp-2">
                     {n.conteudo}
                   </div>
+                  {n.link && (
+                    <a
+                      href={n.link}
+                      className="text-blue-500 hover:underline"
+                    >
+                      {n.link}
+                    </a>
+                  )}
                 </div>
                 <div className="flex gap-2">
                   <button
                     onClick={() => deleteNoticia(n.id)}
+                    className="bg-red-600 px-2 rounded"
+                  >
+                    Excluir
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        {/* Livros Section */}
+        <section>
+          <h2 className="text-xl font-semibold">Livros</h2>
+          <form onSubmit={createLivro} className="space-y-3 my-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <input
+                required
+                placeholder="Título"
+                value={newLivro.titulo}
+                onChange={(e) =>
+                  setNewLivro({ ...newLivro, titulo: e.target.value })
+                }
+                className="p-2 text-white rounded border border-white"
+              />
+              <input
+                required
+                placeholder="Autor"
+                value={newLivro.autor}
+                onChange={(e) =>
+                  setNewLivro({ ...newLivro, autor: e.target.value })
+                }
+                className="p-2 text-white rounded border border-white"
+              />
+            </div>
+            <textarea
+              required
+              placeholder="Descrição"
+              value={newLivro.descricao}
+              onChange={(e) =>
+                setNewLivro({ ...newLivro, descricao: e.target.value })
+              }
+              className="w-full p-2 text-white rounded border border-white"
+              rows={3}
+            />
+            <div className="flex gap-3 items-center">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                disabled={uploadingImage}
+                className="p-2 text-white bg-gray-700 rounded"
+              />
+              {uploadingImage && (
+                <span className="text-yellow-400">Enviando...</span>
+              )}
+              {newLivro.imagem && (
+                <img
+                  src={newLivro.imagem}
+                  alt="Preview"
+                  className="w-12 h-12 object-cover rounded"
+                />
+              )}
+            </div>
+            <button
+              type="submit"
+              className="bg-orange-500 px-3 py-2 rounded hover:bg-orange-600 disabled:opacity-50"
+              disabled={uploadingImage}
+            >
+              Criar Livro
+            </button>
+          </form>
+
+          <ul className="space-y-2">
+            {livros.map((l) => (
+              <li
+                key={l.id}
+                className="flex justify-between items-start bg-black/30 p-2 rounded"
+              >
+                <div className="flex gap-3 items-start flex-1">
+                  {l.imagem && (
+                    <img
+                      src={l.imagem}
+                      alt={l.titulo}
+                      className="w-16 h-20 object-cover rounded"
+                    />
+                  )}
+                  <div className="flex-1">
+                    <div className="font-semibold">{l.titulo}</div>
+                    <div className="text-sm text-gray-300">por {l.autor}</div>
+                    <div className="text-xs text-gray-400 mt-1">
+                      {l.descricao}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => deleteLivro(l.id)}
                     className="bg-red-600 px-2 rounded"
                   >
                     Excluir

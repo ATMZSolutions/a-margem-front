@@ -18,6 +18,7 @@ interface NoticiaItem {
   id: number;
   titulo: string;
   conteudo: string;
+  link: string;
   createdAt: string;
 }
 
