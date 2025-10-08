@@ -35,17 +35,21 @@ export default function AdminClient() {
     local: "",
   });
   const [agendaTime, setAgendaTime] = useState<string>("19:00"); // horário padrão
+  const [editingAgenda, setEditingAgenda] = useState<AgendaItem | null>(null);
+  const [editingAgendaTime, setEditingAgendaTime] = useState<string>("19:00");
   const [newNoticia, setNewNoticia] = useState<NoticiaItem>({
     titulo: "",
     conteudo: "",
     link: "",
   });
+  const [editingNoticia, setEditingNoticia] = useState<NoticiaItem | null>(null);
   const [newLivro, setNewLivro] = useState<LivroItem>({
     titulo: "",
     autor: "",
     descricao: "",
     imagem: "",
   });
+  const [editingLivro, setEditingLivro] = useState<LivroItem | null>(null);
   const [uploadingImage, setUploadingImage] = useState<boolean>(false);
 
   async function load() {
@@ -89,6 +93,46 @@ export default function AdminClient() {
     load();
   }
 
+  function startEditAgenda(agenda: AgendaItem) {
+    setEditingAgenda(agenda);
+    // Extrair hora da data ISO
+    const date = new Date(agenda.data);
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    setEditingAgendaTime(`${hours}:${minutes}`);
+  }
+
+  function cancelEditAgenda() {
+    setEditingAgenda(null);
+    setEditingAgendaTime("19:00");
+  }
+
+  async function updateAgenda(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editingAgenda) return;
+
+    // Combinar data e hora no fuso horário local
+    const currentDate = new Date(editingAgenda.data);
+    const dateOnly = currentDate.toISOString().split('T')[0];
+    const dateTimeString = `${dateOnly}T${editingAgendaTime}:00`;
+    const localDate = new Date(dateTimeString);
+    const isoString = localDate.toISOString();
+
+    const agendaToUpdate = {
+      ...editingAgenda,
+      data: isoString,
+    };
+
+    await fetch("/api/admin/agenda", {
+      method: "PUT",
+      body: JSON.stringify(agendaToUpdate),
+      headers: { "Content-Type": "application/json" },
+    });
+    setEditingAgenda(null);
+    setEditingAgendaTime("19:00");
+    load();
+  }
+
   async function createNoticia(e: React.FormEvent) {
     e.preventDefault();
     await fetch("/api/admin/noticias", {
@@ -103,6 +147,27 @@ export default function AdminClient() {
   async function deleteNoticia(id?: number) {
     if (!id) return;
     await fetch("/api/admin/noticias?id=" + id, { method: "DELETE" });
+    load();
+  }
+
+  function startEditNoticia(noticia: NoticiaItem) {
+    setEditingNoticia(noticia);
+  }
+
+  function cancelEditNoticia() {
+    setEditingNoticia(null);
+  }
+
+  async function updateNoticia(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editingNoticia) return;
+
+    await fetch("/api/admin/noticias", {
+      method: "PUT",
+      body: JSON.stringify(editingNoticia),
+      headers: { "Content-Type": "application/json" },
+    });
+    setEditingNoticia(null);
     load();
   }
 
@@ -146,6 +211,51 @@ export default function AdminClient() {
     if (!id) return;
     await fetch("/api/admin/livros?id=" + id, { method: "DELETE" });
     load();
+  }
+
+  function startEditLivro(livro: LivroItem) {
+    setEditingLivro(livro);
+  }
+
+  function cancelEditLivro() {
+    setEditingLivro(null);
+  }
+
+  async function updateLivro(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editingLivro) return;
+
+    await fetch("/api/admin/livros", {
+      method: "PUT",
+      body: JSON.stringify(editingLivro),
+      headers: { "Content-Type": "application/json" },
+    });
+    setEditingLivro(null);
+    load();
+  }
+
+  async function handleEditImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !editingLivro) return;
+
+    setUploadingImage(true);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await response.json();
+      if (data.url) {
+        setEditingLivro({ ...editingLivro, imagem: data.url });
+      }
+    } catch (error) {
+      console.error("Upload failed:", error);
+    } finally {
+      setUploadingImage(false);
+    }
   }
 
   async function logout() {
@@ -216,24 +326,98 @@ export default function AdminClient() {
           )}
           <ul className="space-y-2">
             {agendas.map((a) => (
-              <li
-                key={a.id}
-                className="flex justify-between items-center bg-black/30 px-4 py-2 rounded"
-              >
-                <div>
-                  <div className="font-semibold">{a.titulo}</div>
-                  <div className="text-sm text-gray-300">
-                    {new Date(a.data).toLocaleString("pt-BR")} — {a.local}
+              <li key={a.id} className="bg-black/30 px-4 py-2 rounded">
+                {editingAgenda?.id === a.id && editingAgenda ? (
+                  <form onSubmit={updateAgenda} className="space-y-2">
+                    <input
+                      required
+                      placeholder="Título"
+                      value={editingAgenda.titulo}
+                      onChange={(e) =>
+                        setEditingAgenda({ 
+                          ...editingAgenda, 
+                          titulo: e.target.value,
+                          data: editingAgenda.data || "",
+                          local: editingAgenda.local || ""
+                        })
+                      }
+                      className="w-full p-2 border border-white rounded text-white"
+                    />
+                    <div className="flex gap-2">
+                      <input
+                        required
+                        type="date"
+                        value={new Date(editingAgenda.data).toISOString().split('T')[0]}
+                        onChange={(e) =>
+                          setEditingAgenda({ 
+                            ...editingAgenda, 
+                            data: e.target.value,
+                            titulo: editingAgenda.titulo || "",
+                            local: editingAgenda.local || ""
+                          })
+                        }
+                        className="flex-1 p-2 border border-white rounded text-white"
+                      />
+                      <input
+                        type="time"
+                        value={editingAgendaTime}
+                        onChange={(e) => setEditingAgendaTime(e.target.value)}
+                        className="flex-1 p-2 border border-white rounded text-white"
+                      />
+                    </div>
+                    <input
+                      placeholder="Local"
+                      value={editingAgenda.local || ""}
+                      onChange={(e) =>
+                        setEditingAgenda({ 
+                          ...editingAgenda, 
+                          local: e.target.value,
+                          titulo: editingAgenda.titulo || "",
+                          data: editingAgenda.data || ""
+                        })
+                      }
+                      className="w-full p-2 border border-white rounded text-white"
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        type="submit"
+                        className="bg-green-600 px-3 py-1 rounded hover:bg-green-700"
+                      >
+                        Salvar
+                      </button>
+                      <button
+                        type="button"
+                        onClick={cancelEditAgenda}
+                        className="bg-gray-600 px-3 py-1 rounded hover:bg-gray-700"
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <div className="font-semibold">{a.titulo}</div>
+                      <div className="text-sm text-gray-300">
+                        {new Date(a.data).toLocaleString("pt-BR")} — {a.local}
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => startEditAgenda(a)}
+                        className="bg-blue-600 px-2 rounded hover:bg-blue-700"
+                      >
+                        Editar
+                      </button>
+                      <button
+                        onClick={() => deleteAgenda(a.id)}
+                        className="bg-red-600 px-2 rounded hover:bg-red-700"
+                      >
+                        Excluir
+                      </button>
+                    </div>
                   </div>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => deleteAgenda(a.id)}
-                    className="bg-red-600 px-2 rounded"
-                  >
-                    Excluir
-                  </button>
-                </div>
+                )}
               </li>
             ))}
           </ul>
@@ -283,32 +467,99 @@ export default function AdminClient() {
           )}
           <ul className="space-y-2">
             {noticias.map((n) => (
-              <li
-                key={n.id}
-                className="flex justify-between items-center bg-black/30 p-2 rounded"
-              >
-                <div>
-                  <div className="font-semibold">{n.titulo}</div>
-                  <div className="text-sm text-gray-300 line-clamp-2">
-                    {n.conteudo}
+              <li key={n.id} className="bg-black/30 p-2 rounded">
+                {editingNoticia?.id === n.id && editingNoticia ? (
+                  <form onSubmit={updateNoticia} className="space-y-2">
+                    <input
+                      required
+                      placeholder="Título"
+                      value={editingNoticia.titulo}
+                      onChange={(e) =>
+                        setEditingNoticia({ 
+                          ...editingNoticia, 
+                          titulo: e.target.value,
+                          conteudo: editingNoticia.conteudo || "",
+                          link: editingNoticia.link || ""
+                        })
+                      }
+                      className="w-full p-2 border border-white rounded text-white"
+                    />
+                    <textarea
+                      required
+                      placeholder="Adicione o conteúdo ..."
+                      value={editingNoticia.conteudo}
+                      onChange={(e) =>
+                        setEditingNoticia({ 
+                          ...editingNoticia, 
+                          conteudo: e.target.value,
+                          titulo: editingNoticia.titulo || "",
+                          link: editingNoticia.link || ""
+                        })
+                      }
+                      className="w-full p-2 border border-white rounded text-white"
+                      rows={3}
+                    />
+                    <input
+                      placeholder="Link"
+                      value={editingNoticia.link || ""}
+                      onChange={(e) =>
+                        setEditingNoticia({ 
+                          ...editingNoticia, 
+                          link: e.target.value,
+                          titulo: editingNoticia.titulo || "",
+                          conteudo: editingNoticia.conteudo || ""
+                        })
+                      }
+                      className="w-full p-2 border border-white rounded text-white"
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        type="submit"
+                        className="bg-green-600 px-3 py-1 rounded hover:bg-green-700"
+                      >
+                        Salvar
+                      </button>
+                      <button
+                        type="button"
+                        onClick={cancelEditNoticia}
+                        className="bg-gray-600 px-3 py-1 rounded hover:bg-gray-700"
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <div className="font-semibold">{n.titulo}</div>
+                      <div className="text-sm text-gray-300 line-clamp-2">
+                        {n.conteudo}
+                      </div>
+                      {n.link && (
+                        <a
+                          href={n.link}
+                          className="text-blue-500 hover:underline"
+                        >
+                          {n.link}
+                        </a>
+                      )}
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => startEditNoticia(n)}
+                        className="bg-blue-600 px-2 rounded hover:bg-blue-700"
+                      >
+                        Editar
+                      </button>
+                      <button
+                        onClick={() => deleteNoticia(n.id)}
+                        className="bg-red-600 px-2 rounded hover:bg-red-700"
+                      >
+                        Excluir
+                      </button>
+                    </div>
                   </div>
-                  {n.link && (
-                    <a
-                      href={n.link}
-                      className="text-blue-500 hover:underline"
-                    >
-                      {n.link}
-                    </a>
-                  )}
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => deleteNoticia(n.id)}
-                    className="bg-red-600 px-2 rounded"
-                  >
-                    Excluir
-                  </button>
-                </div>
+                )}
               </li>
             ))}
           </ul>
@@ -316,7 +567,7 @@ export default function AdminClient() {
 
         {/* Livros Section */}
         <section>
-          <h2 className="text-xl font-semibold">Livros</h2>
+          <h2 className="text-xl border-l-4 my-8 border-orange-500 pl-2 font-semibold">Livros</h2>
           <form onSubmit={createLivro} className="space-y-3 my-3">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <input
@@ -376,36 +627,129 @@ export default function AdminClient() {
             </button>
           </form>
 
+          {livros.length > 0 && (
+            <h3 className="text-lg mt-4 my-2">Livros cadastrados: </h3>
+          )}
           <ul className="space-y-2">
             {livros.map((l) => (
-              <li
-                key={l.id}
-                className="flex justify-between items-start bg-black/30 p-2 rounded"
-              >
-                <div className="flex gap-3 items-start flex-1">
-                  {l.imagem && (
-                    <img
-                      src={l.imagem}
-                      alt={l.titulo}
-                      className="w-16 h-20 object-cover rounded"
+              <li key={l.id} className="bg-black/30 p-2 rounded">
+                {editingLivro?.id === l.id && editingLivro ? (
+                  <form onSubmit={updateLivro} className="space-y-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <input
+                        required
+                        placeholder="Título"
+                        value={editingLivro.titulo}
+                        onChange={(e) =>
+                          setEditingLivro({ 
+                            ...editingLivro, 
+                            titulo: e.target.value,
+                            autor: editingLivro.autor || "",
+                            descricao: editingLivro.descricao || ""
+                          })
+                        }
+                        className="p-2 text-white rounded border border-white"
+                      />
+                      <input
+                        required
+                        placeholder="Autor"
+                        value={editingLivro.autor}
+                        onChange={(e) =>
+                          setEditingLivro({ 
+                            ...editingLivro, 
+                            autor: e.target.value,
+                            titulo: editingLivro.titulo || "",
+                            descricao: editingLivro.descricao || ""
+                          })
+                        }
+                        className="p-2 text-white rounded border border-white"
+                      />
+                    </div>
+                    <textarea
+                      required
+                      placeholder="Descrição"
+                      value={editingLivro.descricao}
+                      onChange={(e) =>
+                        setEditingLivro({ 
+                          ...editingLivro, 
+                          descricao: e.target.value,
+                          titulo: editingLivro.titulo || "",
+                          autor: editingLivro.autor || ""
+                        })
+                      }
+                      className="w-full p-2 text-white rounded border border-white"
+                      rows={3}
                     />
-                  )}
-                  <div className="flex-1">
-                    <div className="font-semibold">{l.titulo}</div>
-                    <div className="text-sm text-gray-300">por {l.autor}</div>
-                    <div className="text-xs text-gray-400 mt-1">
-                      {l.descricao}
+                    <div className="flex gap-3 items-center">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleEditImageUpload}
+                        disabled={uploadingImage}
+                        className="p-2 text-white bg-gray-700 rounded"
+                      />
+                      {uploadingImage && (
+                        <span className="text-yellow-400">Enviando...</span>
+                      )}
+                      {editingLivro.imagem && (
+                        <img
+                          src={editingLivro.imagem}
+                          alt="Preview"
+                          className="w-12 h-12 object-cover rounded"
+                        />
+                      )}
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        type="submit"
+                        className="bg-green-600 px-3 py-1 rounded hover:bg-green-700"
+                        disabled={uploadingImage}
+                      >
+                        Salvar
+                      </button>
+                      <button
+                        type="button"
+                        onClick={cancelEditLivro}
+                        className="bg-gray-600 px-3 py-1 rounded hover:bg-gray-700"
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <div className="flex justify-between items-start">
+                    <div className="flex gap-3 items-start flex-1">
+                      {l.imagem && (
+                        <img
+                          src={l.imagem}
+                          alt={l.titulo}
+                          className="w-16 h-20 object-cover rounded"
+                        />
+                      )}
+                      <div className="flex-1">
+                        <div className="font-semibold">{l.titulo}</div>
+                        <div className="text-sm text-gray-300">por {l.autor}</div>
+                        <div className="text-xs text-gray-400 mt-1">
+                          {l.descricao}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => startEditLivro(l)}
+                        className="bg-blue-600 px-2 rounded hover:bg-blue-700"
+                      >
+                        Editar
+                      </button>
+                      <button
+                        onClick={() => deleteLivro(l.id)}
+                        className="bg-red-600 px-2 rounded hover:bg-red-700"
+                      >
+                        Excluir
+                      </button>
                     </div>
                   </div>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => deleteLivro(l.id)}
-                    className="bg-red-600 px-2 rounded"
-                  >
-                    Excluir
-                  </button>
-                </div>
+                )}
               </li>
             ))}
           </ul>
