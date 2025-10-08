@@ -25,7 +25,7 @@ const PremioDetalhes = ({ params }: PremioDetalhesProps) => {
         >
             <BackBtn label="Prêmios" />
 
-            <div className="flex max-w-xl text-white flex-col items-center mx-2 justify-center gap-10 ">
+            <div className="flex max-w-xl text-white flex-col items-center mt-40 mx-2 justify-center gap-10 ">
                 {premios.map((premio, index) => (
                     <Premio
                         key={index}

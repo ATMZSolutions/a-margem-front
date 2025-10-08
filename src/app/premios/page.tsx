@@ -14,14 +14,27 @@ export default function PremiosPage() {
     >
       <BackBtn label="Prêmios" />
 
-      <div className="flex flex-col items-center justify-center gap-10 ">
+      <div
+        className="
+          flex
+          flex-wrap
+          justify-center
+          gap-10
+          mt-40
+          w-full
+          max-w-6xl
+          px-4
+          mx-auto
+        "
+      >
         {premios.map((premio, index) => (
-          <Premio
-            key={index}
-            title={premio.title}
-            evento={premio.evento}
-            year={premio.year}
-          />
+          <div key={index} className="flex justify-center">
+            <Premio
+              title={premio.title}
+              evento={premio.evento}
+              year={premio.year}
+            />
+          </div>
         ))}
       </div>
     </section>

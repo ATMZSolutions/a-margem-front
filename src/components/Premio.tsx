@@ -15,7 +15,7 @@ const Premio: React.FC<PremioProps> = ({ title, evento, year, isSaibaMais = fals
     const href = `/premios/${slugify(title)}`
 
     return (
-        <div className="flex flex-col items-center justify-center w-60 md:w-72 mt-40 text-center">
+        <div className="flex flex-col items-center justify-center w-60 md:w-72 text-center">
             <div className="relative flex items-center justify-center">
                 <img
                     src="/louros.svg"
