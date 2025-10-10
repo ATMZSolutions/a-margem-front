@@ -29,7 +29,7 @@ export default function PhotoCarousel({ images = [], topButton }: PhotoCarouselP
   if (!images.length) return null;
 
   return (
-    <div className="relative w-4/5 max-w-lg mx-auto flex items-center justify-center sm:max-w-xl md:max-w-2xl">
+    <div className="relative mx-auto flex items-center justify-center">
       {/* Botão opcional no topo */}
       {topButton?.show && (
         <div className="absolute top-4 left-4 z-10">
