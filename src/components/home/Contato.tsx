@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
-import ContactItem from "../ContactItem";
-import { AtSign, Instagram, Mail, Phone } from "lucide-react";
+import { AtSign, Instagram, Mail } from "lucide-react";
+import { TikTokOutlined, WhatsAppOutlined } from "@ant-design/icons"; // ícones Ant Design
 import { motion, Variants } from "framer-motion";
 
 const contactVariants: Variants = {
@@ -12,10 +12,26 @@ const contactVariants: Variants = {
 
 const Contato = () => {
   const contacts = [
-    { icon: <Phone size={18} />, text: "+55 (81) 9 8600-9096" },
-    { icon: <Mail size={18} />, text: "coletivoamargem1@gmail.com" },
-    { icon: <Instagram size={18} />, text: "@amargemcoletivo" },
-    { icon: <AtSign size={18} />, text: "@coletivoamargem" },
+    {
+      icon: <WhatsAppOutlined style={{ fontSize: 18, color: "#000" }} />,
+      text: "+55 (81) 9 8600-9096",
+      link: "https://wa.me/5581986009096",
+    },
+    {
+      icon: <Mail size={18} />,
+      text: "coletivoamargem1@gmail.com",
+      link: "https://mail.google.com/mail/?view=cm&to=coletivoamargem1@gmail.com",
+    },
+    {
+      icon: <Instagram size={18} />,
+      text: "@amargemcoletivo",
+      link: "https://instagram.com/amargemcoletivo",
+    },
+    {
+      icon: <TikTokOutlined style={{ fontSize: 18, color: "#000" }} />,
+      text: "@coletivoamargem",
+      link: "https://www.tiktok.com/@coletivoamargem",
+    },
   ];
 
   return (
@@ -36,21 +52,23 @@ const Contato = () => {
 
         <div className="flex flex-col items-start space-y-2 font-medium text-white">
           {contacts.map((contact, idx) => (
-            <motion.div
+            <motion.a
               key={idx}
-              custom={idx}
+              href={contact.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 hover:underline"
               variants={contactVariants}
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true }}
-              transition={{ delay: idx * 0.2 }} // delay individual aqui
-              className="flex items-center gap-2"
+              transition={{ delay: idx * 0.2 }}
             >
               <span className="flex items-center justify-center w-8 h-8 rounded-full bg-white text-[#412551]">
                 {React.cloneElement(contact.icon, { size: 18 })}
               </span>
               <span>{contact.text}</span>
-            </motion.div>
+            </motion.a>
           ))}
         </div>
       </div>

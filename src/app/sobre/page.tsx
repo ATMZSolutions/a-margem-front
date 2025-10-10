@@ -116,11 +116,11 @@ export default function SobrePage() {
     <section
       className="relative bg-[#681A01] min-h-screen flex flex-col items-center text-white px-4 pb-10 bg-cover bg-center"
       style={{
-        backgroundImage: "url('/padrao1.webp')",
+        backgroundImage: "url('/padrao2.webp')",
       }}
     >
       <BackBtn label="Sobre Nós" />
-      <div className=' max-w-3xl mt-40 mx-2'>
+      <div className=' max-w-3xl mt-48 mx-2'>
         <ConfigProvider theme={{ components: { Timeline: { dotBg: '#f38901', tailColor: '#f38901', itemPaddingBottom: 40 } } }}>
           <Timeline mode="alternate" items={timelineItems} />
         </ConfigProvider>

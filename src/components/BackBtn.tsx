@@ -22,7 +22,7 @@ export default function BackBtn({ label, color }: BackBtnProps) {
       className={`absolute top-24 md:left-40 left-4 flex flex-row items-center gap-2 text-white/90 ${color}!`}
       aria-label="Voltar"
     >
-      <CircleArrowLeft size={22} strokeWidth={2.5} />
+      <CircleArrowLeft size={25} strokeWidth={2.5} />
       <span className="font-sedgwick text-2xl font-medium uppercase tracking-widest">
         {label}
       </span>
