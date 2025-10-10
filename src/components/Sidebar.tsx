@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { MenuOutlined, CloseOutlined } from "@ant-design/icons";
 import { Drawer } from "antd";
+import { motion } from "framer-motion";
 
 const menuItems = [
   { label: "Home", href: "/" },
@@ -24,8 +25,17 @@ export default function Sidebar() {
   return (
     <div>
       {/* Barra superior com logo à esquerda e hamburguer à direita */}
-      <div className="w-full flex justify-between items-center px-4 py-1 fixed top-0 left-0 z-50  bg-black/60 backdrop-blur-[5px]">
-        <div className="text-white text-2xl font-bold">A Margem</div>
+      <div className="w-full flex justify-between items-center px-4 py-1 fixed top-0 left-0 z-50 bg-black/60 backdrop-blur-[5px]">
+        {/* Logo com animação de fade-in */}
+        <motion.img
+          src="/logo-branca.png"
+          alt="Logo A Margem"
+          className="h-10"
+          initial={{ opacity: 0, x: -50 }} // começa à esquerda
+          animate={{ opacity: 1, x: 0 }} // vai para a posição final
+          transition={{ duration: 0.8, ease: "easeOut" }}
+        />
+
         <button
           onClick={() => setOpen(true)}
           className="text-white text-2xl p-2"
@@ -40,7 +50,7 @@ export default function Sidebar() {
         placement="right"
         open={open}
         onClose={() => setOpen(false)}
-        closable={false} // remove o close padrão
+        closable={false}
         width="100%"
         styles={{
           body: {
@@ -48,12 +58,11 @@ export default function Sidebar() {
             display: "flex",
             flexDirection: "column",
             padding: "2rem",
-            alignItems: "flex-end", // alinha links à direita
+            alignItems: "flex-end",
           },
         }}
       >
         <div className="w-full flex flex-col gap-8 items-end">
-          {/* Botão de fechar manual no canto direito */}
           <button
             onClick={() => setOpen(false)}
             className="text-[#F38901] text-3xl"
@@ -62,7 +71,6 @@ export default function Sidebar() {
             <CloseOutlined />
           </button>
 
-          {/* Links alinhados à direita */}
           <nav className="flex flex-col gap-4 text-2xl font-semibold text-right">
             {menuItems.map((item) => (
               <Link
