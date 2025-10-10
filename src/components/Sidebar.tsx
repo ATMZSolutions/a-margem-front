@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { MenuOutlined, CloseOutlined } from "@ant-design/icons";
 import { Drawer } from "antd";
 import { motion } from "framer-motion";
@@ -26,15 +27,21 @@ export default function Sidebar() {
     <div>
       {/* Barra superior com logo à esquerda e hamburguer à direita */}
       <div className="w-full flex justify-between items-center px-4 py-1 fixed top-0 left-0 z-50 bg-black/60 backdrop-blur-[5px]">
-        {/* Logo com animação de fade-in */}
-        <motion.img
-          src="/logo-branca.png"
-          alt="Logo A Margem"
-          className="h-10"
-          initial={{ opacity: 0, x: -50 }} // começa à esquerda
-          animate={{ opacity: 1, x: 0 }} // vai para a posição final
+        {/* Logo com animação */}
+        <motion.div
+          initial={{ opacity: 0, x: -50 }}
+          animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
-        />
+        >
+          <Image
+            src="/logo-branca.png"
+            alt="Logo A Margem"
+            height={40}      // equivalente a h-10
+            width={160}      // define largura aproximada
+            style={{ height: "2.5rem", width: "auto" }} // h-10 = 2.5rem
+            priority
+          />
+        </motion.div>
 
         <button
           onClick={() => setOpen(true)}

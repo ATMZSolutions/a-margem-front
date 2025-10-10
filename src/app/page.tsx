@@ -18,6 +18,14 @@ const fadeUp = {
   }),
 };
 
+// Lista de seções e se devem ter animação
+const sections = [
+  { component: <Main />, animate: true },
+  { component: <Agenda />, animate: true },
+  { component: <Sobre />, animate: true },
+  { component: <Contato />, animate: true },
+];
+
 export default function Home() {
   const [atBottom, setAtBottom] = useState(false);
 
@@ -26,7 +34,7 @@ export default function Home() {
       const scrollTop = window.scrollY;
       const windowHeight = window.innerHeight;
       const fullHeight = document.body.scrollHeight;
-      setAtBottom(scrollTop + windowHeight >= fullHeight - 10); // margem de 10px
+      setAtBottom(scrollTop + windowHeight >= fullHeight - 10);
     };
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
@@ -35,22 +43,24 @@ export default function Home() {
   const scrollToTop = () =>
     window.scrollTo({ top: 0, behavior: "smooth" });
 
-  const sections = [<Main />, <Agenda />, <Sobre />, <Contato />];
-
   return (
     <div className="font-sans relative">
-      {sections.map((Section, idx) => (
-        <motion.div
-          key={idx}
-          custom={idx}
-          variants={fadeUp}
-          initial={idx === 0 ? { opacity: 1, y: 0 } : "hidden"} // primeira já aparece naturalmente
-          whileInView={idx === 0 ? {} : "visible"}
-          viewport={{ once: true, amount: 0.2 }} // só anima quando 20% visível
-        >
-          {Section}
-        </motion.div>
-      ))}
+      {sections.map(({ component, animate }, idx) =>
+        animate ? (
+          <motion.div
+            key={idx}
+            custom={idx}
+            variants={fadeUp}
+            initial={idx === 0 ? { opacity: 1, y: 0 } : "hidden"}
+            whileInView={idx === 0 ? {} : "visible"}
+            viewport={{ once: true, amount: 0.2 }}
+          >
+            {component}
+          </motion.div>
+        ) : (
+          <div key={idx}>{component}</div> // Sem animação
+        )
+      )}
 
       {/* Seta de scroll down */}
       {!atBottom && (
