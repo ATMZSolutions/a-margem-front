@@ -44,11 +44,12 @@ export default function AgendaPage({
   useEffect(() => {
     async function loadEvents() {
       try {
-        const response = await fetch('/api/agenda');
+        const response = await fetch("/api/agenda");
         const data = await response.json();
-        setEvents(data || []);
+        // garante que events sempre seja um array
+        setEvents(Array.isArray(data) ? data : []);
       } catch (error) {
-        console.error('Erro ao carregar eventos:', error);
+        console.error("Erro ao carregar eventos:", error);
         setEvents([]);
       } finally {
         setLoading(false);
@@ -59,15 +60,14 @@ export default function AgendaPage({
   }, []);
 
   // Agrupamento por local (substituindo cidade)
-  const eventsByLocation = events.reduce<Record<string, EventItem[]>>(
-    (acc, event) => {
-      const location = event.local || 'Local não informado';
-      if (!acc[location]) acc[location] = [];
-      acc[location].push(event);
-      return acc;
-    },
-    {}
-  );
+  const eventsByLocation = Array.isArray(events)
+    ? events.reduce<Record<string, EventItem[]>>((acc, event) => {
+        const location = event.local || "Local não informado";
+        if (!acc[location]) acc[location] = [];
+        acc[location].push(event);
+        return acc;
+      }, {})
+    : {};
 
   if (loading) {
     return (
@@ -134,16 +134,18 @@ export default function AgendaPage({
               const calendarCells = [...allDays, ...blanksAfter];
 
               return calendarCells.map((day, idx) => {
-                if (!day)
-                  return <div key={`blank-${idx}`} className="h-7 w-7" />;
+                if (!day) return <div key={`blank-${idx}`} className="h-7 w-7" />;
 
                 const dayNum = day.getDate();
-                const hasEvent = events.some(
-                  (ev) => {
+                const hasEvent =
+                  Array.isArray(events) &&
+                  events.some((ev) => {
                     const eventDate = new Date(ev.data);
-                    return format(eventDate, "dd/MM/yyyy") === format(day, "dd/MM/yyyy");
-                  }
-                );
+                    return (
+                      format(eventDate, "dd/MM/yyyy") ===
+                      format(day, "dd/MM/yyyy")
+                    );
+                  });
 
                 return (
                   <div
@@ -168,46 +170,47 @@ export default function AgendaPage({
 
         {/* Lista de eventos agrupados por local */}
         <div className="space-y-8">
-          {Object.entries(eventsByLocation).map(([location, locationEvents]) => (
-            <div key={location}>
-              <div className="flex items-center gap-2 mb-4">
-                <span className="bg-[#F38901] text-[#5C1E0F] font-bold px-3 py-1 rounded">
-                  {location}
-                </span>
-              </div>
-              <div className="space-y-4">
-                {locationEvents.map((event: EventItem) => {
-                  const eventDate = new Date(event.data);
-                  return (
-                    <div
-                      key={event.id}
-                      className="w-full border-b-3 border-white/20 pb-2 flex justify-start"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="text-[#F38901] font-bold text-lg flex flex-col items-end leading-tight gap-0">
-                          {format(eventDate, "dd MMM", {
-                            locale: ptBR,
-                          }).toUpperCase()}
-                          <div className="font-light text-[12px] text-white/80 mt-[-2px]">
-                            {format(eventDate, "HH:mm")}
+          {Object.entries(eventsByLocation).length > 0 ? (
+            Object.entries(eventsByLocation).map(([location, locationEvents]) => (
+              <div key={location}>
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="bg-[#F38901] text-[#5C1E0F] font-bold px-3 py-1 rounded">
+                    {location}
+                  </span>
+                </div>
+                <div className="space-y-4">
+                  {locationEvents.map((event) => {
+                    const eventDate = new Date(event.data);
+                    return (
+                      <div
+                        key={event.id}
+                        className="w-full border-b-3 border-white/20 pb-2 flex justify-start"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="text-[#F38901] font-bold text-lg flex flex-col items-end leading-tight gap-0">
+                            {format(eventDate, "dd MMM", {
+                              locale: ptBR,
+                            }).toUpperCase()}
+                            <div className="font-light text-[12px] text-white/80 mt-[-2px]">
+                              {format(eventDate, "HH:mm")}
+                            </div>
+                          </div>
+                          <div className="border-l-3 border-white/20 pl-3">
+                            <p className="text-sm font-medium">{event.titulo}</p>
+                            {event.local && (
+                              <p className="text-xs flex items-center gap-1 opacity-80">
+                                <MapPin size={12} /> {event.local}
+                              </p>
+                            )}
                           </div>
                         </div>
-                        <div className="border-l-3 border-white/20 pl-3">
-                          <p className="text-sm font-medium">{event.titulo}</p>
-                          {event.local && (
-                            <p className="text-xs flex items-center gap-1 opacity-80">
-                              <MapPin size={12} /> {event.local}
-                            </p>
-                          )}
-                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          ))}
-          {events.length === 0 && (
+            ))
+          ) : (
             <div className="text-center text-white/70 py-8">
               <p>Nenhum evento encontrado.</p>
             </div>

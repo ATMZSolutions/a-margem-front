@@ -14,7 +14,6 @@ interface AgendaItem {
   createdAt: string;
 }
 
-
 export default function Home() {
   const [agenda, setAgenda] = useState<AgendaItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -22,15 +21,13 @@ export default function Home() {
   useEffect(() => {
     async function loadData() {
       try {
-        const [agendaResponse] = await Promise.all([
-          fetch('/api/agenda'),
-        ]);
-        
+        const [agendaResponse] = await Promise.all([fetch("/api/agenda")]);
+
         const agendaData = await agendaResponse.json();
-        
+
         setAgenda(agendaData || []);
       } catch (error) {
-        console.error('Erro ao carregar dados:', error);
+        console.error("Erro ao carregar dados:", error);
       } finally {
         setLoading(false);
       }
@@ -42,7 +39,10 @@ export default function Home() {
   return (
     <div className="font-sans">
       <Main />
-      <Agenda eventos={agenda.slice(0, 5)} loading={loading} /> {/* Mostrar próximos 5 eventos */}
+      <Agenda
+        eventos={Array.isArray(agenda) ? agenda.slice(0, 5) : []}
+        loading={loading}
+      />
       <Sobre />
       <Contato />
     </div>

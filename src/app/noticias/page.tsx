@@ -16,22 +16,25 @@ export default function NoticiasPage() {
   const [loading, setLoading] = useState(true);
 
   // Fetch news from API
-  useEffect(() => {
-    async function loadNoticias() {
-      try {
-        const response = await fetch('/api/noticias');
-        const data = await response.json();
-        setNoticias(data || []);
-      } catch (error) {
-        console.error('Erro ao carregar notícias:', error);
-        setNoticias([]);
-      } finally {
-        setLoading(false);
-      }
+useEffect(() => {
+  async function loadNoticias() {
+    try {
+      const response = await fetch('/api/noticias');
+      const data = await response.json();
+      
+      // Garante que noticias sempre será array
+      setNoticias(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('Erro ao carregar notícias:', error);
+      setNoticias([]);
+    } finally {
+      setLoading(false);
     }
+  }
 
-    loadNoticias();
-  }, []);
+  loadNoticias();
+}, []);
+
 
   if (loading) {
     return (
