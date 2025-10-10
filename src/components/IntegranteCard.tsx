@@ -15,7 +15,7 @@ export default function IntegranteCard({ nome, image, onClick }: IntegranteCardP
       <img
         src={image}
         alt={nome}
-        className="w-full h-52 object-cover"
+        className="w-full h-52 md:h-64 object-cover"
       />
       <div className="absolute bottom-0 w-full bg-[#F38901] text-black text-center font-semibold">
         {nome}

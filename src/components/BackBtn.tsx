@@ -1,24 +1,31 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { ChevronLeft } from "lucide-react";
+import { CircleArrowLeft } from "lucide-react";
+
+interface BackBtnProps {
+  label?: string;
+  color?: string;
+}
 
 /**
  * Botão de voltar padrão, usado em headers ou páginas internas.
  * - Mostra ícone e texto opcionais.
  * - Usa `router.back()` para retornar à página anterior.
  */
-export default function BackBtn({ label }: { label?: string }) {
+export default function BackBtn({ label, color }: BackBtnProps) {
   const router = useRouter();
 
   return (
     <button
       onClick={() => router.back()}
-      className="absolute top-20 md:left-40 left-4 flex flex-row items-center"
+      className={`absolute top-24 md:left-40 left-4 flex flex-row items-center gap-2 text-white/90 ${color}!`}
       aria-label="Voltar"
     >
-      <ChevronLeft size={22} strokeWidth={2.5} />
-      <span className="text-2xl font-medium">{label}</span>
+      <CircleArrowLeft size={22} strokeWidth={2.5} />
+      <span className="font-sedgwick text-2xl font-medium uppercase tracking-widest">
+        {label}
+      </span>
     </button>
   );
 }

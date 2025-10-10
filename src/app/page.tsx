@@ -14,32 +14,21 @@ interface AgendaItem {
   createdAt: string;
 }
 
-interface NoticiaItem {
-  id: number;
-  titulo: string;
-  conteudo: string;
-  link: string;
-  createdAt: string;
-}
 
 export default function Home() {
   const [agenda, setAgenda] = useState<AgendaItem[]>([]);
-  const [noticias, setNoticias] = useState<NoticiaItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadData() {
       try {
-        const [agendaResponse, noticiasResponse] = await Promise.all([
+        const [agendaResponse] = await Promise.all([
           fetch('/api/agenda'),
-          fetch('/api/noticias')
         ]);
         
         const agendaData = await agendaResponse.json();
-        const noticiasData = await noticiasResponse.json();
         
         setAgenda(agendaData || []);
-        setNoticias(noticiasData || []);
       } catch (error) {
         console.error('Erro ao carregar dados:', error);
       } finally {
@@ -52,9 +41,9 @@ export default function Home() {
 
   return (
     <div className="font-sans">
-      <Main noticias={noticias.slice(0, 3)} /> {/* Mostrar últimas 3 notícias */}
-      <Sobre />
+      <Main />
       <Agenda eventos={agenda.slice(0, 5)} loading={loading} /> {/* Mostrar próximos 5 eventos */}
+      <Sobre />
       <Contato />
     </div>
   );

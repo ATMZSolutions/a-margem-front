@@ -7,7 +7,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="pt-BR">
       <body className="bg-black text-white w-full min-h-screen">
-          <Sidebar />
+        <Sidebar />
         <main>{children}</main>
         <Footer />
       </body>
