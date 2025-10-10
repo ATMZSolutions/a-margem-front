@@ -52,29 +52,31 @@ export default function Sidebar() {
           },
         }}
       >
-        {/* Botão de fechar manual no canto direito */}
-        <button
-          onClick={() => setOpen(false)}
-          className="mb-10 text-white text-3xl"
-          aria-label="Fechar menu"
-        >
-          <CloseOutlined />
-        </button>
+        <div className="w-full flex flex-col gap-8 items-end">
+          {/* Botão de fechar manual no canto direito */}
+          <button
+            onClick={() => setOpen(false)}
+            className="text-[#F38901] text-3xl"
+            aria-label="Fechar menu"
+          >
+            <CloseOutlined />
+          </button>
 
-        {/* Links alinhados à direita */}
-        <nav className="flex flex-col gap-6 text-2xl font-semibold text-right">
-          {menuItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              style={{ color: "white" }}
-              className="hover:text-gray-400 transition-colors"
-              onClick={() => setOpen(false)}
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
+          {/* Links alinhados à direita */}
+          <nav className="flex flex-col gap-4 text-2xl font-semibold text-right">
+            {menuItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                style={{ color: "white" }}
+                className="text-[#F38901]! font-sedgwick uppercase tracking-widest transition-colors"
+                onClick={() => setOpen(false)}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+        </div>
       </Drawer>
     </div>
   );

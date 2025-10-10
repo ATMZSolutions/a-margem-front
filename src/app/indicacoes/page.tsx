@@ -42,7 +42,7 @@ export default function IndicacoesPage() {
       <BackBtn label="Indicações" />
 
       {/* Lista de livros */}
-      <div className="w-full max-w-xl mt-32 grid sm:grid-cols-2 lg:grid-cols-2 gap-6 place-items-center">
+      <div className="w-full max-w-xl mt-40 grid sm:grid-cols-2 lg:grid-cols-2 gap-6 place-items-center">
         {booksData.map((book) => (
           <article
             key={book.id}

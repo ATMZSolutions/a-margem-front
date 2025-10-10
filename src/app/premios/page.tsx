@@ -20,7 +20,7 @@ export default function PremiosPage() {
           flex-wrap
           justify-center
           gap-10
-          mt-40
+          mt-44
           w-full
           max-w-6xl
           px-4
