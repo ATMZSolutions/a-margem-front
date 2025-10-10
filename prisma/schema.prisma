@@ -1,6 +1,6 @@
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 generator client {
@@ -19,5 +19,17 @@ model Noticia {
   id        Int      @id @default(autoincrement())
   titulo    String
   conteudo  String
+  link      String
   createdAt DateTime @default(now())
+}
+
+model Book {
+  id        Int      @id @default(autoincrement())
+  titulo    String
+  autor     String
+  descricao String
+  imagem    String?
+  createdAt DateTime @default(now())
+
+  @@map("Livro")
 }
