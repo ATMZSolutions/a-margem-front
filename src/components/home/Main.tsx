@@ -36,7 +36,7 @@ const Main = () => {
       />
 
       {/* Overlay preto fixo */}
-      <div className="absolute inset-0 bg-black/80" />
+      <div className="absolute inset-0 bg-black/60" />
 
       {/* Logo centralizado */}
       <div className="relative z-10 flex items-center justify-center w-full px-4">
