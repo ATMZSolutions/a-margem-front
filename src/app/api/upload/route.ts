@@ -19,7 +19,10 @@ export async function POST(request: NextRequest) {
     // Criar nome único para o arquivo
     const timestamp = Date.now();
     const extension = file.name.split('.').pop();
-    const filename = `livro_${timestamp}.${extension}`;
+    
+    // Determinar o tipo baseado no campo 'type' se fornecido
+    const formType = data.get('type') as string || 'general';
+    const filename = `${formType}_${timestamp}.${extension}`;
 
     // Converter arquivo para buffer
     const bytes = await file.arrayBuffer();

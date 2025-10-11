@@ -24,10 +24,24 @@ type LivroItem = {
   imagem?: string;
 };
 
+type ProjetoItem = {
+  id?: number;
+  data: string;
+  descricao: string;
+};
+
+type SobreItem = {
+  ano: number;
+  imagem?: string;
+  descricao: string;
+};
+
 export default function AdminClient() {
   const [agendas, setAgendas] = useState<AgendaItem[]>([]);
   const [noticias, setNoticias] = useState<NoticiaItem[]>([]);
   const [livros, setLivros] = useState<LivroItem[]>([]);
+  const [projetos, setProjetos] = useState<ProjetoItem[]>([]);
+  const [sobres, setSobres] = useState<SobreItem[]>([]);
 
   const [newAgenda, setNewAgenda] = useState<AgendaItem>({
     titulo: "",
@@ -52,13 +66,33 @@ export default function AdminClient() {
   const [editingLivro, setEditingLivro] = useState<LivroItem | null>(null);
   const [uploadingImage, setUploadingImage] = useState<boolean>(false);
 
+  // Estados para Projeto
+  const [newProjeto, setNewProjeto] = useState<ProjetoItem>({
+    data: "",
+    descricao: "",
+  });
+  const [editingProjeto, setEditingProjeto] = useState<ProjetoItem | null>(null);
+
+  // Estados para Sobre
+  const [newSobre, setNewSobre] = useState<SobreItem>({
+    ano: new Date().getFullYear(),
+    imagem: "",
+    descricao: "",
+  });
+  const [editingSobre, setEditingSobre] = useState<SobreItem | null>(null);
+  const [uploadingSobreImage, setUploadingSobreImage] = useState<boolean>(false);
+
   async function load() {
     const a = await fetch("/api/admin/agenda").then((r) => r.json());
     const n = await fetch("/api/admin/noticias").then((r) => r.json());
     const l = await fetch("/api/admin/livros").then((r) => r.json());
+    const p = await fetch("/api/admin/projeto").then((r) => r.json());
+    const s = await fetch("/api/admin/sobre").then((r) => r.json());
     setAgendas(a || []);
     setNoticias(n || []);
     setLivros(l || []);
+    setProjetos(p || []);
+    setSobres(s || []);
   }
 
   useEffect(() => {
@@ -255,6 +289,155 @@ export default function AdminClient() {
       console.error("Upload failed:", error);
     } finally {
       setUploadingImage(false);
+    }
+  }
+
+  // Funções para Projeto
+  async function createProjeto(e: React.FormEvent) {
+    e.preventDefault();
+    const dateTimeString = `${newProjeto.data}T00:00:00`;
+    const localDate = new Date(dateTimeString);
+    const isoString = localDate.toISOString();
+
+    const projetoToCreate = {
+      ...newProjeto,
+      data: isoString,
+    };
+
+    await fetch("/api/admin/projeto", {
+      method: "POST",
+      body: JSON.stringify(projetoToCreate),
+      headers: { "Content-Type": "application/json" },
+    });
+    setNewProjeto({ data: "", descricao: "" });
+    load();
+  }
+
+  async function deleteProjeto(id?: number) {
+    if (!id) return;
+    await fetch("/api/admin/projeto?id=" + id, { method: "DELETE" });
+    load();
+  }
+
+  function startEditProjeto(projeto: ProjetoItem) {
+    setEditingProjeto(projeto);
+  }
+
+  function cancelEditProjeto() {
+    setEditingProjeto(null);
+  }
+
+  async function updateProjeto(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editingProjeto) return;
+
+    const dateTimeString = `${editingProjeto.data.split('T')[0]}T00:00:00`;
+    const localDate = new Date(dateTimeString);
+    const isoString = localDate.toISOString();
+
+    const projetoToUpdate = {
+      ...editingProjeto,
+      data: isoString,
+    };
+
+    await fetch("/api/admin/projeto", {
+      method: "PUT",
+      body: JSON.stringify(projetoToUpdate),
+      headers: { "Content-Type": "application/json" },
+    });
+    setEditingProjeto(null);
+    load();
+  }
+
+  // Funções para Sobre
+  async function handleSobreImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingSobreImage(true);
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("type", "sobre");
+
+    try {
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await response.json();
+      if (data.url) {
+        setNewSobre({ ...newSobre, imagem: data.url });
+      }
+    } catch (error) {
+      console.error("Upload failed:", error);
+    } finally {
+      setUploadingSobreImage(false);
+    }
+  }
+
+  async function createSobre(e: React.FormEvent) {
+    e.preventDefault();
+    await fetch("/api/admin/sobre", {
+      method: "POST",
+      body: JSON.stringify(newSobre),
+      headers: { "Content-Type": "application/json" },
+    });
+    setNewSobre({ 
+      ano: new Date().getFullYear(), 
+      imagem: "", 
+      descricao: "" 
+    });
+    load();
+  }
+
+  async function deleteSobre(ano: number) {
+    await fetch("/api/admin/sobre?ano=" + ano, { method: "DELETE" });
+    load();
+  }
+
+  function startEditSobre(sobre: SobreItem) {
+    setEditingSobre(sobre);
+  }
+
+  function cancelEditSobre() {
+    setEditingSobre(null);
+  }
+
+  async function updateSobre(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editingSobre) return;
+
+    await fetch("/api/admin/sobre", {
+      method: "PUT",
+      body: JSON.stringify(editingSobre),
+      headers: { "Content-Type": "application/json" },
+    });
+    setEditingSobre(null);
+    load();
+  }
+
+  async function handleEditSobreImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !editingSobre) return;
+
+    setUploadingSobreImage(true);
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("type", "sobre");
+
+    try {
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await response.json();
+      if (data.url) {
+        setEditingSobre({ ...editingSobre, imagem: data.url });
+      }
+    } catch (error) {
+      console.error("Upload failed:", error);
+    } finally {
+      setUploadingSobreImage(false);
     }
   }
 
@@ -743,6 +926,264 @@ export default function AdminClient() {
                       </button>
                       <button
                         onClick={() => deleteLivro(l.id)}
+                        className="bg-red-600 px-2 rounded hover:bg-red-700"
+                      >
+                        Excluir
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        {/* Projetos Section */}
+        <section>
+          <h2 className="text-xl border-l-4 my-8 border-orange-500 pl-2 font-semibold">
+            Projetos
+          </h2>
+          <form onSubmit={createProjeto} className="space-y-3 my-3">
+            <input
+              required
+              type="date"
+              placeholder="Data"
+              value={newProjeto.data}
+              onChange={(e) =>
+                setNewProjeto({ ...newProjeto, data: e.target.value })
+              }
+              className="w-full p-2 text-white rounded border border-white"
+            />
+            <textarea
+              required
+              placeholder="Descrição"
+              value={newProjeto.descricao}
+              onChange={(e) =>
+                setNewProjeto({ ...newProjeto, descricao: e.target.value })
+              }
+              className="w-full p-2 text-white rounded border border-white"
+              rows={3}
+            />
+            <button className="bg-orange-500 px-3 rounded py-2 mb-4 hover:cursor-pointer active:bg-orange-700">
+              Adicionar Projeto
+            </button>
+          </form>
+
+          {projetos.length > 0 && (
+            <h3 className="text-lg mt-4 my-2">Projetos cadastrados:</h3>
+          )}
+          <ul className="space-y-2">
+            {projetos.map((p) => (
+              <li key={p.id} className="border border-gray-600 rounded p-3">
+                {editingProjeto && editingProjeto.id === p.id ? (
+                  <form onSubmit={updateProjeto} className="space-y-2">
+                    <input
+                      required
+                      type="date"
+                      value={editingProjeto.data.split('T')[0]}
+                      onChange={(e) =>
+                        setEditingProjeto({ ...editingProjeto, data: e.target.value })
+                      }
+                      className="w-full p-2 text-white rounded border border-white"
+                    />
+                    <textarea
+                      required
+                      value={editingProjeto.descricao}
+                      onChange={(e) =>
+                        setEditingProjeto({ ...editingProjeto, descricao: e.target.value })
+                      }
+                      className="w-full p-2 text-white rounded border border-white"
+                      rows={3}
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        type="submit"
+                        className="bg-green-600 px-3 py-1 rounded hover:bg-green-700"
+                      >
+                        Salvar
+                      </button>
+                      <button
+                        type="button"
+                        onClick={cancelEditProjeto}
+                        className="bg-gray-600 px-3 py-1 rounded hover:bg-gray-700"
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <div className="font-semibold">
+                        {new Date(p.data).toLocaleDateString('pt-BR')}
+                      </div>
+                      <div className="text-sm text-gray-300 mt-1">
+                        {p.descricao}
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => startEditProjeto(p)}
+                        className="bg-blue-600 px-2 rounded hover:bg-blue-700"
+                      >
+                        Editar
+                      </button>
+                      <button
+                        onClick={() => deleteProjeto(p.id)}
+                        className="bg-red-600 px-2 rounded hover:bg-red-700"
+                      >
+                        Excluir
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        {/* Sobre Section */}
+        <section>
+          <h2 className="text-xl border-l-4 my-8 border-orange-500 pl-2 font-semibold">
+            Sobre
+          </h2>
+          <form onSubmit={createSobre} className="space-y-3 my-3">
+            <input
+              required
+              type="number"
+              placeholder="Ano"
+              value={newSobre.ano}
+              onChange={(e) =>
+                setNewSobre({ ...newSobre, ano: parseInt(e.target.value) })
+              }
+              className="w-full p-2 text-white rounded border border-white"
+            />
+            <textarea
+              required
+              placeholder="Descrição"
+              value={newSobre.descricao}
+              onChange={(e) =>
+                setNewSobre({ ...newSobre, descricao: e.target.value })
+              }
+              className="w-full p-2 text-white rounded border border-white"
+              rows={3}
+            />
+            <div className="space-y-2">
+              <label className="block text-sm font-medium">Imagem:</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleSobreImageUpload}
+                className="w-full p-2 border border-white rounded text-white file:mr-4 file:py-1 file:px-4 file:rounded file:border-0 file:text-sm file:bg-orange-500 file:text-white hover:file:bg-orange-600"
+              />
+              {uploadingSobreImage && <p className="text-sm text-gray-300">Enviando imagem...</p>}
+              {newSobre.imagem && (
+                <div className="mt-2">
+                  <img
+                    src={newSobre.imagem}
+                    alt="Preview"
+                    className="w-32 h-32 object-cover rounded border"
+                  />
+                </div>
+              )}
+            </div>
+            <button
+              type="submit"
+              disabled={uploadingSobreImage}
+              className="bg-orange-500 px-3 rounded py-2 mb-4 hover:cursor-pointer active:bg-orange-700 disabled:bg-gray-500"
+            >
+              Adicionar Sobre
+            </button>
+          </form>
+
+          {sobres.length > 0 && (
+            <h3 className="text-lg mt-4 my-2">Sobre cadastrados:</h3>
+          )}
+          <ul className="space-y-2">
+            {sobres.map((s) => (
+              <li key={s.ano} className="border border-gray-600 rounded p-3">
+                {editingSobre && editingSobre.ano === s.ano ? (
+                  <form onSubmit={updateSobre} className="space-y-2">
+                    <input
+                      required
+                      type="number"
+                      value={editingSobre.ano}
+                      onChange={(e) =>
+                        setEditingSobre({ ...editingSobre, ano: parseInt(e.target.value) })
+                      }
+                      className="w-full p-2 text-white rounded border border-white"
+                    />
+                    <textarea
+                      required
+                      value={editingSobre.descricao}
+                      onChange={(e) =>
+                        setEditingSobre({ ...editingSobre, descricao: e.target.value })
+                      }
+                      className="w-full p-2 text-white rounded border border-white"
+                      rows={3}
+                    />
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium">Imagem:</label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleEditSobreImageUpload}
+                        className="w-full p-2 border border-white rounded text-white file:mr-4 file:py-1 file:px-4 file:rounded file:border-0 file:text-sm file:bg-orange-500 file:text-white hover:file:bg-orange-600"
+                      />
+                      {uploadingSobreImage && <p className="text-sm text-gray-300">Enviando imagem...</p>}
+                      {editingSobre.imagem && (
+                        <div className="mt-2">
+                          <img
+                            src={editingSobre.imagem}
+                            alt="Preview"
+                            className="w-32 h-32 object-cover rounded border"
+                          />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        type="submit"
+                        disabled={uploadingSobreImage}
+                        className="bg-green-600 px-3 py-1 rounded hover:bg-green-700 disabled:bg-gray-500"
+                      >
+                        Salvar
+                      </button>
+                      <button
+                        type="button"
+                        onClick={cancelEditSobre}
+                        className="bg-gray-600 px-3 py-1 rounded hover:bg-gray-700"
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <div className="flex justify-between items-start">
+                    <div className="flex gap-3 items-start flex-1">
+                      {s.imagem && (
+                        <img
+                          src={s.imagem}
+                          alt={`Sobre ${s.ano}`}
+                          className="w-16 h-16 object-cover rounded"
+                        />
+                      )}
+                      <div className="flex-1">
+                        <div className="font-semibold">Ano {s.ano}</div>
+                        <div className="text-sm text-gray-300 mt-1">
+                          {s.descricao}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => startEditSobre(s)}
+                        className="bg-blue-600 px-2 rounded hover:bg-blue-700"
+                      >
+                        Editar
+                      </button>
+                      <button
+                        onClick={() => deleteSobre(s.ano)}
                         className="bg-red-600 px-2 rounded hover:bg-red-700"
                       >
                         Excluir
