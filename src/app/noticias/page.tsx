@@ -2,39 +2,49 @@
 
 import { useState, useEffect } from "react";
 import BackBtn from "@/components/BackBtn";
+import NewsCard, { NewsItem } from "@/components/NewsCard";
 
-interface NewsItem {
-  id: number;
-  titulo: string;
-  conteudo: string;
-  link: string;
-  createdAt: string;
-}
+const newsData: NewsItem[] = [
+  {
+    id: 1,
+    title: "Revista Ogrito",
+    source: "Revista Ogrito",
+    description:
+      "Xirê, peça do coletivo À Margem, marca o retorno do projeto Terça em Cena, trazendo uma abordagem inovadora sobre cultura e resistência.",
+    image: "https://picsum.photos/400?random=1",
+    link: "#",
+  },
+  {
+    id: 2,
+    title: "Diário de Pernambuco",
+    source: "Diário de Pernambuco",
+    description:
+      "Peça 'Xirê' marca o retorno do projeto Terça em Cena, na UFPE, reunindo artistas e espectadores em uma celebração da arte local.",
+    image: "https://picsum.photos/400?random=2",
+    link: "#",
+  },
+  // ... restante do mock
+];
 
 export default function NoticiasPage() {
   const [noticias, setNoticias] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch news from API
-useEffect(() => {
-  async function loadNoticias() {
-    try {
-      const response = await fetch('/api/noticias');
-      const data = await response.json();
-      
-      // Garante que noticias sempre será array
-      setNoticias(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error('Erro ao carregar notícias:', error);
-      setNoticias([]);
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    async function loadNoticias() {
+      try {
+        const response = await fetch('/api/noticias');
+        const data = await response.json();
+        setNoticias(Array.isArray(data) && data.length ? data : newsData); // fallback para mock
+      } catch (error) {
+        console.error('Erro ao carregar notícias:', error);
+        setNoticias(newsData);
+      } finally {
+        setLoading(false);
+      }
     }
-  }
-
-  loadNoticias();
-}, []);
-
+    loadNoticias();
+  }, []);
 
   if (loading) {
     return (
@@ -49,6 +59,7 @@ useEffect(() => {
       </section>
     );
   }
+
   return (
     <section
       className="relative min-h-screen flex flex-col items-center text-white px-4 pb-10 bg-cover bg-center"
@@ -57,57 +68,20 @@ useEffect(() => {
         backgroundImage: "url('/padrao2.webp')",
       }}
     >
-      {/* Botão de voltar fixo no topo */}
       <BackBtn label="Notícias" />
 
-      {/* Lista de notícias */}
-      <div className="w-full max-w-3xl mt-40 flex flex-col items-center gap-6">
-        {noticias.map((item) => {
-          const createdDate = new Date(item.createdAt);
-          const formattedDate = createdDate.toLocaleDateString('pt-BR', {
-            day: '2-digit',
-            month: 'long',
-            year: 'numeric'
-          });
-          
-          return (
-            <article
-              key={item.id}
-              className="relative bg-black/50 w-full rounded-t-xl border-b-4 border-b-[#F5A623] overflow-hidden flex flex-col sm:flex-row items-center gap-6 p-5 hover:scale-[1.02] transition-transform duration-200 h-[350px] sm:h-[220px]"
-            >
-              {/* Blur background */}
-              <div className="absolute inset-0 z-0 backdrop-blur-md" aria-hidden="true" />
-              
-              {/* Imagem placeholder */}
-              <div className="w-full sm:w-60 h-40 sm:h-full bg-gradient-to-br from-[#F5A623] to-[#2C3852] rounded-md z-10 flex items-center justify-center">
-                <span className="text-white font-bold text-sm">À MARGEM</span>
-              </div>
-
-              {/* Texto */}
-              <div className="flex flex-col justify-between w-full sm:w-3/5 h-full z-10">
-                <div className="overflow-hidden">
-                  <h2 className="text-[#F5A623] font-semibold text-lg sm:text-xl leading-tight">
-                    {item.titulo}
-                  </h2>
-                  <p className="text-xs text-white/60 mb-2">{formattedDate}</p>
-                  <p className="text-sm sm:text-base text-justify text-gray-200 mt-1 line-clamp-3">
-                    {item.conteudo}
-                  </p>
-                  <a href={item.link} className="text-blue-400 hover:underline mt-2 break-all">
-                    {item.link}
-                  </a>
-                </div>
-              </div>
-            </article>
-          );
-        })}
-        
-        {noticias.length === 0 && (
-          <div className="text-center text-white/70 py-8">
-            <p>Nenhuma notícia encontrada.</p>
-          </div>
-        )}
+      <div className="w-full max-w-5xl mt-40 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {noticias.map((item, idx) => (
+          <NewsCard key={item.id} item={item} index={idx} />
+        ))}
       </div>
+
+      {noticias.length === 0 && (
+        <div className="text-center text-white/70 py-8">
+          <p>Nenhuma notícia encontrada.</p>
+        </div>
+      )}
     </section>
   );
 }
+

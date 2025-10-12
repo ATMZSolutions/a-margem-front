@@ -20,19 +20,20 @@ interface EventItem {
   titulo: string;
   data: string; // ISO date string from API
   local?: string;
+  cidade?: string;
   createdAt: string;
 }
 
 interface AgendaPageProps {
-  bgColor?: string; // cor de fundo base
-  bgImage?: string; // caminho da imagem de fundo
+  bgColor?: string;
+  bgImage?: string;
 }
 
 export default function AgendaPage({
   bgColor = "#5C1E0F",
-  bgImage = "/images/padrao1.webp",
+  bgImage = "/padrao2.webp",
 }: AgendaPageProps) {
-  const [currentDate, setCurrentDate] = useState(new Date(2025, 9, 1)); // Outubro 2025
+  const [currentDate, setCurrentDate] = useState(new Date(2025, 9, 1));
   const [events, setEvents] = useState<EventItem[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -46,7 +47,6 @@ export default function AgendaPage({
       try {
         const response = await fetch("/api/agenda");
         const data = await response.json();
-        // garante que events sempre seja um array
         setEvents(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error("Erro ao carregar eventos:", error);
@@ -59,12 +59,12 @@ export default function AgendaPage({
     loadEvents();
   }, []);
 
-  // Agrupamento por local (substituindo cidade)
+  // Agrupamento por local + cidade
   const eventsByLocation = Array.isArray(events)
     ? events.reduce<Record<string, EventItem[]>>((acc, event) => {
-        const location = event.local || "Local não informado";
-        if (!acc[location]) acc[location] = [];
-        acc[location].push(event);
+        const locationLabel = `${event.local || "Local não informado"}${event.cidade ? ` | ${event.cidade}` : ""}`;
+        if (!acc[locationLabel]) acc[locationLabel] = [];
+        acc[locationLabel].push(event);
         return acc;
       }, {})
     : {};
@@ -87,43 +87,32 @@ export default function AgendaPage({
     >
       {bgImage && (
         <div
-          className="absolute inset-0 bg-cover bg-center opacity-5 pointer-events-none"
+          className="absolute inset-0 bg-cover bg-center pointer-events-none"
           style={{ backgroundImage: `url(${bgImage})` }}
         />
       )}
+
       <BackBtn label="Agenda" />
 
-      {/* Conteúdo central */}
       <div className="relative w-full max-w-md text-white font-sans mx-4 z-10 mt-16">
         {/* Calendário */}
         <div className="bg-[#F38901] rounded-lg p-4 shadow-lg mb-6">
-          {/* Cabeçalho do calendário */}
           <div className="flex justify-between items-center mb-3">
-            <button
-              type="button"
-              onClick={() => setCurrentDate(subMonths(currentDate, 1))}
-            >
+            <button type="button" onClick={() => setCurrentDate(subMonths(currentDate, 1))}>
               <ChevronLeft className="text-[#5C1E0F]" />
             </button>
             <span className="uppercase font-bold text-lg text-[#5C1E0F]">
               {format(currentDate, "MMMM yyyy", { locale: ptBR })}
             </span>
-            <button
-              type="button"
-              onClick={() => setCurrentDate(addMonths(currentDate, 1))}
-            >
+            <button type="button" onClick={() => setCurrentDate(addMonths(currentDate, 1))}>
               <ChevronRight className="text-[#5C1E0F]" />
             </button>
           </div>
 
-          {/* Dias da semana */}
           <div className="grid grid-cols-7 text-center text-xs font-semibold bg-[#5C1E0F] px-4 text-white py-1 rounded">
-            {["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SAB"].map((d) => (
-              <div key={d}>{d}</div>
-            ))}
+            {["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SAB"].map((d) => <div key={d}>{d}</div>)}
           </div>
 
-          {/* Grade de dias */}
           <div className="grid grid-cols-7 gap-2 text-center mt-2 relative border-2 border-[#5C1E0F] p-4">
             {(() => {
               const firstDayOfWeek = start.getDay();
@@ -141,24 +130,16 @@ export default function AgendaPage({
                   Array.isArray(events) &&
                   events.some((ev) => {
                     const eventDate = new Date(ev.data);
-                    return (
-                      format(eventDate, "dd/MM/yyyy") ===
-                      format(day, "dd/MM/yyyy")
-                    );
+                    return format(eventDate, "dd/MM/yyyy") === format(day, "dd/MM/yyyy");
                   });
 
                 return (
                   <div
                     key={day.toISOString()}
                     className={`relative flex items-center justify-center h-7 w-7 rounded-full
-                      ${
-                        isToday(day)
-                          ? "bg-[#5C1E0F] text-white font-bold"
-                          : "text-[#5C1E0F]"
-                      }
+                      ${isToday(day) ? "bg-[#5C1E0F] text-white font-bold" : "text-[#5C1E0F]"}
                       ${!isSameMonth(day, currentDate) ? "opacity-30" : ""}
-                      ${hasEvent ? "border-2 border-[#5C1E0F]" : ""}
-                    `}
+                      ${hasEvent ? "border-2 border-[#5C1E0F]" : ""}`}
                   >
                     <span>{dayNum}</span>
                   </div>
@@ -168,7 +149,7 @@ export default function AgendaPage({
           </div>
         </div>
 
-        {/* Lista de eventos agrupados por local */}
+        {/* Lista de eventos */}
         <div className="space-y-8">
           {Object.entries(eventsByLocation).length > 0 ? (
             Object.entries(eventsByLocation).map(([location, locationEvents]) => (
@@ -188,9 +169,7 @@ export default function AgendaPage({
                       >
                         <div className="flex items-center gap-3">
                           <div className="text-[#F38901] font-bold text-lg flex flex-col items-end leading-tight gap-0">
-                            {format(eventDate, "dd MMM", {
-                              locale: ptBR,
-                            }).toUpperCase()}
+                            {format(eventDate, "dd MMM", { locale: ptBR }).toUpperCase()}
                             <div className="font-light text-[12px] text-white/80 mt-[-2px]">
                               {format(eventDate, "HH:mm")}
                             </div>
@@ -199,7 +178,7 @@ export default function AgendaPage({
                             <p className="text-sm font-medium">{event.titulo}</p>
                             {event.local && (
                               <p className="text-xs flex items-center gap-1 opacity-80">
-                                <MapPin size={12} /> {event.local}
+                                <MapPin size={12} /> {event.local} {event.cidade && `| ${event.cidade}`}
                               </p>
                             )}
                           </div>

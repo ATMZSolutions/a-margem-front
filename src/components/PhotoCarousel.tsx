@@ -29,13 +29,13 @@ export default function PhotoCarousel({ images = [], topButton }: PhotoCarouselP
   if (!images.length) return null;
 
   return (
-    <div className="relative w-4/5 max-w-lg mx-auto flex items-center justify-center sm:max-w-xl md:max-w-2xl">
+    <div className="relative mx-auto flex items-center justify-center">
       {/* Botão opcional no topo */}
       {topButton?.show && (
         <div className="absolute top-4 left-4 z-10">
           <Link
             href={topButton.href || "#"}
-            className="bg-black/50 text-white text-sm px-2 py-1 rounded hover:bg-opacity-70 transition"
+            className="bg-[#F38901]/70 text-black font-semibold text-sm px-2 py-1 rounded hover:bg-opacity-70 transition"
           >
             {topButton.label}
           </Link>
@@ -52,7 +52,7 @@ export default function PhotoCarousel({ images = [], topButton }: PhotoCarouselP
       </button>
 
       {/* Imagem */}
-      <div className="overflow-hidden w-full rounded-t-lg border-b-8 border-[#F38901]">
+      <div className="overflow-hidden w-full border-b-8 border border-[#F38901]/70">
         <img
           src={images[currentIndex]}
           alt={`Slide ${currentIndex + 1}`}
