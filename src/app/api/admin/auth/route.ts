@@ -1,3 +1,4 @@
+// src/app/api/admin/auth/route.ts
 import { NextResponse } from 'next/server';
 import { createSession, deleteSession } from '../../../../lib/adminSession';
 
@@ -9,17 +10,25 @@ export async function POST(req: Request) {
   const AUTH_PASS = process.env.ADMIN_PASS || 'ChangeMe123!';
 
   if (username === AUTH_USER && password === AUTH_PASS) {
-    const token = createSession(username);
+    // await porque createSession retorna Promise<string>
+    const token = await createSession(username);
+
     const res = NextResponse.json({ ok: true });
-    // use NextResponse.cookies API to set an HttpOnly cookie
+
+    // definir cookie HttpOnly
     try {
-      res.cookies.set('a_token', token, { httpOnly: true, path: '/', sameSite: 'lax' });
+      res.cookies.set('a_token', token, {
+        httpOnly: true,
+        path: '/',
+        sameSite: 'lax',
+      });
       console.log('Cookie set via NextResponse.cookies.set');
     } catch (e) {
-      // fallback to header if cookies API not available
+      // fallback para header, se necessário
       res.headers.set('Set-Cookie', `a_token=${token}; HttpOnly; Path=/; SameSite=Lax`);
       console.log('Cookie set via header fallback');
     }
+
     return res;
   }
 
@@ -29,12 +38,21 @@ export async function POST(req: Request) {
 export async function DELETE(req: Request) {
   const { searchParams } = new URL(req.url);
   const token = searchParams.get('token') || undefined;
-  deleteSession(token);
+
+  await deleteSession(token); // garantir que é async se necessário
+
   const res = NextResponse.json({ ok: true });
+
   try {
-    res.cookies.set('a_token', '', { httpOnly: true, path: '/', maxAge: 0 });
+    res.cookies.set('a_token', '', {
+      httpOnly: true,
+      path: '/',
+      maxAge: 0,
+      sameSite: 'lax',
+    });
   } catch (e) {
-    res.headers.set('Set-Cookie', `a_token=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax`);
+    res.headers.set('Set-Cookie', 'a_token=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax');
   }
+
   return res;
 }
