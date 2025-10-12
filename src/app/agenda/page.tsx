@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   format,
   startOfMonth,
@@ -16,48 +16,75 @@ import { ChevronLeft, ChevronRight, MapPin } from "lucide-react";
 import BackBtn from "@/components/BackBtn";
 
 interface EventItem {
-  date?: Date;
-  time?: string;
-  title: string;
-  address?: string;
-  city: string;
+  id: number;
+  titulo: string;
+  data: string; // ISO date string from API
+  local?: string;
+  cidade?: string;
+  createdAt: string;
 }
 
 interface AgendaPageProps {
-  bgColor?: string; // cor de fundo base
-  bgImage?: string; // caminho da imagem de fundo
+  bgColor?: string;
+  bgImage?: string;
 }
 
 export default function AgendaPage({
   bgColor = "#5C1E0F",
-  bgImage = "/padrao2.webp", // ← padrão 2 adicionado aqui
+  bgImage = "/padrao2.webp",
 }: AgendaPageProps) {
-  const [currentDate, setCurrentDate] = useState(new Date(2025, 9, 1)); // Outubro 2025
+  const [currentDate, setCurrentDate] = useState(new Date(2025, 9, 1));
+  const [events, setEvents] = useState<EventItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const start = startOfMonth(currentDate);
   const end = endOfMonth(currentDate);
   const days = eachDayOfInterval({ start, end });
 
-  const events: EventItem[] = [
-    { date: new Date(2025, 9, 19), time: "19:00", title: "Sarau A Margem", address: "Rua do Bom Jesus, 123, Recife Antigo", city: "Recife | PE" },
-    { date: new Date(2025, 9, 20), time: "16:00", title: "Oficina de Poesia", address: "Praça do Carmo, s/n, Carmo", city: "Olinda | PE" },
-    { date: new Date(2025, 9, 25), time: "18:30", title: "Lançamento de Livro", address: "Livraria Cultura, Shopping RioMar", city: "Recife | PE" },
-    { date: new Date(2025, 9, 28), time: "20:00", title: "Encontro de Escritores", address: "Casa da Cultura, Rua Floriano Peixoto, 200", city: "Recife | PE" },
-    { date: new Date(2025, 9, 30), time: "15:00", title: "Roda de Conversa: Literatura Marginal", address: "Biblioteca Pública de Olinda", city: "Olinda | PE" },
-  ];
+  // Fetch events from API
+  useEffect(() => {
+    async function loadEvents() {
+      try {
+        const response = await fetch("/api/agenda");
+        const data = await response.json();
+        setEvents(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error("Erro ao carregar eventos:", error);
+        setEvents([]);
+      } finally {
+        setLoading(false);
+      }
+    }
 
-  const eventsByCity = events.reduce<Record<string, EventItem[]>>((acc, event) => {
-    if (!acc[event.city]) acc[event.city] = [];
-    acc[event.city].push(event);
-    return acc;
-  }, {});
+    loadEvents();
+  }, []);
+
+  // Agrupamento por local + cidade
+  const eventsByLocation = Array.isArray(events)
+    ? events.reduce<Record<string, EventItem[]>>((acc, event) => {
+        const locationLabel = `${event.local || "Local não informado"}${event.cidade ? ` | ${event.cidade}` : ""}`;
+        if (!acc[locationLabel]) acc[locationLabel] = [];
+        acc[locationLabel].push(event);
+        return acc;
+      }, {})
+    : {};
+
+  if (loading) {
+    return (
+      <div
+        className="min-h-screen w-full flex justify-center items-center"
+        style={{ backgroundColor: bgColor }}
+      >
+        <div className="text-white">Carregando eventos...</div>
+      </div>
+    );
+  }
 
   return (
     <div
       className="min-h-screen w-full flex justify-center py-24 relative"
       style={{ backgroundColor: bgColor }}
     >
-      {/* Imagem de fundo padrão 2 */}
       {bgImage && (
         <div
           className="absolute inset-0 bg-cover bg-center pointer-events-none"
@@ -70,7 +97,6 @@ export default function AgendaPage({
       <div className="relative w-full max-w-md text-white font-sans mx-4 z-10 mt-16">
         {/* Calendário */}
         <div className="bg-[#F38901] rounded-lg p-4 shadow-lg mb-6">
-          {/* Cabeçalho */}
           <div className="flex justify-between items-center mb-3">
             <button type="button" onClick={() => setCurrentDate(subMonths(currentDate, 1))}>
               <ChevronLeft className="text-[#5C1E0F]" />
@@ -83,12 +109,10 @@ export default function AgendaPage({
             </button>
           </div>
 
-          {/* Dias da semana */}
           <div className="grid grid-cols-7 text-center text-xs font-semibold bg-[#5C1E0F] px-4 text-white py-1 rounded">
             {["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SAB"].map((d) => <div key={d}>{d}</div>)}
           </div>
 
-          {/* Grade de dias */}
           <div className="grid grid-cols-7 gap-2 text-center mt-2 relative border-2 border-[#5C1E0F] p-4">
             {(() => {
               const firstDayOfWeek = start.getDay();
@@ -102,7 +126,12 @@ export default function AgendaPage({
                 if (!day) return <div key={`blank-${idx}`} className="h-7 w-7" />;
 
                 const dayNum = day.getDate();
-                const hasEvent = events.some(ev => ev.date && format(ev.date, "dd/MM/yyyy") === format(day, "dd/MM/yyyy"));
+                const hasEvent =
+                  Array.isArray(events) &&
+                  events.some((ev) => {
+                    const eventDate = new Date(ev.data);
+                    return format(eventDate, "dd/MM/yyyy") === format(day, "dd/MM/yyyy");
+                  });
 
                 return (
                   <div
@@ -122,41 +151,49 @@ export default function AgendaPage({
 
         {/* Lista de eventos */}
         <div className="space-y-8">
-          {Object.entries(eventsByCity).map(([city, cityEvents]) => (
-            <div key={city}>
-              <div className="flex items-center gap-2 mb-4">
-                <span className="bg-[#F38901] text-[#5C1E0F] font-bold px-3 py-1 rounded">
-                  {city}
-                </span>
-              </div>
-              <div className="space-y-4">
-                {cityEvents.map((event, i) => (
-                  <div key={i} className="w-full border-b-3 border-white/20 pb-2 flex justify-start">
-                    <div className="flex items-center gap-3">
-                      {event.date && (
-                        <div className="text-[#F38901] font-bold text-lg flex flex-col items-end leading-tight gap-0">
-                          {format(event.date, "dd MMM", { locale: ptBR }).toUpperCase()}
-                          {event.time && (
+          {Object.entries(eventsByLocation).length > 0 ? (
+            Object.entries(eventsByLocation).map(([location, locationEvents]) => (
+              <div key={location}>
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="bg-[#F38901] text-[#5C1E0F] font-bold px-3 py-1 rounded">
+                    {location}
+                  </span>
+                </div>
+                <div className="space-y-4">
+                  {locationEvents.map((event) => {
+                    const eventDate = new Date(event.data);
+                    return (
+                      <div
+                        key={event.id}
+                        className="w-full border-b-3 border-white/20 pb-2 flex justify-start"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="text-[#F38901] font-bold text-lg flex flex-col items-end leading-tight gap-0">
+                            {format(eventDate, "dd MMM", { locale: ptBR }).toUpperCase()}
                             <div className="font-light text-[12px] text-white/80 mt-[-2px]">
-                              {event.time}
+                              {format(eventDate, "HH:mm")}
                             </div>
-                          )}
+                          </div>
+                          <div className="border-l-3 border-white/20 pl-3">
+                            <p className="text-sm font-medium">{event.titulo}</p>
+                            {event.local && (
+                              <p className="text-xs flex items-center gap-1 opacity-80">
+                                <MapPin size={12} /> {event.local} {event.cidade && `| ${event.cidade}`}
+                              </p>
+                            )}
+                          </div>
                         </div>
-                      )}
-                      <div className="border-l-3 border-white/20 pl-3">
-                        <p className="text-sm font-medium">{event.title}</p>
-                        {event.address && (
-                          <p className="text-xs flex items-center gap-1 opacity-80">
-                            <MapPin size={12} /> {event.address}
-                          </p>
-                        )}
                       </div>
-                    </div>
-                  </div>
-                ))}
+                    );
+                  })}
+                </div>
               </div>
+            ))
+          ) : (
+            <div className="text-center text-white/70 py-8">
+              <p>Nenhum evento encontrado.</p>
             </div>
-          ))}
+          )}
         </div>
       </div>
     </div>

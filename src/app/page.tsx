@@ -1,7 +1,7 @@
 "use client";
 
-import { motion, Variants } from "framer-motion";
 import { useEffect, useState } from "react";
+import { motion, Variants } from "framer-motion";
 import Main from "@/components/home/Main";
 import Sobre from "@/components/home/Sobre";
 import Agenda from "@/components/home/Agenda";
@@ -13,11 +13,7 @@ const fadeUp: Variants = {
   visible: (i: number) => ({
     opacity: 1,
     y: 0,
-    transition: {
-      delay: i * 0.1,
-      duration: 0.35,
-      ease: [0.25, 0.1, 0.25, 1], // curva "easeOut"
-    },
+    transition: { delay: i * 0.1, duration: 0.35, ease: [0.25, 0.1, 0.25, 1] },
   }),
 };
 
@@ -28,9 +24,37 @@ const sections = [
   { component: <Contato />, animate: true },
 ];
 
+interface AgendaItem {
+  id: number;
+  titulo: string;
+  data: string;
+  local?: string;
+  createdAt: string;
+}
+
 export default function Home() {
+  const [agenda, setAgenda] = useState<AgendaItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [atBottom, setAtBottom] = useState(false);
 
+  // fetch agenda
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const res = await fetch("/api/agenda");
+        const data = await res.json();
+        setAgenda(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error("Erro ao carregar agenda:", error);
+        setAgenda([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, []);
+
+  // scroll detection
   useEffect(() => {
     const onScroll = () => {
       const scrollTop = window.scrollY;
@@ -42,8 +66,7 @@ export default function Home() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const scrollToTop = () =>
-    window.scrollTo({ top: 0, behavior: "smooth" });
+  const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
   return (
     <div className="font-sans relative">
@@ -57,7 +80,12 @@ export default function Home() {
             whileInView={idx === 0 ? {} : "visible"}
             viewport={{ once: true, amount: 0.15 }}
           >
-            {component}
+            {/* Passa a agenda carregada para o componente */}
+            {component.type === Agenda ? (
+              <Agenda eventos={agenda.slice(0, 5)} loading={loading} />
+            ) : (
+              component
+            )}
           </motion.div>
         ) : (
           <div key={idx}>{component}</div>
