@@ -1,6 +1,13 @@
 // JWT-based session store that doesn't depend on server memory
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-production';
 
+interface JWTPayload {
+  username: string;
+  iat: number;
+  exp: number;
+  [key: string]: unknown; // permite campos extras
+}
+
 function base64UrlEncode(str: string): string {
   return Buffer.from(str)
     .toString('base64')
@@ -15,6 +22,7 @@ function base64UrlDecode(str: string): string {
   return Buffer.from(str, 'base64').toString();
 }
 
+// Edge Runtime compatível
 async function createHmacSHA256(message: string): Promise<string> {
   const key = await crypto.subtle.importKey(
     'raw',
@@ -28,7 +36,7 @@ async function createHmacSHA256(message: string): Promise<string> {
   return b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
 }
 
-async function createJWT(payload: any): Promise<string> {
+async function createJWT(payload: JWTPayload): Promise<string> {
   const header = { alg: 'HS256', typ: 'JWT' };
   const encodedHeader = base64UrlEncode(JSON.stringify(header));
   const encodedPayload = base64UrlEncode(JSON.stringify(payload));
@@ -37,23 +45,23 @@ async function createJWT(payload: any): Promise<string> {
   return `${encodedHeader}.${encodedPayload}.${signature}`;
 }
 
-async function verifyJWT(token: string): Promise<any> {
+async function verifyJWT(token: string): Promise<JWTPayload | null> {
   try {
     const [encodedHeader, encodedPayload, signature] = token.split('.');
     const expectedSignature = await createHmacSHA256(`${encodedHeader}.${encodedPayload}`);
     if (signature !== expectedSignature) return null;
 
-    const payload = JSON.parse(base64UrlDecode(encodedPayload));
+    const payload: JWTPayload = JSON.parse(base64UrlDecode(encodedPayload));
     if (payload.exp && Date.now() >= payload.exp * 1000) return null;
 
     return payload;
-  } catch (e) {
+  } catch {
     return null;
   }
 }
 
 export async function createSession(username: string) {
-  const payload = {
+  const payload: JWTPayload = {
     username,
     iat: Math.floor(Date.now() / 1000),
     exp: Math.floor(Date.now() / 1000) + 24 * 60 * 60, // 24h
@@ -68,5 +76,5 @@ export async function validateSession(token?: string) {
 }
 
 export function deleteSession(_token?: string) {
-  // JWT tokens are stateless, client clears cookie
+  // JWT tokens are stateless; client clears cookie
 }
