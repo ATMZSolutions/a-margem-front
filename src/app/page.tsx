@@ -19,7 +19,7 @@ const fadeUp: Variants = {
 
 const sections = [
   { component: <Main />, animate: true },
-  { component: <Agenda />, animate: true },
+  { component: <Agenda eventos={[]} loading={false} />, animate: true },
   { component: <Sobre />, animate: true },
   { component: <Contato />, animate: true },
 ];
