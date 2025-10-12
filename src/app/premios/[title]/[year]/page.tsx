@@ -7,12 +7,13 @@ import { notFound } from "next/navigation";
 import Paragraph from "antd/es/typography/Paragraph";
 
 interface PremioDetalhesProps {
-    params: { title: string };
+    params: Promise<{ title: string, year: string; }>;
 }
 
-const PremioDetalhes = ({ params }: PremioDetalhesProps) => {
-    const { title } = params;
-    const premio = premios.find((p) => slugify(p.title) == title);
+const PremioDetalhes = async ({ params }: PremioDetalhesProps) => {
+    const { title, year } = await params;
+
+    const premio = premios.find((p) => slugify(p.title) + `/${p.year}` == title + `/${year}`);
 
     if (!premio) return notFound();
 
@@ -26,19 +27,18 @@ const PremioDetalhes = ({ params }: PremioDetalhesProps) => {
             <BackBtn label="Prêmios" />
 
             <div className="flex max-w-xl text-white flex-col items-center mt-40 mx-2 justify-center gap-10 ">
-                {premios.map((premio, index) => (
-                    <Premio
-                        key={index}
-                        title={premio.title}
-                        evento={premio.evento}
-                        year={premio.year}
-                        isSaibaMais={true}
-                    />
-                ))}
-                <div
-                    className="w-full h-64 md:h-72 bg-cover bg-center rounded"
-                    style={{ backgroundImage: `url(${premio.img})` }}
+                <Premio
+                    key={`${title}` + `/${year}`}
+                    title={premio.title}
+                    evento={premio.evento}
+                    year={premio.year}
+                    isSaibaMais={true}
                 />
+                {premio.img &&
+                    <div
+                        className="w-full h-64 md:h-72 bg-cover bg-center rounded"
+                        style={{ backgroundImage: `url(${premio.img})` }}
+                    />}
                 <Paragraph style={{ whiteSpace: 'pre-wrap', color: 'white', textAlign: 'justify' }}>
                     {premio.description}
                 </Paragraph>
