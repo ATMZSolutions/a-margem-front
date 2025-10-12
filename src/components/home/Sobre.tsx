@@ -4,6 +4,7 @@ import React from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import PhotoCarousel from "../PhotoCarousel";
+import Image from "next/image";
 
 const randomImages = [
   "/home/img9.jpg",
@@ -20,10 +21,11 @@ const Sobre = () => {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background principal */}
-      <img
+      <Image
         src="/exu-bg.svg"
         alt="Background Exu"
-        className="absolute inset-0 w-full h-full object-cover scale-105 brightness-50 -z-10"
+        fill // ocupa toda a div pai
+        className="object-cover scale-105 brightness-50 -z-10"
       />
 
       {/* Overlay gradiente sutil */}

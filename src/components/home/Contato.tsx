@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { AtSign, Instagram, Mail } from "lucide-react";
+import { Instagram, Mail } from "lucide-react";
 import { TikTokOutlined, WhatsAppOutlined } from "@ant-design/icons"; // ícones Ant Design
 import { motion, Variants } from "framer-motion";
 

@@ -1,8 +1,7 @@
 "use client";
-import React, { useState, useEffect, useReducer } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ConfigProvider, Timeline, Typography } from 'antd';
 import AppDrawer from '@/components/AppDrawer';
-import bg from '../../../public/padrao2.webp';
 import { YearStepper } from '@/components/YearStepper';
 import BackBtn from '@/components/BackBtn';
 import PhotoCarousel from '@/components/PhotoCarousel';

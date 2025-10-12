@@ -5,6 +5,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { MapPin, Calendar } from "lucide-react";
 import { motion, Variants } from "framer-motion";
+import Image from "next/image";
 
 interface AgendaItem {
   id: number;
@@ -39,10 +40,11 @@ const Agenda = ({ eventos, loading }: AgendaProps) => {
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center bg-[#681A01] text-white px-4 overflow-hidden">
       {/* Imagem de fundo */}
-      <img
+      <Image
         src="/padrao2.webp"
         alt="Background Padrao2"
-        className="absolute top-0 left-0 w-full h-full object-cover z-0"
+        fill // ocupa toda a div pai, equivalente a absolute + w-full + h-full
+        className="object-cover z-0"
       />
       <div className="absolute inset-0 bg-[#681A01]/70 z-10 pointer-events-none" />
 
@@ -78,7 +80,9 @@ const Agenda = ({ eventos, loading }: AgendaProps) => {
                   <div className="flex items-center gap-2 mb-3 text-[#F5A623]">
                     <Calendar size={16} />
                     <span className="text-sm font-medium">
-                      {format(eventDate, "dd 'de' MMMM, yyyy", { locale: ptBR })}
+                      {format(eventDate, "dd 'de' MMMM, yyyy", {
+                        locale: ptBR,
+                      })}
                     </span>
                   </div>
 
