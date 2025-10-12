@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 // src/lib/edgeCrypto.ts
 
 export async function createHmacKey(message: string, secret: string): Promise<ArrayBuffer> {
