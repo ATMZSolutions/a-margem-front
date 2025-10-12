@@ -82,8 +82,8 @@ Atualmente – Processo de experimentação e criação de novas possibilidades 
 ];
 
 const randomImages = [
-    "https://images.unsplash.com/photo-1506744038136-46273834b3fb",
-    "https://images.unsplash.com/photo-1465101046530-73398c7f28ca",
+    "/muximba-coletivo.jpg",
+    "/xire-coletivo.jpg",
     "https://images.unsplash.com/photo-1519125323398-675f0ddb6308",
 ];
 
@@ -106,24 +106,24 @@ export default async function EspetaculosDetalhes({ params }: EspetaculosDetalhe
             <BackBtn label={showData.title} />
 
 
-            <div className="max-w-xl items-center">
-                <div className="flex flex-col items-center mt-40">
+            <div className="max-w-xl w-full flex flex-col items-center mt-40 mx-2">
+                <div className="w-full h-[200px] sm:h-[320px]">
                     <PhotoCarousel images={randomImages} />
-                    <div className="w-4/5 max-w-xl sm:max-w-2xl md:max-w-3xl mx-auto flex flex-col items-end mt-2">
-                        <span className="text-white italic text-xs font-bold">
-                            {new Intl.DateTimeFormat('pt-BR', {
-                                day: '2-digit',
-                                month: '2-digit',
-                                year: 'numeric',
-                            }).format(new Date(showData.opening))}
-                        </span>
-                        <span className="text-white italic text-xs font-bold">{showData.local}</span>
-                    </div>
+                </div>      
+                <div className="w-full flex flex-col items-end mt-2">
+                    <span className="text-white italic text-xs font-bold">
+                        {new Intl.DateTimeFormat('pt-BR', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
+                        }).format(new Date(showData.opening))}
+                    </span>
+                    <span className="text-white italic text-xs font-bold">{showData.local}</span>
                 </div>
-                <section className="flex flex-col mt-16 mx-2">
+                <section className="flex flex-col mt-16 w-full mx-2">
                     {showData.sections.map((section) => (
                         <React.Fragment key={section.subtitle}>
-                            <Title level={3} style={{ color: 'white', width: '70%' }}>
+                            <Title className='font-sedgwick border-l-4 border-[#F38901] pl-2' level={3} style={{ color: 'white', width: '70%', fontWeight: 'normal' }}>
                                 {section.subtitle}
                             </Title>
                             <Paragraph style={{ whiteSpace: 'pre-wrap', textAlign: 'justify', color: 'white' }}>
