@@ -34,10 +34,11 @@ const PremioDetalhes = async ({ params }: PremioDetalhesProps) => {
                     year={premio.year}
                     isSaibaMais={true}
                 />
-                <div
-                    className="w-full h-64 md:h-72 bg-cover bg-center rounded"
-                    style={{ backgroundImage: `url(${premio.img})` }}
-                />
+                {premio.img &&
+                    <div
+                        className="w-full h-64 md:h-72 bg-cover bg-center rounded"
+                        style={{ backgroundImage: `url(${premio.img})` }}
+                    />}
                 <Paragraph style={{ whiteSpace: 'pre-wrap', color: 'white', textAlign: 'justify' }}>
                     {premio.description}
                 </Paragraph>
