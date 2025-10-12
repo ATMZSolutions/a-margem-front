@@ -61,7 +61,7 @@ export default function AgendaPage({
 
   const eventsByLocation = events.reduce<Record<string, EventItem[]>>(
     (acc, event) => {
-      const city = event.cidade?.trim().toLowerCase() || "Cidade não informada";
+      const city = event.cidade?.trim().toLowerCase() || "EVENTO";
       const locationLabel = city.charAt(0).toUpperCase() + city.slice(1); // primeira letra maiúscula
       if (!acc[locationLabel]) acc[locationLabel] = [];
       acc[locationLabel].push(event);
