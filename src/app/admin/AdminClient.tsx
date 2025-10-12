@@ -7,6 +7,7 @@ type AgendaItem = {
   titulo: string;
   data: string;
   local?: string;
+  cidade?: string;
 };
 
 type NoticiaItem = {
@@ -47,6 +48,7 @@ export default function AdminClient() {
     titulo: "",
     data: "",
     local: "",
+    cidade: "",
   });
   const [agendaTime, setAgendaTime] = useState<string>("19:00"); // horário padrão
   const [editingAgenda, setEditingAgenda] = useState<AgendaItem | null>(null);
@@ -56,7 +58,9 @@ export default function AdminClient() {
     conteudo: "",
     link: "",
   });
-  const [editingNoticia, setEditingNoticia] = useState<NoticiaItem | null>(null);
+  const [editingNoticia, setEditingNoticia] = useState<NoticiaItem | null>(
+    null
+  );
   const [newLivro, setNewLivro] = useState<LivroItem>({
     titulo: "",
     autor: "",
@@ -71,7 +75,9 @@ export default function AdminClient() {
     data: "",
     descricao: "",
   });
-  const [editingProjeto, setEditingProjeto] = useState<ProjetoItem | null>(null);
+  const [editingProjeto, setEditingProjeto] = useState<ProjetoItem | null>(
+    null
+  );
 
   // Estados para Sobre
   const [newSobre, setNewSobre] = useState<SobreItem>({
@@ -80,7 +86,8 @@ export default function AdminClient() {
     descricao: "",
   });
   const [editingSobre, setEditingSobre] = useState<SobreItem | null>(null);
-  const [uploadingSobreImage, setUploadingSobreImage] = useState<boolean>(false);
+  const [uploadingSobreImage, setUploadingSobreImage] =
+    useState<boolean>(false);
 
   async function load() {
     const a = await fetch("/api/admin/agenda").then((r) => r.json());
@@ -116,7 +123,7 @@ export default function AdminClient() {
       body: JSON.stringify(agendaToCreate),
       headers: { "Content-Type": "application/json" },
     });
-    setNewAgenda({ titulo: "", data: "", local: "" });
+    setNewAgenda({ titulo: "", data: "", local: "", cidade: "" });
     setAgendaTime("19:00");
     load();
   }
@@ -131,8 +138,8 @@ export default function AdminClient() {
     setEditingAgenda(agenda);
     // Extrair hora da data ISO
     const date = new Date(agenda.data);
-    const hours = date.getHours().toString().padStart(2, '0');
-    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const hours = date.getHours().toString().padStart(2, "0");
+    const minutes = date.getMinutes().toString().padStart(2, "0");
     setEditingAgendaTime(`${hours}:${minutes}`);
   }
 
@@ -147,7 +154,7 @@ export default function AdminClient() {
 
     // Combinar data e hora no fuso horário local
     const currentDate = new Date(editingAgenda.data);
-    const dateOnly = currentDate.toISOString().split('T')[0];
+    const dateOnly = currentDate.toISOString().split("T")[0];
     const dateTimeString = `${dateOnly}T${editingAgendaTime}:00`;
     const localDate = new Date(dateTimeString);
     const isoString = localDate.toISOString();
@@ -331,7 +338,7 @@ export default function AdminClient() {
     e.preventDefault();
     if (!editingProjeto) return;
 
-    const dateTimeString = `${editingProjeto.data.split('T')[0]}T00:00:00`;
+    const dateTimeString = `${editingProjeto.data.split("T")[0]}T00:00:00`;
     const localDate = new Date(dateTimeString);
     const isoString = localDate.toISOString();
 
@@ -350,7 +357,9 @@ export default function AdminClient() {
   }
 
   // Funções para Sobre
-  async function handleSobreImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleSobreImageUpload(
+    e: React.ChangeEvent<HTMLInputElement>
+  ) {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -382,10 +391,10 @@ export default function AdminClient() {
       body: JSON.stringify(newSobre),
       headers: { "Content-Type": "application/json" },
     });
-    setNewSobre({ 
-      ano: new Date().getFullYear(), 
-      imagem: "", 
-      descricao: "" 
+    setNewSobre({
+      ano: new Date().getFullYear(),
+      imagem: "",
+      descricao: "",
     });
     load();
   }
@@ -416,7 +425,9 @@ export default function AdminClient() {
     load();
   }
 
-  async function handleEditSobreImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleEditSobreImageUpload(
+    e: React.ChangeEvent<HTMLInputElement>
+  ) {
     const file = e.target.files?.[0];
     if (!file || !editingSobre) return;
 
@@ -492,6 +503,14 @@ export default function AdminClient() {
               />
             </div>
             <input
+              placeholder="Cidade"
+              value={newAgenda.cidade}
+              onChange={(e) =>
+                setNewAgenda({ ...newAgenda, cidade: e.target.value })
+              }
+              className="p-2 border border-white rounded"
+            />
+            <input
               placeholder="Local"
               value={newAgenda.local}
               onChange={(e) =>
@@ -517,11 +536,11 @@ export default function AdminClient() {
                       placeholder="Título"
                       value={editingAgenda.titulo}
                       onChange={(e) =>
-                        setEditingAgenda({ 
-                          ...editingAgenda, 
+                        setEditingAgenda({
+                          ...editingAgenda,
                           titulo: e.target.value,
                           data: editingAgenda.data || "",
-                          local: editingAgenda.local || ""
+                          local: editingAgenda.local || "",
                         })
                       }
                       className="w-full p-2 border border-white rounded text-white"
@@ -530,13 +549,17 @@ export default function AdminClient() {
                       <input
                         required
                         type="date"
-                        value={new Date(editingAgenda.data).toISOString().split('T')[0]}
+                        value={
+                          new Date(editingAgenda.data)
+                            .toISOString()
+                            .split("T")[0]
+                        }
                         onChange={(e) =>
-                          setEditingAgenda({ 
-                            ...editingAgenda, 
+                          setEditingAgenda({
+                            ...editingAgenda,
                             data: e.target.value,
                             titulo: editingAgenda.titulo || "",
-                            local: editingAgenda.local || ""
+                            local: editingAgenda.local || "",
                           })
                         }
                         className="flex-1 p-2 border border-white rounded text-white"
@@ -549,14 +572,28 @@ export default function AdminClient() {
                       />
                     </div>
                     <input
+                      placeholder="Cidade"
+                      value={editingAgenda.cidade || ""}
+                      onChange={(e) =>
+                        setEditingAgenda({
+                          ...editingAgenda,
+                          cidade: e.target.value,
+                          titulo: editingAgenda.titulo || "",
+                          local: editingAgenda.local || "",
+                          data: editingAgenda.data || "",
+                        })
+                      }
+                      className="w-full p-2 border border-white rounded text-white"
+                    />
+                    <input
                       placeholder="Local"
                       value={editingAgenda.local || ""}
                       onChange={(e) =>
-                        setEditingAgenda({ 
-                          ...editingAgenda, 
+                        setEditingAgenda({
+                          ...editingAgenda,
                           local: e.target.value,
                           titulo: editingAgenda.titulo || "",
-                          data: editingAgenda.data || ""
+                          data: editingAgenda.data || "",
                         })
                       }
                       className="w-full p-2 border border-white rounded text-white"
@@ -582,7 +619,7 @@ export default function AdminClient() {
                     <div>
                       <div className="font-semibold">{a.titulo}</div>
                       <div className="text-sm text-gray-300">
-                        {new Date(a.data).toLocaleString("pt-BR")} — {a.local}
+                        {new Date(a.data).toLocaleString("pt-BR")} — {a.local} — {a.cidade}
                       </div>
                     </div>
                     <div className="flex gap-2">
@@ -658,11 +695,11 @@ export default function AdminClient() {
                       placeholder="Título"
                       value={editingNoticia.titulo}
                       onChange={(e) =>
-                        setEditingNoticia({ 
-                          ...editingNoticia, 
+                        setEditingNoticia({
+                          ...editingNoticia,
                           titulo: e.target.value,
                           conteudo: editingNoticia.conteudo || "",
-                          link: editingNoticia.link || ""
+                          link: editingNoticia.link || "",
                         })
                       }
                       className="w-full p-2 border border-white rounded text-white"
@@ -672,11 +709,11 @@ export default function AdminClient() {
                       placeholder="Adicione o conteúdo ..."
                       value={editingNoticia.conteudo}
                       onChange={(e) =>
-                        setEditingNoticia({ 
-                          ...editingNoticia, 
+                        setEditingNoticia({
+                          ...editingNoticia,
                           conteudo: e.target.value,
                           titulo: editingNoticia.titulo || "",
-                          link: editingNoticia.link || ""
+                          link: editingNoticia.link || "",
                         })
                       }
                       className="w-full p-2 border border-white rounded text-white"
@@ -686,11 +723,11 @@ export default function AdminClient() {
                       placeholder="Link"
                       value={editingNoticia.link || ""}
                       onChange={(e) =>
-                        setEditingNoticia({ 
-                          ...editingNoticia, 
+                        setEditingNoticia({
+                          ...editingNoticia,
                           link: e.target.value,
                           titulo: editingNoticia.titulo || "",
-                          conteudo: editingNoticia.conteudo || ""
+                          conteudo: editingNoticia.conteudo || "",
                         })
                       }
                       className="w-full p-2 border border-white rounded text-white"
@@ -750,7 +787,9 @@ export default function AdminClient() {
 
         {/* Livros Section */}
         <section>
-          <h2 className="text-xl border-l-4 my-8 border-orange-500 pl-2 font-semibold">Livros</h2>
+          <h2 className="text-xl border-l-4 my-8 border-orange-500 pl-2 font-semibold">
+            Livros
+          </h2>
           <form onSubmit={createLivro} className="space-y-3 my-3">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <input
@@ -824,11 +863,11 @@ export default function AdminClient() {
                         placeholder="Título"
                         value={editingLivro.titulo}
                         onChange={(e) =>
-                          setEditingLivro({ 
-                            ...editingLivro, 
+                          setEditingLivro({
+                            ...editingLivro,
                             titulo: e.target.value,
                             autor: editingLivro.autor || "",
-                            descricao: editingLivro.descricao || ""
+                            descricao: editingLivro.descricao || "",
                           })
                         }
                         className="p-2 text-white rounded border border-white"
@@ -838,11 +877,11 @@ export default function AdminClient() {
                         placeholder="Autor"
                         value={editingLivro.autor}
                         onChange={(e) =>
-                          setEditingLivro({ 
-                            ...editingLivro, 
+                          setEditingLivro({
+                            ...editingLivro,
                             autor: e.target.value,
                             titulo: editingLivro.titulo || "",
-                            descricao: editingLivro.descricao || ""
+                            descricao: editingLivro.descricao || "",
                           })
                         }
                         className="p-2 text-white rounded border border-white"
@@ -853,11 +892,11 @@ export default function AdminClient() {
                       placeholder="Descrição"
                       value={editingLivro.descricao}
                       onChange={(e) =>
-                        setEditingLivro({ 
-                          ...editingLivro, 
+                        setEditingLivro({
+                          ...editingLivro,
                           descricao: e.target.value,
                           titulo: editingLivro.titulo || "",
-                          autor: editingLivro.autor || ""
+                          autor: editingLivro.autor || "",
                         })
                       }
                       className="w-full p-2 text-white rounded border border-white"
@@ -911,7 +950,9 @@ export default function AdminClient() {
                       )}
                       <div className="flex-1">
                         <div className="font-semibold">{l.titulo}</div>
-                        <div className="text-sm text-gray-300">por {l.autor}</div>
+                        <div className="text-sm text-gray-300">
+                          por {l.autor}
+                        </div>
                         <div className="text-xs text-gray-400 mt-1">
                           {l.descricao}
                         </div>
@@ -980,9 +1021,12 @@ export default function AdminClient() {
                     <input
                       required
                       type="date"
-                      value={editingProjeto.data.split('T')[0]}
+                      value={editingProjeto.data.split("T")[0]}
                       onChange={(e) =>
-                        setEditingProjeto({ ...editingProjeto, data: e.target.value })
+                        setEditingProjeto({
+                          ...editingProjeto,
+                          data: e.target.value,
+                        })
                       }
                       className="w-full p-2 text-white rounded border border-white"
                     />
@@ -990,7 +1034,10 @@ export default function AdminClient() {
                       required
                       value={editingProjeto.descricao}
                       onChange={(e) =>
-                        setEditingProjeto({ ...editingProjeto, descricao: e.target.value })
+                        setEditingProjeto({
+                          ...editingProjeto,
+                          descricao: e.target.value,
+                        })
                       }
                       className="w-full p-2 text-white rounded border border-white"
                       rows={3}
@@ -1015,7 +1062,7 @@ export default function AdminClient() {
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
                       <div className="font-semibold">
-                        {new Date(p.data).toLocaleDateString('pt-BR')}
+                        {new Date(p.data).toLocaleDateString("pt-BR")}
                       </div>
                       <div className="text-sm text-gray-300 mt-1">
                         {p.descricao}
@@ -1076,7 +1123,9 @@ export default function AdminClient() {
                 onChange={handleSobreImageUpload}
                 className="w-full p-2 border border-white rounded text-white file:mr-4 file:py-1 file:px-4 file:rounded file:border-0 file:text-sm file:bg-orange-500 file:text-white hover:file:bg-orange-600"
               />
-              {uploadingSobreImage && <p className="text-sm text-gray-300">Enviando imagem...</p>}
+              {uploadingSobreImage && (
+                <p className="text-sm text-gray-300">Enviando imagem...</p>
+              )}
               {newSobre.imagem && (
                 <div className="mt-2">
                   <img
@@ -1109,7 +1158,10 @@ export default function AdminClient() {
                       type="number"
                       value={editingSobre.ano}
                       onChange={(e) =>
-                        setEditingSobre({ ...editingSobre, ano: parseInt(e.target.value) })
+                        setEditingSobre({
+                          ...editingSobre,
+                          ano: parseInt(e.target.value),
+                        })
                       }
                       className="w-full p-2 text-white rounded border border-white"
                     />
@@ -1117,20 +1169,29 @@ export default function AdminClient() {
                       required
                       value={editingSobre.descricao}
                       onChange={(e) =>
-                        setEditingSobre({ ...editingSobre, descricao: e.target.value })
+                        setEditingSobre({
+                          ...editingSobre,
+                          descricao: e.target.value,
+                        })
                       }
                       className="w-full p-2 text-white rounded border border-white"
                       rows={3}
                     />
                     <div className="space-y-2">
-                      <label className="block text-sm font-medium">Imagem:</label>
+                      <label className="block text-sm font-medium">
+                        Imagem:
+                      </label>
                       <input
                         type="file"
                         accept="image/*"
                         onChange={handleEditSobreImageUpload}
                         className="w-full p-2 border border-white rounded text-white file:mr-4 file:py-1 file:px-4 file:rounded file:border-0 file:text-sm file:bg-orange-500 file:text-white hover:file:bg-orange-600"
                       />
-                      {uploadingSobreImage && <p className="text-sm text-gray-300">Enviando imagem...</p>}
+                      {uploadingSobreImage && (
+                        <p className="text-sm text-gray-300">
+                          Enviando imagem...
+                        </p>
+                      )}
                       {editingSobre.imagem && (
                         <div className="mt-2">
                           <img
