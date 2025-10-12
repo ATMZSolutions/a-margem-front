@@ -12,7 +12,7 @@ interface PremioProps {
 const Premio: React.FC<PremioProps> = ({ title, evento, year, isSaibaMais = false }) => {
     // Transformar o título em maiúsculo
     const titleUpper = title.toUpperCase();
-    const href = `/premios/${slugify(title)}`
+    const href = `/premios/${slugify(title)}/${year}`
 
     return (
         <div className="flex flex-col items-center justify-center w-60 md:w-72 text-center">

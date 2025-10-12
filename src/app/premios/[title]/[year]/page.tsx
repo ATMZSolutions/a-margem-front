@@ -7,12 +7,13 @@ import { notFound } from "next/navigation";
 import Paragraph from "antd/es/typography/Paragraph";
 
 interface PremioDetalhesProps {
-    params: { title: string };
+    params: Promise<{ title: string, year: string; }>;
 }
 
-const PremioDetalhes = ({ params }: PremioDetalhesProps) => {
-    const { title } = params;
-    const premio = premios.find((p) => slugify(p.title) == title);
+const PremioDetalhes = async ({ params }: PremioDetalhesProps) => {
+    const { title, year } = await params;
+    const premio = premios.find((p) => slugify(p.title) + `/${p.year}` == title + `/${year}`);
+
 
     if (!premio) return notFound();
 
