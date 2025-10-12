@@ -16,15 +16,15 @@ export async function middleware(req: NextRequest) {
   const pathname = req.nextUrl?.pathname || new URL(req.url).pathname;
 
   if (pathname === '/admin' || pathname.startsWith('/admin/') || pathname.startsWith('/api/admin')) {
-    // Allow the public login page and auth endpoint through so users can sign in
+    // Allow the public login page and auth endpoint through
     if (pathname === '/admin/login' || pathname.startsWith('/admin/login/')) return NextResponse.next();
     if (pathname === '/api/admin/auth' || pathname.startsWith('/api/admin/auth/')) return NextResponse.next();
 
     // For UI access (/admin) require an internal session cookie `a_token`.
     const cookie = req.cookies.get('a_token')?.value;
-    if (cookie && validateSession(cookie)) return NextResponse.next();
+    if (cookie && await validateSession(cookie)) return NextResponse.next();
 
-    // If request is an API call, allow Basic Auth as a secondary route (for scripts)
+    // If request is an API call, allow Basic Auth as a secondary route
     if (pathname.startsWith('/api/admin')) {
       const auth = req.headers.get('authorization');
       if (auth && auth.startsWith('Basic ')) {
@@ -34,13 +34,13 @@ export async function middleware(req: NextRequest) {
           const [user, pass] = decoded.split(':');
           if (user === AUTH_USER && pass === AUTH_PASS) return NextResponse.next();
         } catch (e) {
-          // fall through to redirect
+          // fall through
         }
       }
       return unauthorized();
     }
 
-    // If not authorized, redirect to login page for UI
+    // Redirect UI to login if not authorized
     const url = req.nextUrl.clone();
     url.pathname = '/admin/login';
     return NextResponse.redirect(url);
