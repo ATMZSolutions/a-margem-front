@@ -30,7 +30,7 @@ Sonoplastia: Yuri Beyle e Ashley Gouveia
 Produção: Iná Paz`
             },
             {
-                subtitle: "Elenco e equipe (atual)",
+                subtitle: "Ficha técnica (atual)",
                 description: `Elenco: Cas Almeida, Eduarda Ferreira, Elaine Cristina, Maria Guerra, Torres ZN
 Iluminação e sonoplastia: Alice Portela, Francisco Bento
 Sonoplastia ao vivo: Torres ZN (batuque no tantã)`
@@ -72,7 +72,7 @@ Elenco: Mah Carvalho, Letycia Ferraz, Felipe Araújo, Nelba Santos
 Produção e colaboração: Coletivo À Margem`
             },
             {
-                subtitle: "Apresentações e trajetória",
+                subtitle: "Trajetória e Apresentações",
                 description: `13/03/2024 – Estreia no Teatro Milton Baccarelli (CAC/UFPE)
 28/09/2024 – Ítàn do Jovem Preto (Ocupação Espaço O Poste, grupo O Poste: Soluções Luminosas)
 Atualmente – Processo de experimentação e criação de novas possibilidades cênicas em sala de ensaio`
@@ -106,10 +106,10 @@ export default async function EspetaculosDetalhes({ params }: EspetaculosDetalhe
             <BackBtn label={showData.title} />
 
 
-            <div className="max-w-xl w-full flex flex-col items-center mt-40 mx-2">
-                <div className="w-full h-[200px] sm:h-[320px]">
+            <div className="max-w-xl lg:max-w-2xl w-full flex flex-col items-center mt-40 mx-2">
+                <div className="w-full h-[220px] sm:h-[350px]">
                     <PhotoCarousel images={randomImages} />
-                </div>      
+                </div>
                 <div className="w-full flex flex-col items-end mt-2">
                     <span className="text-white italic text-xs font-bold">
                         {new Intl.DateTimeFormat('pt-BR', {
@@ -120,14 +120,18 @@ export default async function EspetaculosDetalhes({ params }: EspetaculosDetalhe
                     </span>
                     <span className="text-white italic text-xs font-bold">{showData.local}</span>
                 </div>
-                <section className="flex flex-col mt-16 w-full mx-2">
+                <section className="flex flex-col mt-12 w-full mx-2">
                     {showData.sections.map((section) => (
                         <React.Fragment key={section.subtitle}>
                             <Title className='font-sedgwick border-l-4 border-[#F38901] pl-2' level={3} style={{ color: 'white', width: '70%', fontWeight: 'normal' }}>
                                 {section.subtitle}
                             </Title>
                             <Paragraph style={{ whiteSpace: 'pre-wrap', textAlign: 'justify', color: 'white' }}>
-                                {formatDescription(section.description)}
+                                {   // Adiciona bold apenas às descrições das seções de Ficha Técnica e Trajetória
+                                    section.subtitle.includes('Trajetória') || section.subtitle.includes("Ficha")
+                                        ? formatDescription(section.description)
+                                        : section.description
+                                }
                             </Paragraph>
                         </React.Fragment>
                     ))}

@@ -34,7 +34,7 @@ export default function EspetaculosPage() {
         <img
           src={item.img}
           alt={`Evento de ${item.title}`}
-          className="h-[200px] md:h-[300px] max-w-[300px] md:max-w-[500px] object-cover"
+          className="h-[200px] md:h-[350px] max-w-[300px] md:max-w-[500px] lg:max-w-[650px] object-cover"
         />
         <div className="flex flex-row justify-between">
           <span className="text-black">{item.release}</span>
