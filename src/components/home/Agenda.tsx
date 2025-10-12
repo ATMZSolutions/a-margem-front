@@ -3,15 +3,16 @@
 import React from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { MapPin, Calendar } from "lucide-react";
 import { motion, Variants } from "framer-motion";
 import Image from "next/image";
+import { EnvironmentOutlined } from '@ant-design/icons';
 
 interface AgendaItem {
   id: number;
   titulo: string;
   data: string;
   local?: string;
+  cidade?: string;
   createdAt: string;
 }
 
@@ -21,106 +22,146 @@ interface AgendaProps {
 }
 
 const agendaVariants: Variants = {
-  hidden: { opacity: 0, y: 50 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
+  hidden: { opacity: 0, y: 10 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
 };
 
-const Agenda = ({ eventos, loading }: AgendaProps) => {
+// Capitaliza a primeira letra
+const capitalize = (str: string) =>
+  str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+
+const AgendaHome = ({ eventos, loading }: AgendaProps) => {
   if (loading) {
     return (
       <section className="min-h-screen flex items-center justify-center bg-[#681A01] text-white">
         <div className="text-center">
-          <h2 className="text-4xl font-bold mb-8">PRÓXIMOS EVENTOS</h2>
+          <h2 className="text-3xl font-bold mb-4 font-sedgwick">PRÓXIMOS EVENTOS</h2>
           <p>Carregando eventos...</p>
         </div>
       </section>
     );
   }
 
+  // Agrupa eventos por cidade normalizada
+  const groupedEvents: { [key: string]: AgendaItem[] } = eventos.reduce(
+    (acc, event) => {
+      const cityKey = event.cidade?.trim().toLowerCase() || "outros";
+      if (!acc[cityKey]) acc[cityKey] = [];
+      acc[cityKey].push(event);
+      return acc;
+    },
+    {} as { [key: string]: AgendaItem[] }
+  );
+
+  // Ordena cidades e pega apenas as 2 primeiras
+  const sortedCities = Object.keys(groupedEvents).sort().slice(0, 2);
+
   return (
-    <section className="relative min-h-screen flex flex-col items-center justify-center bg-[#681A01] text-white px-4 overflow-hidden">
-      {/* Imagem de fundo */}
-      <Image
-        src="/padrao2.webp"
-        alt="Background Padrao2"
-        fill // ocupa toda a div pai, equivalente a absolute + w-full + h-full
-        className="object-cover z-0"
-      />
-      <div className="absolute inset-0 bg-[#681A01]/70 z-10 pointer-events-none" />
+    <section className="relative min-h-screen max-w-screen flex flex-col justify-center items-center bg-[#681A01] text-white overflow-hidden">
+      {/* Fundo fixo e otimizado */}
+      <div className="">
+        <Image
+          src="/padrao2.webp"
+          alt="Background"
+          fill
+          priority
+          className="object-cover opacity-25"
+        />
+        <div className="inset-0 bg-[#681A01]/80" />
+      </div>
 
       {/* Conteúdo */}
-      <div className="relative z-20 w-full max-w-4xl flex flex-col items-center">
+      <div className="w-4/5 flex flex-col justify-center md:flex-row gap-16 z-10">
         <motion.h2
-          className="text-4xl md:text-5xl font-sedgwick uppercase tracking-widest font-bold mb-12 text-center"
+          className="text-4xl md:text-5xl text-end font-sedgwick font-extrabold uppercase tracking-widest text-white/80 mb-8 md:mb-0"
           variants={agendaVariants}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
         >
-          Próximos Eventos
+          Próximos
+          <br />
+          Eventos
         </motion.h2>
 
-        {eventos.length === 0 ? (
-          <div className="text-center text-white/80">
-            <p>Nenhum evento programado no momento.</p>
-          </div>
-        ) : (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 w-full">
-            {eventos.map((evento) => {
-              const eventDate = new Date(evento.data);
-              return (
-                <motion.div
-                  key={evento.id}
-                  className="bg-white/10 backdrop-blur-sm rounded-lg p-6 hover:bg-white/20 transition-all duration-300"
+        <div className="w-full md:w-[30%] lg:w-[40%]">
+          {sortedCities.length === 0 ? (
+            <p className="text-center text-white/80">
+              Nenhum evento programado no momento.
+            </p>
+          ) : (
+            sortedCities.map((city) => (
+              <div key={city} className="space-y-4">
+                <motion.h3
+                  className="bg-[#F5A623] text-[#681A01] font-bold text-lg uppercase px-3 rounded inline-block"
                   variants={agendaVariants}
                   initial="hidden"
                   whileInView="visible"
                   viewport={{ once: true }}
                 >
-                  <div className="flex items-center gap-2 mb-3 text-[#F5A623]">
-                    <Calendar size={16} />
-                    <span className="text-sm font-medium">
-                      {format(eventDate, "dd 'de' MMMM, yyyy", {
-                        locale: ptBR,
-                      })}
-                    </span>
-                  </div>
+                  <EnvironmentOutlined className="mr-2" />
+                  {capitalize(city)}
+                </motion.h3>
 
-                  <h3 className="text-lg font-semibold mb-2 line-clamp-2">
-                    {evento.titulo}
-                  </h3>
+                {groupedEvents[city].map((event) => {
+                  const eventDate = new Date(event.data);
+                  return (
+                    <motion.div
+                      key={event.id}
+                      className="flex flex-row items-center justify-center bg-white/10 rounded-lg px-1 py-2 mb-4"
+                      variants={agendaVariants}
+                      initial="hidden"
+                      whileInView="visible"
+                      viewport={{ once: true }}
+                    >
+                      {/* Data */}
+                      <div className="flex-shrink-0 flex flex-col items-center text-center border-r border-dashed border-white/50 px-2 gap-1">
+                        <div className="flex flex-row font-bold gap-[2px] leading-none">
+                          <span className="uppercase text-white">
+                            {format(eventDate, "dd")}
+                          </span>
+                          <span className="uppercase text-white">
+                            {format(eventDate, "MMM", { locale: ptBR })}
+                          </span>
+                        </div>
+                        <span className="text-[12px] text-white/80 leading-none">
+                          {format(eventDate, "HH:mm")}
+                        </span>
+                      </div>
 
-                  {evento.local && (
-                    <div className="flex items-center gap-2 text-white/80">
-                      <MapPin size={14} />
-                      <span className="text-sm">{evento.local}</span>
-                    </div>
-                  )}
+                      {/* Detalhes */}
+                      <div className="flex-1 flex flex-col justify-center text-left leading-none ml-2 gap-1">
+                        <p className="text-sm sm:text-base font-medium text-white leading-none">
+                          {event.titulo}
+                        </p>
+                        {(event.local || event.cidade) && (
+                          <p className="text-[12px] text-white/80 leading-none">
+                            {event.local}{" "}
+                          </p>
+                        )}
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            ))
+          )}
 
-                  <div className="mt-4 text-right">
-                    <span className="text-xs text-[#F5A623] font-medium">
-                      {format(eventDate, "HH:mm")}
-                    </span>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
-        )}
-
-        {eventos.length > 0 && (
-          <div className="text-center mt-8">
-            <a
-              href="/agenda"
-              className="inline-block bg-[#F5A623] text-[#681A01] px-6 py-3 rounded-lg font-semibold hover:bg-[#F5A623]/90 transition-colors"
-            >
-              Ver toda a agenda
-            </a>
-          </div>
-        )}
+          {/* Botão 100% largura */}
+          {sortedCities.length > 0 && (
+            <div className="w-full mt-6">
+              <a
+                href="/agenda"
+                className="block w-full text-center bg-white/80 text-[#681A01] py-2 rounded-lg font-semibold transition-colors text-base"
+              >
+                Agenda Completa
+              </a>
+            </div>
+          )}
+        </div>
       </div>
     </section>
   );
 };
 
-export default Agenda;
+export default AgendaHome;
