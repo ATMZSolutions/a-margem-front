@@ -3,35 +3,8 @@ import React, { useState, useRef, useLayoutEffect, useEffect } from 'react';
 import { ConfigProvider, Timeline, Typography } from 'antd';
 import AppDrawer from '../../components/AppDrawer';
 import BackBtn from '@/components/BackBtn';
-
-interface TimelineItem {
-  year: string;
-  text: string;
-  img: string;
-}
-
-const items: TimelineItem[] = [
-    {
-        year: "2022",
-        text: "O Coletivo À Margem é o primeiro grupo de teatro hip-hop de Pernambuco. Entre a arte e a educação, o grupo cria espetáculos e oficinas para diferentes públicos, traduzindo a palavra “margem” em potência criativa e pertencimento, reafirmando a função social do teatro hip-hop. O Coletivo À Margem é o primeiro grupo de teatro hip-hop de Pernambuco. Entre a arte e a educação, o grupo cria espetáculos e oficinas para diferentes públicos, traduzindo a palavra “margem” em potência criativa e pertencimento, reafirmando a função social do teatro hip-hop.",
-        img: "https://picsum.photos/200?random=1"
-    },
-    {
-        year: "2023",
-        text: "O Coletivo À Margem é o primeiro grupo de teatro hip-hop de Pernambuco. Entre a arte e a educação, o grupo cria espetáculos e oficinas para diferentes públicos, traduzindo a palavra “margem” em potência criativa e pertencimento, reafirmando a função social do teatro hip-hop.",
-        img: "https://picsum.photos/200?random=2"
-    },
-    {
-        year: "2024",
-        text: "O Coletivo À Margem é o primeiro grupo de teatro hip-hop de Pernambuco. Entre a arte e a educação, o grupo cria espetáculos e oficinas para diferentes públicos, traduzindo a palavra “margem” em potência criativa e pertencimento, reafirmando a função social do teatro hip-hop. O Coletivo À Margem é o primeiro grupo de teatro hip-hop de Pernambuco. Entre a arte e a educação, o grupo cria espetáculos e oficinas para diferentes públicos, traduzindo a palavra “margem” em potência criativa e pertencimento, reafirmando a função social do teatro hip-hop. O Coletivo À Margem é o primeiro grupo de teatro hip-hop de Pernambuco. Entre a arte e a educação, o grupo cria espetáculos e oficinas para diferentes públicos, traduzindo a palavra “margem” em potência criativa e pertencimento, reafirmando a função social do teatro hip-hop.",
-        img: "https://picsum.photos/200?random=3"
-    },
-    {
-        year: "2025",
-        text: "O Coletivo À Margem é o primeiro grupo de teatro hip-hop de Pernambuco. Entre a arte e a educação, o grupo cria espetáculos e oficinas para diferentes públicos, traduzindo a palavra “margem” em potência criativa e pertencimento, reafirmando a função social do teatro hip-hop.",
-        img: "https://picsum.photos/200?random=4"
-    }
-];
+import { TimelineItem } from '@/data/sobre';
+import { items } from '@/data/sobre';
 
 export default function SobrePage() {
   const [selectedItem, setSelectedItem] = useState<TimelineItem | null>(null);

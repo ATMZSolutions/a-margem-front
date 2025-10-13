@@ -17,7 +17,7 @@ const AppDrawer: React.FC<AppDrawerProps> = ({ open, onClose, title, contents, b
       closable={{ 'aria-label': 'Close Button' }}
       onClose={onClose}
       open={open}
-      style={{ backgroundColor: bgColor ?? '#fd9917', fontSize: '16px'}}
+      style={{ whiteSpace: 'pre-wrap', textAlign: 'justify', backgroundColor: bgColor ?? '#fd9917', fontSize: '16px'}}
 >
       {contents.map((paragraph, index) => (
         <p key={index}>{paragraph}</p>
