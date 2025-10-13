@@ -4,6 +4,15 @@ import { useState, useEffect } from "react";
 import BackBtn from "@/components/BackBtn";
 import NewsCard, { NewsItem } from "@/components/NewsCard";
 
+// Tipo exato do retorno da API (baseado no model Prisma)
+interface NoticiaFromAPI {
+  id: number;
+  titulo: string;
+  conteudo: string;
+  link: string;
+  createdAt: string;
+}
+
 export default function NoticiasPage() {
   const [noticias, setNoticias] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -12,12 +21,12 @@ export default function NoticiasPage() {
     async function loadNoticias() {
       try {
         const response = await fetch("/api/noticias", { cache: "no-store" });
-        const data = await response.json();
+        const data: NoticiaFromAPI[] = await response.json();
 
-        // Mapeia diretamente conforme o model Noticia
-        const formatted =
+        // Mapeia os dados da API para o formato esperado por <NewsCard />
+        const formatted: NewsItem[] =
           Array.isArray(data) && data.length
-            ? data.map((item: any) => ({
+            ? data.map((item) => ({
                 id: item.id,
                 title: item.titulo,
                 description: item.conteudo,
@@ -46,7 +55,7 @@ export default function NoticiasPage() {
           backgroundImage: "url('/padrao2.webp')",
         }}
       >
-        <div className="text-white">Carregando notícias...</div>
+        <div>Carregando notícias...</div>
       </section>
     );
   }
