@@ -59,16 +59,21 @@ export default function AgendaPage({
     loadEvents();
   }, []);
 
-  const eventsByLocation = events.reduce<Record<string, EventItem[]>>(
-    (acc, event) => {
-      const city = event.cidade?.trim().toLowerCase() || "EVENTO";
-      const locationLabel = city.charAt(0).toUpperCase() + city.slice(1); // primeira letra maiúscula
-      if (!acc[locationLabel]) acc[locationLabel] = [];
-      acc[locationLabel].push(event);
-      return acc;
-    },
-    {}
-  );
+  const eventsByMonthAndLocation = events.reduce<
+    Record<string, Record<string, EventItem[]>>
+  >((acc, event) => {
+    const date = new Date(event.data);
+    const monthLabel = format(date, "MMMM yyyy", { locale: ptBR });
+
+    const city = event.cidade?.trim().toLowerCase() || "EVENTO";
+    const locationLabel = city.charAt(0).toUpperCase() + city.slice(1);
+
+    if (!acc[monthLabel]) acc[monthLabel] = {};
+    if (!acc[monthLabel][locationLabel]) acc[monthLabel][locationLabel] = [];
+
+    acc[monthLabel][locationLabel].push(event);
+    return acc;
+  }, {});
 
   if (loading) {
     return (
@@ -163,55 +168,65 @@ export default function AgendaPage({
 
         {/* Lista de eventos - Card da Home */}
         <div className="flex flex-col gap-8">
-          {Object.entries(eventsByLocation).length > 0 ? (
-            Object.entries(eventsByLocation).map(
-              ([location, locationEvents]) => (
-                <div key={location} className="space-y-4">
-                  <span className="bg-[#F38901] uppercase text-[#681A01] font-bold px-3 py-1 rounded inline-block">
-                    <EnvironmentOutlined className="mr-2" />
-                    {location}
-                  </span>
+          {events.filter((ev) => isSameMonth(new Date(ev.data), currentDate))
+            .length > 0 ? (
+            Object.entries(
+              events
+                .filter((ev) => isSameMonth(new Date(ev.data), currentDate))
+                .reduce<Record<string, EventItem[]>>((acc, event) => {
+                  const city = event.cidade?.trim().toLowerCase() || "EVENTO";
+                  const locationLabel =
+                    city.charAt(0).toUpperCase() + city.slice(1);
+                  if (!acc[locationLabel]) acc[locationLabel] = [];
+                  acc[locationLabel].push(event);
+                  return acc;
+                }, {})
+            ).map(([location, locationEvents]) => (
+              <div key={location} className="space-y-4">
+                <span className="bg-[#F38901] uppercase text-[#681A01] font-bold px-3 py-1 rounded flex items-center gap-2">
+                  <EnvironmentOutlined className="mr-2" />
+                  {location}
+                </span>
 
-                  <div className="flex flex-col gap-4">
-                    {locationEvents.map((event) => {
-                      const eventDate = new Date(event.data);
-                      return (
-                        <div
-                          key={event.id}
-                          className="flex flex-row items-center justify-center bg-white/10 rounded-lg px-1 py-2"
-                        >
-                          <div className="flex-shrink-0 flex flex-col items-center text-center border-r border-dashed border-white/50 px-2 gap-1">
-                            <div className="flex flex-row font-bold gap-[2px] leading-none">
-                              <span className="uppercase text-white">
-                                {format(eventDate, "dd")}
-                              </span>
-                              <span className="uppercase text-white">
-                                {format(eventDate, "MMM", { locale: ptBR })}
-                              </span>
-                            </div>
-                            <span className="text-[12px] text-white/80 leading-none">
-                              {format(eventDate, "HH:mm")}
+                <div className="flex flex-col gap-4">
+                  {locationEvents.map((event) => {
+                    const eventDate = new Date(event.data);
+                    return (
+                      <div
+                        key={event.id}
+                        className="flex flex-row items-center justify-center bg-white/10 rounded-lg px-1 py-2"
+                      >
+                        <div className="flex-shrink-0 flex flex-col items-center text-center border-r border-dashed border-white/50 px-2 gap-1">
+                          <div className="flex flex-row font-bold gap-[2px] leading-none">
+                            <span className="uppercase text-white">
+                              {format(eventDate, "dd")}
+                            </span>
+                            <span className="uppercase text-white">
+                              {format(eventDate, "MMM", { locale: ptBR })}
                             </span>
                           </div>
-
-                          <div className="flex-1 flex flex-col justify-center text-left leading-none ml-2 gap-1">
-                            <p className="text-sm sm:text-base font-medium text-white leading-none">
-                              {event.titulo}
-                            </p>
-                            {(event.local || event.cidade) && (
-                              <p className="text-[12px] text-white/80 leading-none flex items-center gap-1">
-                                <MapPin size={12} /> {event.local}{" "}
-                                {event.cidade && `| ${event.cidade}`}
-                              </p>
-                            )}
-                          </div>
+                          <span className="text-[12px] text-white/80 leading-none">
+                            {format(eventDate, "HH:mm")}
+                          </span>
                         </div>
-                      );
-                    })}
-                  </div>
+
+                        <div className="flex-1 flex flex-col justify-center text-left leading-none ml-2 gap-1">
+                          <p className="text-sm sm:text-base font-medium text-white leading-none">
+                            {event.titulo}
+                          </p>
+                          {(event.local || event.cidade) && (
+                            <p className="text-[12px] text-white/80 leading-none flex items-center gap-1">
+                              <MapPin size={12} /> {event.local}{" "}
+                              {event.cidade && `| ${event.cidade}`}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-              )
-            )
+              </div>
+            ))
           ) : (
             <div className="text-center text-white/70 py-8">
               Nenhum evento encontrado.
