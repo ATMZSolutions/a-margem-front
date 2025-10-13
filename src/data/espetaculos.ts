@@ -49,6 +49,11 @@ export const shows = [
                 local: '',
                 date: '',
                 img: "/espetaculos/xire/img9.jpg",
+            },
+            {
+                local: '',
+                date: '',
+                img: "/espetaculos/xire/img10.jpg",
             }
         ],
         sections: [
@@ -142,11 +147,11 @@ export const espetaculosData = [
     {
         title: "Muximba",
         release: "2024",
-        img: "/muximba-coletivo.jpg",
+        img: "/espetaculos/muximba/img3.jpg",
     },
     {
         title: "Xirê",
         release: "2023",
-        img: "/xire-coletivo.jpg",
+        img: "/espetaculos/xire/img10.jpg",
     },
 ];
