@@ -5,68 +5,12 @@ import AppDrawer from '@/components/AppDrawer';
 import { YearStepper } from '@/components/YearStepper';
 import BackBtn from '@/components/BackBtn';
 import PhotoCarousel from '@/components/PhotoCarousel';
+import { fullItems, projetosImgs } from '@/data/projetos';
 
 interface TimelineItem {
   date: string;
   text: string;
 }
-
-const randomImages = [
-  "https://images.unsplash.com/photo-1506744038136-46273834b3fb",
-  "https://images.unsplash.com/photo-1465101046530-73398c7f28ca",
-  "https://images.unsplash.com/photo-1519125323398-675f0ddb6308",
-];
-
-const fullItems: TimelineItem[] = [
-  {
-    text: "Oficina “Batalha teatral: a lírica do cotidiano sob a perspectiva do ator-mc”, ofertada na programação da Semana de Calouros do curso de Teatro/Licenciatura da UFPE. A atividade explorou as vivências dos participantes e a investigação da performance do ator-MC.",
-    date: '2023-06-01T12:00:00Z'
-  },
-  {
-    text: "O integrante Francisco Bento ministra uma oficina de teatro popular utilizando bases da metodologia do teatro hip-hop na Escola Sindical Nordeste da CUT.",
-    date: '2023-06-14T12:00:00Z'
-  },
-  {
-    text: "O Coletivo realiza uma oficina na Ocupação Cuca Legal, parte do Movimento dos Trabalhadores Sem Teto (MTST), realizado com jovens da comunidade.",
-    date: '2024-04-12T12:00:00Z'
-  },
-  {
-    text: "Oficina do projeto “Teatro Hip-Hop” (Lei Paulo Gustavo) no NEIMFA, em Joana Bezerra (Recife).",
-    date: '2024-06-01T12:00:00Z'
-  },
-  {
-    text: "Oficina do projeto “Teatro Hip-Hop” (Lei Paulo Gustavo) na Secretaria de Juventude e Esportes, Cohab (Cabo de Santo Agostinho).",
-    date: '2024-06-02T12:00:00Z'
-  },
-  {
-    text: "Oficina do projeto “Teatro Hip-Hop” (Lei Paulo Gustavo) na Associação dos Moradores Novo Horizonte, em Barra de Jangada (Jaboatão dos Guararapes).",
-    date: '2024-06-08T12:00:00Z'
-  },
-  {
-    text: "Oficina do projeto “Teatro Hip-Hop” (Lei Paulo Gustavo) no COMPAZ Governador Eduardo Campos, em Alto de Santa Terezinha (Recife).",
-    date: '2024-06-09T12:00:00Z'
-  },
-  {
-    text: "Oficina do projeto “Teatro Hip-Hop” (Lei Paulo Gustavo) no Centro comunitário Vivendo e Aprendendo, em Celeiro das Alegrias Futuras (Camaragibe).",
-    date: '2024-06-15T12:00:00Z'
-  },
-  {
-    text: "Oficina do projeto “Teatro Hip-Hop” (Lei Paulo Gustavo) no COMPAZ Governador Eduardo Campos, em Alto de Santa Terezinha (Recife).",
-    date: '2024-06-16T12:00:00Z'
-  },
-  {
-    text: "Oficina do projeto “Teatro Hip-Hop” (Lei Paulo Gustavo) no COMPAZ Professor Paulo Freire, no Ibura (Recife).",
-    date: '2024-07-06T12:00:00Z'
-  },
-  {
-    text: "Aula prática de teatro hip-hop para crianças no NEIMFA (Comunidade do Coque/Joana Bezerra), com distribuição de sacolinhas em comemoração a Cosme e Damião.",
-    date: '2024-09-28T12:00:00Z'
-  },
-  {
-    text: "Atividade ministrada por Cas Almeida e Maria Guerra para mulheres da comunidade na Associação de Moradores Novo Horizonte Resiste, em Barra de Jangada.",
-    date: '2025-05-31T12:00:00Z'
-  }
-];
 
 export default function ProjetosPage() {
 
@@ -156,11 +100,17 @@ export default function ProjetosPage() {
           <Typography.Paragraph style={{ color: 'white', textAlign: 'justify' }}>
             O Coletivo À Margem também desenvolve ações educacionais. Seus integrantes, professores de teatro, têm como foco a difusão da metodologia do teatro hip-hop em diferentes contextos, como escolas, ONGs e projetos culturais.
           </Typography.Paragraph>
-          <PhotoCarousel images={randomImages} />
-          <Typography.Title level={3}
+          <div
+            className="w-full aspect-[4/3] sm:max-w-xl"
+            style={{ height: "clamp(200px, calc(38vw + 70px), 350px)" }}
+          >
+            <PhotoCarousel images={projetosImgs} />
+          </div>
+          <Typography.Title className='font-sedgwick !text-2xl md:!text-3xl border-l-4 border-[#F38901] pl-2' 
             style={{
               marginTop: '20px',
-              color: '#ffffff'
+              color: '#ffffff',
+              fontWeight: 'normal'
             }}>
             Conheça a trajetória
           </Typography.Title>

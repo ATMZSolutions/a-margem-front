@@ -32,7 +32,12 @@ export function YearStepper({ onYearChange, maxYear }: YearStepperProps) {
         <ChevronLeft size={32} />
       </button>
 
-      <h1 className="text-4xl md:text-6xl font-display text-white" style={{ color: '#FECA55' }}>
+      <h1
+        className="text-3xl md:text-5xl font-sedgwick text-white"
+        style={{
+          color: '#FECA55',
+          fontWeight: 'normal'
+        }}>
         {currentYear}
       </h1>
 
