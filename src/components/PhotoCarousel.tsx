@@ -13,23 +13,28 @@ interface TopButtonProps {
 interface PhotoCarouselProps {
   images?: string[];
   topButton?: TopButtonProps;
+    onIndexChange?: (index: number) => void; // callback opcional
 }
 
-export default function PhotoCarousel({ images = [], topButton }: PhotoCarouselProps) {
+export default function PhotoCarousel({ images = [], topButton, onIndexChange }: PhotoCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const prevSlide = () => {
-    setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+    const newIndex = currentIndex === 0 ? images.length - 1 : currentIndex - 1;
+    setCurrentIndex(newIndex);
+    onIndexChange?.(newIndex);
   };
 
   const nextSlide = () => {
-    setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+    const newIndex = currentIndex === images.length - 1 ? 0 : currentIndex + 1;
+    setCurrentIndex(newIndex);
+    onIndexChange?.(newIndex);
   };
 
   if (!images.length) return null;
 
   return (
-    <div className="relative mx-auto flex items-center justify-center">
+    <div className="relative mx-auto h-full flex items-center justify-center">
       {/* Botão opcional no topo */}
       {topButton?.show && (
         <div className="absolute top-4 left-4 z-10">
@@ -52,11 +57,11 @@ export default function PhotoCarousel({ images = [], topButton }: PhotoCarouselP
       </button>
 
       {/* Imagem */}
-      <div className="overflow-hidden w-full border-b-8 border border-[#F38901]/70">
+      <div className="overflow-hidden w-full h-full border-b-8 border border-[#F38901]/70">
         <img
           src={images[currentIndex]}
           alt={`Slide ${currentIndex + 1}`}
-          className="w-full h-auto object-cover"
+          className="w-full h-full object-cover"
         />
       </div>
 
