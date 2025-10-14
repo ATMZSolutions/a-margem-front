@@ -1,7 +1,20 @@
+"use client"; // Necessário para o framer-motion
+
 import React from "react";
 import Link from "next/link";
+import { motion, Variants } from "framer-motion"; 
 import { slugify } from "@/utils/helpers";
 import Image from "next/image";
+
+// Definindo as variantes da animação
+const cardVariants: Variants = {
+  hidden: { opacity: 0, y: 30 },
+  show: {
+    opacity: 1,
+    y: 0, 
+    transition: { duration: 0.5, ease: "easeOut" },
+  },
+};
 
 interface PremioProps {
   title: string;
@@ -16,37 +29,36 @@ const Premio: React.FC<PremioProps> = ({
   year,
   isSaibaMais = false,
 }) => {
-  // Transformar o título em maiúsculo
   const titleUpper = title.toUpperCase();
   const href = `/premios/${slugify(title)}/${year}`;
 
   return (
-    <div className="flex flex-col items-center justify-center w-60 md:w-72 text-center">
+    <motion.div
+      className="flex flex-col items-center justify-center w-60 md:w-72 text-center"
+      variants={cardVariants}
+      initial="hidden"
+      whileInView="show" 
+      viewport={{ once: true }}
+    >
       <div className="relative flex items-center justify-center">
         <div
           className={`${
             isSaibaMais ? "w-42 md:w-56" : "w-56 md:w-64"
-          } relative opacity-60`}
+          } h-52 md:h-64 relative opacity-60`}
         >
           <Image
             src="/louros.svg"
             alt="Louros"
             fill
-            className="object-contain" // mantém proporção
+            className="object-contain"
           />
         </div>
-
         <h1
-          className={`absolute text-[#FECA55] font-bold ${
+          className={`absolute font-zen-dots text-[#FECA55] font-bold ${
             isSaibaMais ? "text-xl" : "text-2xl"
           } leading-tight drop-shadow-[1px_1px_2px_rgba(0,0,0,0.6)]`}
         >
-          {titleUpper.split("\n").map((line, index) => (
-            <React.Fragment key={index}>
-              {line}
-              <br />
-            </React.Fragment>
-          ))}
+          {titleUpper}
         </h1>
       </div>
 
@@ -73,7 +85,7 @@ const Premio: React.FC<PremioProps> = ({
           Saiba mais
         </button>
       </Link>
-    </div>
+    </motion.div>
   );
 };
 
