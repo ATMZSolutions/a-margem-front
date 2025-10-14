@@ -4,27 +4,14 @@ import { useState, useEffect } from "react";
 import BackBtn from "@/components/BackBtn";
 import NewsCard, { NewsItem } from "@/components/NewsCard";
 
-const newsData: NewsItem[] = [
-  {
-    id: 1,
-    title: "Revista Ogrito",
-    source: "Revista Ogrito",
-    description:
-      "Xirê, peça do coletivo À Margem, marca o retorno do projeto Terça em Cena, trazendo uma abordagem inovadora sobre cultura e resistência.",
-    image: "https://picsum.photos/400?random=1",
-    link: "#",
-  },
-  {
-    id: 2,
-    title: "Diário de Pernambuco",
-    source: "Diário de Pernambuco",
-    description:
-      "Peça 'Xirê' marca o retorno do projeto Terça em Cena, na UFPE, reunindo artistas e espectadores em uma celebração da arte local.",
-    image: "https://picsum.photos/400?random=2",
-    link: "#",
-  },
-  // ... restante do mock
-];
+// Tipo exato do retorno da API (baseado no model Prisma)
+interface NoticiaFromAPI {
+  id: number;
+  titulo: string;
+  conteudo: string;
+  link: string;
+  createdAt: string;
+}
 
 export default function NoticiasPage() {
   const [noticias, setNoticias] = useState<NewsItem[]>([]);
@@ -33,16 +20,29 @@ export default function NoticiasPage() {
   useEffect(() => {
     async function loadNoticias() {
       try {
-        const response = await fetch('/api/noticias');
-        const data = await response.json();
-        setNoticias(Array.isArray(data) && data.length ? data : newsData); // fallback para mock
+        const response = await fetch("/api/noticias", { cache: "no-store" });
+        const data: NoticiaFromAPI[] = await response.json();
+
+        // Mapeia os dados da API para o formato esperado por <NewsCard />
+        const formatted: NewsItem[] =
+          Array.isArray(data) && data.length
+            ? data.map((item) => ({
+                id: item.id,
+                title: item.titulo,
+                description: item.conteudo,
+                link: item.link,
+              }))
+            : [];
+
+        setNoticias(formatted);
       } catch (error) {
-        console.error('Erro ao carregar notícias:', error);
-        setNoticias(newsData);
+        console.error("Erro ao carregar notícias:", error);
+        setNoticias([]);
       } finally {
         setLoading(false);
       }
     }
+
     loadNoticias();
   }, []);
 
@@ -55,7 +55,7 @@ export default function NoticiasPage() {
           backgroundImage: "url('/padrao2.webp')",
         }}
       >
-        <div className="text-white">Carregando notícias...</div>
+        <div>Carregando notícias...</div>
       </section>
     );
   }
@@ -84,4 +84,3 @@ export default function NoticiasPage() {
     </section>
   );
 }
-

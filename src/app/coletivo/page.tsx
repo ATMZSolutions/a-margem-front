@@ -13,12 +13,12 @@ interface Integrante {
 
 // Lista de integrantes
 const integrantes: Integrante[] = [
-  { id: "bento", nome: "Bento", image: "/coletivo/bento.webp" },
-  { id: "cas", nome: "Cas", image: "/coletivo/cas.webp" },
-  { id: "duda", nome: "Duda", image: "/coletivo/duda.webp" },
-  { id: "guerra", nome: "Guerra", image: "/coletivo/guerra.webp" },
-  { id: "ina", nome: "Iná", image: "/coletivo/ina.webp" },
-  { id: "torres", nome: "Torres", image: "/coletivo/torres.webp" },
+  { id: "bento", nome: "Francisco Bento", image: "/coletivo/bento.webp" },
+  { id: "cas", nome: "Cas Almeida", image: "/coletivo/cas.webp" },
+  { id: "duda", nome: "Eduarda Ferreira", image: "/coletivo/duda.webp" },
+  { id: "guerra", nome: "Maria Guerra", image: "/coletivo/guerra.webp" },
+  { id: "ina", nome: "Iná Paz", image: "/coletivo/ina.webp" },
+  { id: "torres", nome: "Torres ZN", image: "/coletivo/torres.webp" },
 ];
 
 // Variants para animação dos cards

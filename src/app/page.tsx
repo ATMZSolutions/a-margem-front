@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import { motion, Variants } from "framer-motion";
 import Main from "@/components/home/Main";
 import Sobre from "@/components/home/Sobre";
-import Agenda from "@/components/home/Agenda";
 import Contato from "@/components/home/Contato";
+import AgendaHome from "@/components/home/Agenda";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
 const fadeUp: Variants = {
@@ -19,40 +19,13 @@ const fadeUp: Variants = {
 
 const sections = [
   { component: <Main />, animate: true },
-  { component: <Agenda eventos={[]} loading={false} />, animate: true },
+  { component: <AgendaHome />, animate: true }, // agenda independente
   { component: <Sobre />, animate: true },
   { component: <Contato />, animate: true },
 ];
 
-interface AgendaItem {
-  id: number;
-  titulo: string;
-  data: string;
-  local?: string;
-  createdAt: string;
-}
-
 export default function Home() {
-  const [agenda, setAgenda] = useState<AgendaItem[]>([]);
-  const [loading, setLoading] = useState(true);
   const [atBottom, setAtBottom] = useState(false);
-
-  // fetch agenda
-  useEffect(() => {
-    async function loadData() {
-      try {
-        const res = await fetch("/api/agenda");
-        const data = await res.json();
-        setAgenda(Array.isArray(data) ? data : []);
-      } catch (error) {
-        console.error("Erro ao carregar agenda:", error);
-        setAgenda([]);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadData();
-  }, []);
 
   // scroll detection
   useEffect(() => {
@@ -80,12 +53,7 @@ export default function Home() {
             whileInView={idx === 0 ? {} : "visible"}
             viewport={{ once: true, amount: 0.15 }}
           >
-            {/* Passa a agenda carregada para o componente */}
-            {component.type === Agenda ? (
-              <Agenda eventos={agenda.slice(0, 5)} loading={loading} />
-            ) : (
-              component
-            )}
+            {component}
           </motion.div>
         ) : (
           <div key={idx}>{component}</div>

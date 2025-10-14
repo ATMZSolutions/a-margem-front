@@ -1,75 +1,126 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import BackBtn from "@/components/BackBtn";
 
-interface BookItem {
+interface LivroItem {
   id: number;
-  title: string;
-  author: string;
-  description: string;
-  image: string;
+  titulo: string;
+  autor: string;
+  descricao: string;
+  imagem?: string;
+  createdAt: string;
 }
 
-const booksData: BookItem[] = [
-  {
-    id: 1,
-    title: "Quarto de Despejo",
-    author: "Carolina Maria de Jesus",
-    description:
-      "Relato impactante do cotidiano na favela do Canindé, em São Paulo. A obra traz uma visão crua e poética da luta pela sobrevivência e dignidade.",
-    image: "/coletivo/cas.webp",
-  },
-  {
-    id: 2,
-    title: "Torto Arado",
-    author: "Itamar Vieira Junior",
-    description:
-      "Duas irmãs descobrem um segredo familiar que muda suas vidas. Uma narrativa potente sobre ancestralidade, resistência e identidade.",
-    image: "/coletivo/cas.webp",
-  },
-];
+interface LivrosPageProps {
+  bgColor?: string;
+  bgImage?: string;
+}
 
-export default function IndicacoesPage() {
-  return (
-    <section
-      className="relative w-full min-h-screen flex flex-col items-center justify-center text-white px-4 pb-10 bg-cover bg-center"
-      style={{
-        backgroundColor: "#5C1E0F",
-        backgroundImage: "url('/padrao2.webp')",
-      }}
-    >
-      {/* Botão voltar */}
-      <BackBtn label="Indicações" />
+export default function IndicacoesPage({
+  bgColor = "#5C1E0F",
+  bgImage = "/padrao2.webp",
+}: LivrosPageProps) {
+  const [livros, setLivros] = useState<LivroItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
-      {/* Lista de livros */}
-      <div className="w-full max-w-xl mt-40 grid sm:grid-cols-2 lg:grid-cols-2 gap-6 place-items-center">
-        {booksData.map((book) => (
-          <article
-            key={book.id}
-            className="bg-black/50 w-full rounded-t-xl border-b-4 border-b-[#F5A623] flex flex-col items-center p-4 hover:scale-[1.02] transition-transform duration-200"
-          >
-            {/* Imagem ajustada */}
-            <img
-              src={book.image}
-              alt={book.title}
-              className="w-full h-72 object-cover rounded shadow-md"
-            />
+  useEffect(() => {
+    async function loadLivros() {
+      try {
+        const response = await fetch('/api/livros');
+        const data = await response.json();
+        setLivros(data || []);
+      } catch (error) {
+        console.error('Erro ao carregar livros:', error);
+        setLivros([]);
+      } finally {
+        setLoading(false);
+      }
+    }
 
-            {/* Texto */}
-            <div className="mt-3 text-center">
-              <h2 className="text-[#F5A623] font-semibold text-lg leading-tight">
-                {book.title}
-              </h2>
-              <p className="text-sm italic text-gray-300 mb-1">
-                {book.author}
-              </p>
-              <p className="text-sm text-gray-200 line-clamp-4">
-                {book.description}
-              </p>
-            </div>
-          </article>
-        ))}
+    loadLivros();
+  }, []);
+
+  if (loading) {
+    return (
+      <div
+        className="min-h-screen w-full flex justify-center items-center"
+        style={{ backgroundColor: bgColor }}
+      >
+        <div className="text-white">Carregando livros...</div>
       </div>
-    </section>
+    );
+  }
+
+  return (
+    <div
+      className="min-h-screen w-full flex justify-center py-24 relative"
+      style={{ backgroundColor: bgColor }}
+    >
+      {bgImage && (
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-5 pointer-events-none"
+          style={{ backgroundImage: `url(${bgImage})` }}
+        />
+      )}
+      <BackBtn label="Livros" />
+
+      <div className="relative w-full max-w-4xl text-white font-sans mx-4 z-10 mt-16">
+        <div className="mb-8 text-center">
+          <h1 className="text-3xl font-bold text-[#F38901] mb-2">
+            Nossa Biblioteca
+          </h1>
+          <p className="text-lg text-white/80">
+            Livros Recomendados
+          </p>
+        </div>
+
+        {livros.length === 0 ? (
+          <div className="text-center text-white/70 py-16">
+            <p className="text-xl">Nenhum livro disponível no momento.</p>
+            <p className="text-sm mt-2">Em breve teremos novos títulos para você!</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {livros.map((livro) => (
+              <div
+                key={livro.id}
+                className="bg-black/20 backdrop-blur-sm rounded-lg p-6 hover:bg-black/30 transition-all duration-300"
+              >
+                {livro.imagem && (
+                  <div className="mb-4 flex justify-center">
+                    <img
+                      src={livro.imagem}
+                      alt={livro.titulo}
+                      className="w-32 h-44 object-cover rounded-lg shadow-lg"
+                    />
+                  </div>
+                )}
+                
+                <div className="text-center">
+                  <h3 className="font-bold text-xl text-[#F38901] mb-2">
+                    {livro.titulo}
+                  </h3>
+                  
+                  <p className="text-white/90 font-medium mb-3">
+                    por {livro.autor}
+                  </p>
+                  
+                  <p className="text-white/70 text-sm leading-relaxed">
+                    {livro.descricao}
+                  </p>
+                  
+                  <div className="mt-4 pt-4 border-t border-white/20">
+                    <p className="text-xs text-white/50">
+                      Publicado em {new Date(livro.createdAt).toLocaleDateString('pt-BR')}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
