@@ -34,7 +34,6 @@ export default function SobrePage() {
   const [paddingTops, setPaddingTops] = useState<Record<number, number>>({});
   const [windowWidth, setWindowWidth] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [aboutUs, setAboutUs] = useState<any[]>([])
 
   useEffect(() => {
 
