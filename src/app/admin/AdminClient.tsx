@@ -2,6 +2,11 @@
 
 import React, { useEffect, useState } from "react";
 
+export interface BufferData {
+  type: 'Buffer';
+  data: number[];
+}
+
 type AgendaItem = {
   id?: number;
   titulo: string;
@@ -23,6 +28,8 @@ type LivroItem = {
   autor: string;
   descricao: string;
   imagem?: string;
+  imageData?: BufferData;
+  imagemTipo?: string;
 };
 
 type ProjetoItem = {
@@ -35,6 +42,8 @@ type SobreItem = {
   ano: number;
   imagem?: string;
   descricao: string;
+  imageData?: BufferData;
+  imagemTipo?: string;
 };
 
 export default function AdminClient() {
@@ -95,11 +104,23 @@ export default function AdminClient() {
     const l = await fetch("/api/admin/livros").then((r) => r.json());
     const p = await fetch("/api/admin/projeto").then((r) => r.json());
     const s = await fetch("/api/admin/sobre").then((r) => r.json());
+    
+    // Para livros e sobre, converter as imagens para URLs da API se existem
+    const livrosWithImageUrls = (l || []).map((livro: LivroItem) => ({
+      ...livro,
+      imagem: livro.imagem ? `/api/image/livro/${livro.id}` : null
+    }));
+    
+    const sobresWithImageUrls = (s || []).map((sobre: SobreItem) => ({
+      ...sobre,
+      imagem: sobre.imagem ? `/api/image/sobre/${sobre.ano}` : null
+    }));
+    
     setAgendas(a || []);
     setNoticias(n || []);
-    setLivros(l || []);
+    setLivros(livrosWithImageUrls);
     setProjetos(p || []);
-    setSobres(s || []);
+    setSobres(sobresWithImageUrls);
   }
 
   useEffect(() => {
@@ -227,8 +248,13 @@ export default function AdminClient() {
         body: formData,
       });
       const data = await response.json();
-      if (data.url) {
-        setNewLivro({ ...newLivro, imagem: data.url });
+      if (data.imageData && data.imagemTipo) {
+        setNewLivro({ 
+          ...newLivro, 
+          imagem: data.previewUrl, // Para mostrar preview
+          imageData: data.imageData, // Dados para salvar no banco
+          imagemTipo: data.imagemTipo
+        });
       }
     } catch (error) {
       console.error("Upload failed:", error);
@@ -289,8 +315,13 @@ export default function AdminClient() {
         body: formData,
       });
       const data = await response.json();
-      if (data.url) {
-        setEditingLivro({ ...editingLivro, imagem: data.url });
+      if (data.imageData && data.imagemTipo) {
+        setEditingLivro({ 
+          ...editingLivro, 
+          imagem: data.previewUrl, // Para mostrar preview
+          imageData: data.imageData, // Dados para salvar no banco
+          imagemTipo: data.imagemTipo
+        });
       }
     } catch (error) {
       console.error("Upload failed:", error);
@@ -374,8 +405,13 @@ export default function AdminClient() {
         body: formData,
       });
       const data = await response.json();
-      if (data.url) {
-        setNewSobre({ ...newSobre, imagem: data.url });
+      if (data.imageData && data.imagemTipo) {
+        setNewSobre({ 
+          ...newSobre, 
+          imagem: data.previewUrl, // Para mostrar preview
+          imageData: data.imageData, // Dados para salvar no banco
+          imagemTipo: data.imagemTipo
+        });
       }
     } catch (error) {
       console.error("Upload failed:", error);
@@ -442,8 +478,13 @@ export default function AdminClient() {
         body: formData,
       });
       const data = await response.json();
-      if (data.url) {
-        setEditingSobre({ ...editingSobre, imagem: data.url });
+      if (data.imageData && data.imagemTipo) {
+        setEditingSobre({ 
+          ...editingSobre, 
+          imagem: data.previewUrl, // Para mostrar preview
+          imageData: data.imageData, // Dados para salvar no banco
+          imagemTipo: data.imagemTipo
+        });
       }
     } catch (error) {
       console.error("Upload failed:", error);
@@ -825,6 +866,7 @@ export default function AdminClient() {
               <input
                 type="file"
                 accept="image/*"
+                required
                 onChange={handleImageUpload}
                 disabled={uploadingImage}
                 className="p-2 text-white bg-gray-700 rounded"
@@ -1184,6 +1226,7 @@ export default function AdminClient() {
                       <input
                         type="file"
                         accept="image/*"
+                        required
                         onChange={handleEditSobreImageUpload}
                         className="w-full p-2 border border-white rounded text-white file:mr-4 file:py-1 file:px-4 file:rounded file:border-0 file:text-sm file:bg-orange-500 file:text-white hover:file:bg-orange-600"
                       />

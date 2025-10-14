@@ -25,13 +25,13 @@ model Noticia {
 }
 
 model Book {
-  id         Int      @id @default(autoincrement())
-  titulo     String
-  autor      String
-  descricao  String
-  createdAt  DateTime @default(now())
-  imagemTipo String?
-  imagem     Bytes?
+  id           Int      @id @default(autoincrement())
+  titulo       String
+  autor        String
+  descricao    String
+  imagem       Bytes?
+  imagemTipo   String?
+  createdAt    DateTime @default(now())
 
   @@map("Livro")
 }
@@ -43,8 +43,8 @@ model Projeto {
 }
 
 model Sobre {
-  ano        Int     @id
-  descricao  String
-  imagemTipo String?
+  ano        Int      @id
   imagem     Bytes?
+  imagemTipo String?
+  descricao  String
 }
