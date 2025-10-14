@@ -2,6 +2,11 @@
 
 import React, { useEffect, useState } from "react";
 
+export interface BufferData {
+  type: 'Buffer';
+  data: number[];
+}
+
 type AgendaItem = {
   id?: number;
   titulo: string;
@@ -23,7 +28,7 @@ type LivroItem = {
   autor: string;
   descricao: string;
   imagem?: string;
-  imageData?: any;
+  imageData?: BufferData;
   imagemTipo?: string;
 };
 
@@ -37,7 +42,7 @@ type SobreItem = {
   ano: number;
   imagem?: string;
   descricao: string;
-  imageData?: any;
+  imageData?: BufferData;
   imagemTipo?: string;
 };
 
@@ -101,12 +106,12 @@ export default function AdminClient() {
     const s = await fetch("/api/admin/sobre").then((r) => r.json());
     
     // Para livros e sobre, converter as imagens para URLs da API se existem
-    const livrosWithImageUrls = (l || []).map((livro: any) => ({
+    const livrosWithImageUrls = (l || []).map((livro: LivroItem) => ({
       ...livro,
       imagem: livro.imagem ? `/api/image/livro/${livro.id}` : null
     }));
     
-    const sobresWithImageUrls = (s || []).map((sobre: any) => ({
+    const sobresWithImageUrls = (s || []).map((sobre: SobreItem) => ({
       ...sobre,
       imagem: sobre.imagem ? `/api/image/sobre/${sobre.ano}` : null
     }));
@@ -861,6 +866,7 @@ export default function AdminClient() {
               <input
                 type="file"
                 accept="image/*"
+                required
                 onChange={handleImageUpload}
                 disabled={uploadingImage}
                 className="p-2 text-white bg-gray-700 rounded"
@@ -1220,6 +1226,7 @@ export default function AdminClient() {
                       <input
                         type="file"
                         accept="image/*"
+                        required
                         onChange={handleEditSobreImageUpload}
                         className="w-full p-2 border border-white rounded text-white file:mr-4 file:py-1 file:px-4 file:rounded file:border-0 file:text-sm file:bg-orange-500 file:text-white hover:file:bg-orange-600"
                       />
