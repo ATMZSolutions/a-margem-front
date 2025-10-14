@@ -1,11 +1,11 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { motion, Variants } from "framer-motion";
 import Image from "next/image";
-import { EnvironmentOutlined } from '@ant-design/icons';
+import { EnvironmentOutlined } from "@ant-design/icons";
 
 interface AgendaItem {
   id: number;
@@ -16,36 +16,72 @@ interface AgendaItem {
   createdAt: string;
 }
 
-interface AgendaProps {
-  eventos: AgendaItem[];
-  loading: boolean;
-}
-
 const agendaVariants: Variants = {
   hidden: { opacity: 0, y: 10 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
 };
 
-// Capitaliza a primeira letra
 const capitalize = (str: string) =>
   str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 
-const AgendaHome = ({ eventos, loading }: AgendaProps) => {
+const AgendaHome = () => {
+  const [eventos, setEventos] = useState<AgendaItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchAgenda() {
+      try {
+        const res = await fetch("/api/agenda");
+        const data = await res.json();
+        // filtra apenas eventos atuais ou futuros
+        // Corrigido
+        const now = new Date();
+        const today = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate()
+        ); // hoje sem hora
+
+        const filtered = Array.isArray(data)
+          ? data.filter((e: AgendaItem) => {
+              const eventDate = new Date(e.data);
+              const eventDay = new Date(
+                eventDate.getFullYear(),
+                eventDate.getMonth(),
+                eventDate.getDate()
+              );
+              return eventDay >= today; // só compara o dia
+            })
+          : [];
+
+        setEventos(filtered);
+      } catch (error) {
+        console.error("Erro ao carregar agenda:", error);
+        setEventos([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchAgenda();
+  }, []);
+
   if (loading) {
     return (
       <section className="min-h-screen flex items-center justify-center bg-[#681A01] text-white">
         <div className="text-center">
-          <h2 className="text-3xl font-bold mb-4 font-sedgwick">PRÓXIMOS EVENTOS</h2>
+          <h2 className="text-3xl font-bold mb-4 font-sedgwick">
+            PRÓXIMOS EVENTOS
+          </h2>
           <p>Carregando eventos...</p>
         </div>
       </section>
     );
   }
 
-  // Agrupa eventos por cidade normalizada
+  // Agrupa eventos por cidade ou "outros"
   const groupedEvents: { [key: string]: AgendaItem[] } = eventos.reduce(
     (acc, event) => {
-      const cityKey = event.cidade?.trim().toLowerCase() || "outros";
+      const cityKey = event.cidade?.trim().toLowerCase() || "eventos";
       if (!acc[cityKey]) acc[cityKey] = [];
       acc[cityKey].push(event);
       return acc;
@@ -53,12 +89,11 @@ const AgendaHome = ({ eventos, loading }: AgendaProps) => {
     {} as { [key: string]: AgendaItem[] }
   );
 
-  // Ordena cidades e pega apenas as 2 primeiras
+  // Ordena cidades e pega apenas 2 primeiras
   const sortedCities = Object.keys(groupedEvents).sort().slice(0, 2);
 
   return (
     <section className="relative min-h-screen max-w-screen flex flex-col justify-center items-center bg-[#681A01] text-white overflow-hidden">
-      {/* Fundo fixo e otimizado */}
       <div className="">
         <Image
           src="/padrao2.webp"
@@ -70,7 +105,6 @@ const AgendaHome = ({ eventos, loading }: AgendaProps) => {
         <div className="inset-0 bg-[#681A01]/80" />
       </div>
 
-      {/* Conteúdo */}
       <div className="w-4/5 flex flex-col justify-center md:flex-row gap-16 z-10">
         <motion.h2
           className="text-4xl md:text-5xl text-end font-sedgwick font-extrabold uppercase tracking-widest text-white/80 mb-8 md:mb-0"
@@ -103,51 +137,50 @@ const AgendaHome = ({ eventos, loading }: AgendaProps) => {
                   {capitalize(city)}
                 </motion.h3>
 
-                {groupedEvents[city].map((event) => {
-                  const eventDate = new Date(event.data);
-                  return (
-                    <motion.div
-                      key={event.id}
-                      className="flex flex-row items-center justify-center bg-white/10 rounded-lg px-1 py-2 mb-4"
-                      variants={agendaVariants}
-                      initial="hidden"
-                      whileInView="visible"
-                      viewport={{ once: true }}
-                    >
-                      {/* Data */}
-                      <div className="flex-shrink-0 flex flex-col items-center text-center border-r border-dashed border-white/50 px-2 gap-1">
-                        <div className="flex flex-row font-bold gap-[2px] leading-none">
-                          <span className="uppercase text-white">
-                            {format(eventDate, "dd")}
-                          </span>
-                          <span className="uppercase text-white">
-                            {format(eventDate, "MMM", { locale: ptBR })}
+                {groupedEvents[city]
+                  .slice(0, 3) // limita a 2 itens
+                  .map((event) => {
+                    const eventDate = new Date(event.data);
+                    return (
+                      <motion.div
+                        key={event.id}
+                        className="flex flex-row items-center justify-center bg-white/10 rounded-lg px-1 py-2 mb-4"
+                        variants={agendaVariants}
+                        initial="hidden"
+                        whileInView="visible"
+                        viewport={{ once: true }}
+                      >
+                        <div className="flex-shrink-0 flex flex-col items-center text-center border-r border-dashed border-white/50 px-2 gap-1">
+                          <div className="flex flex-row font-bold gap-[2px] leading-none">
+                            <span className="uppercase text-white">
+                              {format(eventDate, "dd")}
+                            </span>
+                            <span className="uppercase text-white">
+                              {format(eventDate, "MMM", { locale: ptBR })}
+                            </span>
+                          </div>
+                          <span className="text-[12px] text-white/80 leading-none">
+                            {format(eventDate, "HH:mm")}
                           </span>
                         </div>
-                        <span className="text-[12px] text-white/80 leading-none">
-                          {format(eventDate, "HH:mm")}
-                        </span>
-                      </div>
 
-                      {/* Detalhes */}
-                      <div className="flex-1 flex flex-col justify-center text-left leading-none ml-2 gap-1">
-                        <p className="text-sm sm:text-base font-medium text-white leading-none">
-                          {event.titulo}
-                        </p>
-                        {(event.local || event.cidade) && (
-                          <p className="text-[12px] text-white/80 leading-none">
-                            {event.local}{" "}
+                        <div className="flex-1 flex flex-col justify-center text-left leading-none ml-2 gap-1">
+                          <p className="text-sm sm:text-base font-medium text-white leading-none">
+                            {event.titulo}
                           </p>
-                        )}
-                      </div>
-                    </motion.div>
-                  );
-                })}
+                          {(event.local || event.cidade) && (
+                            <p className="text-[12px] text-white/80 leading-none">
+                              {event.local}{" "}
+                            </p>
+                          )}
+                        </div>
+                      </motion.div>
+                    );
+                  })}
               </div>
             ))
           )}
 
-          {/* Botão 100% largura */}
           {sortedCities.length > 0 && (
             <div className="w-full mt-6">
               <a
