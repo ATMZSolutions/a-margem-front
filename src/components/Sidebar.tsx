@@ -33,14 +33,16 @@ export default function Sidebar() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
         >
-          <Image
-            src="/logo-branca.png"
-            alt="Logo A Margem"
-            height={40}      // equivalente a h-10
-            width={160}      // define largura aproximada
-            style={{ height: "2.5rem", width: "auto" }} // h-10 = 2.5rem
-            priority
-          />
+          <Link href="/">
+            <Image
+              src="/logo-branca.png"
+              alt="Logo A Margem"
+              height={40} // equivalente a h-10
+              width={160} // define largura aproximada
+              style={{ height: "2.5rem", width: "auto" }} // h-10 = 2.5rem
+              priority
+            />
+          </Link>
         </motion.div>
 
         <button
