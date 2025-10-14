@@ -10,10 +10,10 @@ datasource db {
 model Agenda {
   id        Int      @id @default(autoincrement())
   titulo    String
-  data      DateTime
+  data      DateTime @db.Timestamptz(6)
   local     String
+  createdAt DateTime @db.Timestamptz(6)
   cidade    String
-  createdAt DateTime @default(now())
 }
 
 model Noticia {
@@ -25,12 +25,13 @@ model Noticia {
 }
 
 model Book {
-  id        Int      @id @default(autoincrement())
-  titulo    String
-  autor     String
-  descricao String
-  imagem    String?
-  createdAt DateTime @default(now())
+  id         Int      @id @default(autoincrement())
+  titulo     String
+  autor      String
+  descricao  String
+  createdAt  DateTime @default(now())
+  imagemTipo String?
+  imagem     Bytes?
 
   @@map("Livro")
 }
@@ -42,7 +43,8 @@ model Projeto {
 }
 
 model Sobre {
-  ano       Int     @id
-  imagem    String?
-  descricao String
+  ano        Int     @id
+  descricao  String
+  imagemTipo String?
+  imagem     Bytes?
 }
