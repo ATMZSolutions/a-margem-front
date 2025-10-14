@@ -8,6 +8,13 @@ export async function GET() {
 
 export async function POST(req: Request) {
   const body = await req.json();
+  
+  // Se há dados de imagem, converter de array para Buffer
+  if (body.imageData) {
+    body.imagem = Buffer.from(body.imageData);
+    delete body.imageData;
+  }
+  
   const created = await prisma.sobre.create({ data: body });
   return NextResponse.json(created);
 }
@@ -15,6 +22,13 @@ export async function POST(req: Request) {
 export async function PUT(req: Request) {
   const body = await req.json();
   if (!body.ano) return NextResponse.json({ error: 'Missing "ano"' }, { status: 400 });
+  
+  // Se há dados de imagem, converter de array para Buffer
+  if (body.imageData) {
+    body.imagem = Buffer.from(body.imageData);
+    delete body.imageData;
+  }
+  
   const updated = await prisma.sobre.update({ where: { ano: body.ano }, data: body });
   return NextResponse.json(updated);
 }

@@ -23,6 +23,8 @@ type LivroItem = {
   autor: string;
   descricao: string;
   imagem?: string;
+  imageData?: any;
+  imagemTipo?: string;
 };
 
 type ProjetoItem = {
@@ -35,6 +37,8 @@ type SobreItem = {
   ano: number;
   imagem?: string;
   descricao: string;
+  imageData?: any;
+  imagemTipo?: string;
 };
 
 export default function AdminClient() {
@@ -95,11 +99,23 @@ export default function AdminClient() {
     const l = await fetch("/api/admin/livros").then((r) => r.json());
     const p = await fetch("/api/admin/projeto").then((r) => r.json());
     const s = await fetch("/api/admin/sobre").then((r) => r.json());
+    
+    // Para livros e sobre, converter as imagens para URLs da API se existem
+    const livrosWithImageUrls = (l || []).map((livro: any) => ({
+      ...livro,
+      imagem: livro.imagem ? `/api/image/livro/${livro.id}` : null
+    }));
+    
+    const sobresWithImageUrls = (s || []).map((sobre: any) => ({
+      ...sobre,
+      imagem: sobre.imagem ? `/api/image/sobre/${sobre.ano}` : null
+    }));
+    
     setAgendas(a || []);
     setNoticias(n || []);
-    setLivros(l || []);
+    setLivros(livrosWithImageUrls);
     setProjetos(p || []);
-    setSobres(s || []);
+    setSobres(sobresWithImageUrls);
   }
 
   useEffect(() => {
@@ -227,8 +243,13 @@ export default function AdminClient() {
         body: formData,
       });
       const data = await response.json();
-      if (data.url) {
-        setNewLivro({ ...newLivro, imagem: data.url });
+      if (data.imageData && data.imagemTipo) {
+        setNewLivro({ 
+          ...newLivro, 
+          imagem: data.previewUrl, // Para mostrar preview
+          imageData: data.imageData, // Dados para salvar no banco
+          imagemTipo: data.imagemTipo
+        });
       }
     } catch (error) {
       console.error("Upload failed:", error);
@@ -289,8 +310,13 @@ export default function AdminClient() {
         body: formData,
       });
       const data = await response.json();
-      if (data.url) {
-        setEditingLivro({ ...editingLivro, imagem: data.url });
+      if (data.imageData && data.imagemTipo) {
+        setEditingLivro({ 
+          ...editingLivro, 
+          imagem: data.previewUrl, // Para mostrar preview
+          imageData: data.imageData, // Dados para salvar no banco
+          imagemTipo: data.imagemTipo
+        });
       }
     } catch (error) {
       console.error("Upload failed:", error);
@@ -374,8 +400,13 @@ export default function AdminClient() {
         body: formData,
       });
       const data = await response.json();
-      if (data.url) {
-        setNewSobre({ ...newSobre, imagem: data.url });
+      if (data.imageData && data.imagemTipo) {
+        setNewSobre({ 
+          ...newSobre, 
+          imagem: data.previewUrl, // Para mostrar preview
+          imageData: data.imageData, // Dados para salvar no banco
+          imagemTipo: data.imagemTipo
+        });
       }
     } catch (error) {
       console.error("Upload failed:", error);
@@ -442,8 +473,13 @@ export default function AdminClient() {
         body: formData,
       });
       const data = await response.json();
-      if (data.url) {
-        setEditingSobre({ ...editingSobre, imagem: data.url });
+      if (data.imageData && data.imagemTipo) {
+        setEditingSobre({ 
+          ...editingSobre, 
+          imagem: data.previewUrl, // Para mostrar preview
+          imageData: data.imageData, // Dados para salvar no banco
+          imagemTipo: data.imagemTipo
+        });
       }
     } catch (error) {
       console.error("Upload failed:", error);

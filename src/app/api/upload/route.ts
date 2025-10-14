@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile } from 'fs/promises';
-import { join } from 'path';
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,25 +14,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'File must be an image' }, { status: 400 });
     }
 
-    // Criar nome único para o arquivo
-    const timestamp = Date.now();
-    const extension = file.name.split('.').pop();
-    
-    // Determinar o tipo baseado no campo 'type' se fornecido
-    const formType = data.get('type') as string || 'general';
-    const filename = `${formType}_${timestamp}.${extension}`;
-
     // Converter arquivo para buffer
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Salvar arquivo na pasta public/uploads
-    const path = join(process.cwd(), 'public', 'uploads', filename);
-    await writeFile(path, buffer);
+    // Retornar os dados da imagem em base64 para uso temporário no frontend
+    const base64 = buffer.toString('base64');
+    const dataUrl = `data:${file.type};base64,${base64}`;
 
-    // Retornar URL do arquivo
-    const fileUrl = `/uploads/${filename}`;
-    return NextResponse.json({ url: fileUrl });
+    return NextResponse.json({ 
+      imageData: buffer,
+      imagemTipo: file.type,
+      previewUrl: dataUrl // Para preview no frontend
+    });
   } catch (error) {
     console.error('Upload error:', error);
     return NextResponse.json({ error: 'Upload failed' }, { status: 500 });

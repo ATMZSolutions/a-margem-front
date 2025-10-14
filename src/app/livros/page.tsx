@@ -9,6 +9,7 @@ interface LivroItem {
   autor: string;
   descricao: string;
   imagem?: string;
+  imageUrl?: string;
   createdAt: string;
 }
 
@@ -87,10 +88,10 @@ export default function LivrosPage({
                 key={livro.id}
                 className="bg-black/20 backdrop-blur-sm rounded-lg p-6 hover:bg-black/30 transition-all duration-300"
               >
-                {livro.imagem && (
+                {livro.imageUrl && (
                   <div className="mb-4 flex justify-center">
                     <img
-                      src={livro.imagem}
+                      src={livro.imageUrl}
                       alt={livro.titulo}
                       className="w-32 h-44 object-cover rounded-lg shadow-lg"
                     />
