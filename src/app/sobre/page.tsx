@@ -4,8 +4,13 @@ import { ConfigProvider, Timeline, Typography } from "antd";
 import AppDrawer from "../../components/AppDrawer";
 import { motion, Variants } from "framer-motion";
 import BackBtn from "@/components/BackBtn";
-import { TimelineItem } from "@/data/sobre";
-import { items } from "@/data/sobre";
+import Image from "next/image";
+
+export interface Sobre {
+  ano: number;
+  descricao: string;
+  imageUrl: string | null;
+}
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -28,46 +33,31 @@ const itemVariants: Variants = {
 
 
 export default function SobrePage() {
-  const [selectedItem, setSelectedItem] = useState<TimelineItem | null>(null);
+  const [selectedItem, setSelectedItem] = useState<Sobre | null>(null);
   const [isTruncated, setIsTruncated] = useState<Record<number, boolean>>({});
   const labelRefs = useRef<Array<HTMLDivElement | null>>([]);
   const [paddingTops, setPaddingTops] = useState<Record<number, number>>({});
   const [windowWidth, setWindowWidth] = useState(0);
   const [loading, setLoading] = useState(true);
+  const showDrawer = (item: Sobre) => setSelectedItem(item);
+  const onCloseDrawer = () => setSelectedItem(null);
+  const [data, setData] = useState<Sobre[]>([]);
 
+  // Busca os dados da API
   useEffect(() => {
-
-    {/* Nao ta funcionando no momento*/ }
-
-    // async function loadAboutUs() {
-    //   try {
-    //     const response = await fetch("/api/admin/sobre");
-    //     console.log(response)
-    //     const data = await response.json();
-    //     console.log(data)
-    //     setAboutUs(Array.isArray(data) ? data : []);
-    //   } catch (error) {
-    //     console.error("Erro ao carregar Sobre Nós:", error);
-    //     setAboutUs([]);
-    //   } finally {
-    //     setLoading(false);
-    //   }
-    // }
-
-    // loadAboutUs();
-
-    setTimeout(() => {
-      setLoading(false)
-    }, 1000)
-
+    fetch("/api/sobre")
+      .then((res) => res.json())
+      .then((json: Sobre[]) => {
+        json.sort((a, b) => a.ano - b.ano) // Ordena do ano mais antigo pro mais recente
+        setData(json)
+      })
+      .catch((err) => console.error("Erro ao carregar dados:", err))
+      .finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {
     setIsTruncated({});
   }, [windowWidth]);
-
-  const showDrawer = (item: TimelineItem) => setSelectedItem(item);
-  const onCloseDrawer = () => setSelectedItem(null);
 
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);
@@ -88,9 +78,9 @@ export default function SobrePage() {
     if (JSON.stringify(newPaddingTops) !== JSON.stringify(paddingTops)) {
       setPaddingTops(newPaddingTops);
     }
-  }, [items, windowWidth, loading]);
+  }, [data, windowWidth, loading]);
 
-  const timelineItems = items.map((item, index) => ({
+  const timelineItems = data.map((item, index) => ({
     key: index,
     color: "#f38901",
     label: (
@@ -102,11 +92,17 @@ export default function SobrePage() {
         variants={itemVariants}
       >
         <h2 className="text-lg md:text-xl pb-6">{item.ano}</h2>
-        <img
-          src={item.img}
-          alt={`Evento de ${item.ano}`}
-          className="rounded-t-xl border-b-4 h-[200px] border-b-[#F5A623] w-auto object-cover"
-        />
+        {item.imageUrl && (
+          <div className="relative h-[200px] w-full">
+            <Image
+              src={item.imageUrl}
+              alt={`Evento de ${item.ano} - Coletivo À Margem`}
+              fill
+              className={`rounded-t-xl border-b-4 border-b-[#F5A623] object-cover transition-opacity duration-500`}
+              sizes="(max-width: 768px) 100vw, 600px"
+            />
+          </div>
+        )}
       </motion.div>
     ),
     children: (
@@ -129,7 +125,7 @@ export default function SobrePage() {
               },
             }}
           >
-            {item.description}
+            {item.descricao}
           </Typography.Paragraph>
           {isTruncated[index] && (
             <button
@@ -175,7 +171,7 @@ export default function SobrePage() {
         open={selectedItem !== null}
         onClose={onCloseDrawer}
         title={`Detalhes de ${selectedItem?.ano || ""}`}
-        contents={selectedItem ? [selectedItem.description] : []}
+        contents={selectedItem ? [selectedItem.descricao] : []}
       />
     </motion.section>
   );
