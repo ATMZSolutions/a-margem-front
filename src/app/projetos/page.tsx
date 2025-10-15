@@ -1,38 +1,52 @@
 "use client";
-import React, { useState, useEffect } from 'react';
-import { ConfigProvider, Timeline, Typography } from 'antd';
-import AppDrawer from '@/components/AppDrawer';
-import { YearStepper } from '@/components/YearStepper';
-import BackBtn from '@/components/BackBtn';
-import PhotoCarousel from '@/components/PhotoCarousel';
-import { fullItems, projetosImgs } from '@/data/projetos';
+import React, { useState, useEffect } from "react";
+import { ConfigProvider, Timeline, Typography, Skeleton } from "antd";
+import AppDrawer from "@/components/AppDrawer";
+import { YearStepper } from "@/components/YearStepper";
+import BackBtn from "@/components/BackBtn";
+import PhotoCarousel from "@/components/PhotoCarousel";
+import { projetosImgs } from "@/data/projetos";
 
 interface TimelineItem {
-  date: string;
-  text: string;
+  data: string;
+  descricao: string;
+  id: number;
 }
 
 export default function ProjetosPage() {
-
-  const [filteredItems, setFilteredItems] = useState<TimelineItem[]>([])
-
+  const [filteredItems, setFilteredItems] = useState<TimelineItem[]>([]);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedItem, setSelectedItem] = useState<TimelineItem | null>(null);
   const [isTruncated, setIsTruncated] = useState<Record<number, boolean>>({});
   const [windowWidth, setWindowWidth] = useState(0);
+  const [lastProjectYear, setLastProjectYear] = useState<number>(2026);
 
-  // Calcula o ano mais recente que possui um projeto associado
-  const years = fullItems.map(item => new Date(item.date).getFullYear());
-  const lastProjectYear = Math.max(...years);
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<TimelineItem[]>([]);
 
   const showDrawer = (item: TimelineItem) => setSelectedItem(item);
   const onCloseDrawer = () => setSelectedItem(null);
 
+  const initialYear = new Date().getFullYear();
+
+  // Busca os dados da API
+  useEffect(() => {
+    fetch("/api/admin/projeto")
+      .then((res) => res.json())
+      .then((json: TimelineItem[]) => {
+        const years = json.map((item) => new Date(item.data).getFullYear());
+        setLastProjectYear(Math.max(...years));
+        setData(json);
+      })
+      .catch((err) => console.error("Erro ao carregar dados:", err))
+      .finally(() => setLoading(false));
+  }, []);
+
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);
     handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   useEffect(() => {
@@ -40,40 +54,46 @@ export default function ProjetosPage() {
   }, [windowWidth]);
 
   useEffect(() => {
-    const filtered: TimelineItem[] = fullItems.filter((value) => {
-      const year = new Date(value.date).getFullYear()
-      return year == selectedYear;
-    })
-      .sort((a, b) => new Date(a.date).getMonth() - new Date(b.date).getMonth()); // Ordena por mês
-    setFilteredItems(filtered)
-  }, [selectedYear])
+    const filtered: TimelineItem[] = data
+      .filter((value: TimelineItem) => {
+        const year = new Date(value.data).getFullYear();
+        return year == selectedYear;
+      })
+      .sort(
+        (a, b) =>
+          new Date(a.data).getMonth() - new Date(b.data).getMonth()
+      );
+    setFilteredItems(filtered);
+  }, [selectedYear, data]);
 
   const timelineItems = filteredItems.map((item, index) => ({
     key: index,
-    color: '#FECA55',
-    label: <span className="text-white">
-      {new Intl.DateTimeFormat('pt-BR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-      }).format(new Date(item.date))}
-    </span>,
+    color: "#FECA55",
+    label: (
+      <span className="text-white">
+        {new Intl.DateTimeFormat("pt-BR", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+        }).format(new Date(item.data))}
+      </span>
+    ),
     children: (
       <div className="bg-[#00000080] max-w-[400px] max-h-[400px] text-white p-2 flex flex-col items-center justify-center rounded">
         <Typography.Paragraph
           key={`${index}-${windowWidth}`}
-          style={{ color: '#ffffff', textAlign: 'left' }}
+          style={{ color: "#ffffff", textAlign: "left" }}
           className="text-white"
           ellipsis={{
             rows: 5,
             onEllipsis: (ellipsis) => {
               if ((isTruncated[index] || false) !== ellipsis) {
-                setIsTruncated(prev => ({ ...prev, [index]: ellipsis }));
+                setIsTruncated((prev) => ({ ...prev, [index]: ellipsis }));
               }
-            }
+            },
           }}
         >
-          {item.text}
+          {item.descricao}
         </Typography.Paragraph>
         {isTruncated[index] && (
           <button
@@ -95,57 +115,80 @@ export default function ProjetosPage() {
       }}
     >
       <BackBtn label="Projetos" />
-      <div className=' max-w-2xl mt-40 mx-2'>
-        <section className='flex flex-col gap-8 max-w-xl'>
-          <Typography.Paragraph style={{ color: 'white', textAlign: 'justify' }}>
-            O Coletivo À Margem também desenvolve ações educacionais. Seus integrantes, professores de teatro, têm como foco a difusão da metodologia do teatro hip-hop em diferentes contextos, como escolas, ONGs e projetos culturais.
+      <div className="max-w-2xl mt-40 mx-2">
+        <section className="flex flex-col gap-8 max-w-xl">
+          <Typography.Paragraph
+            style={{ color: "white", textAlign: "justify" }}
+          >
+            O Coletivo À Margem também desenvolve ações educacionais. Seus
+            integrantes, professores de teatro, têm como foco a difusão da
+            metodologia do teatro hip-hop em diferentes contextos, como escolas,
+            ONGs e projetos culturais.
           </Typography.Paragraph>
+
           <div
             className="w-full aspect-[4/3] sm:max-w-xl"
             style={{ height: "clamp(200px, calc(38vw + 70px), 350px)" }}
           >
             <PhotoCarousel images={projetosImgs} />
           </div>
-          <Typography.Title className='font-sedgwick !text-2xl md:!text-3xl border-l-4 border-[#F38901] pl-2' 
+
+          <Typography.Title
+            className="font-sedgwick !text-2xl md:!text-3xl border-l-4 border-[#F38901] pl-2"
             style={{
-              marginTop: '20px',
-              color: '#ffffff',
-              fontWeight: 'normal'
-            }}>
+              marginTop: "20px",
+              color: "#ffffff",
+              fontWeight: "normal",
+            }}
+          >
             Conheça a trajetória
           </Typography.Title>
         </section>
-        <YearStepper
-          maxYear={lastProjectYear}
-          onYearChange={(year) => setSelectedYear(year)}
-        />
-        {filteredItems.length > 0 ? (
-          <div className='flex flex-col mx-2'>
-            <ConfigProvider
-              theme={{
-                components: {
-                  Timeline: {
-                    dotBg: '#FECA55',
-                    tailColor: '#FECA55',
-                    itemPaddingBottom: 40,
-                  },
-                },
-              }}
-            >
-              <Timeline mode="alternate" items={timelineItems} />
-            </ConfigProvider>
-            <AppDrawer
-              open={selectedItem !== null}
-              onClose={onCloseDrawer}
-              title="Detalhes"
-              bgColor='#FECA55'
-              contents={selectedItem ? [selectedItem.text] : []}
-            />
+
+        {loading ? (
+          <div className="mt-10 space-y-6 w-full">
+            <Skeleton active paragraph={{ rows: 3 }} />
           </div>
         ) : (
-          <section className='h-auto flex-grow flex w-full'>
-            <span className='mx-auto'>Nenhum projeto encontrado para o ano selecionado.</span>
-          </section>
+          <>
+            <YearStepper
+              maxYear={lastProjectYear}
+              initialYear={initialYear}
+              onYearChange={(year) => setSelectedYear(year)}
+            />
+
+            {filteredItems.length > 0 ? (
+              <div className="flex flex-col mx-2">
+                <ConfigProvider
+                  theme={{
+                    components: {
+                      Timeline: {
+                        dotBg: "#FECA55",
+                        tailColor: "#FECA55",
+                        itemPaddingBottom: 40,
+                      },
+                    },
+                  }}
+                >
+                  <Timeline mode="alternate" items={timelineItems} />
+                </ConfigProvider>
+
+                <AppDrawer
+                  open={selectedItem !== null}
+                  onClose={onCloseDrawer}
+                  title="Detalhes"
+                  bgColor="#FECA55"
+                  contents={selectedItem ? [selectedItem.descricao] : []}
+                />
+              </div>
+            ) : (
+              <section className="h-auto flex-grow flex w-full">
+                <span className="mx-auto">
+                  Nenhum projeto encontrado para o ano selecionado.
+                </span>
+              </section>
+            )}
+          </>
         )}
       </div>
     </section>
