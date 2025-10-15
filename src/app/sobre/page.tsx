@@ -94,12 +94,10 @@ export default function SobrePage() {
         <h2 className="text-lg md:text-xl pb-6">{item.ano}</h2>
         {item.imageUrl && (
           <div className="relative h-[200px] w-full">
-            <Image
+            <img
               src={item.imageUrl}
               alt={`Evento de ${item.ano} - Coletivo À Margem`}
-              fill
-              className={`rounded-t-xl border-b-4 border-b-[#F5A623] object-cover transition-opacity duration-500`}
-              sizes="(max-width: 768px) 100vw, 600px"
+              className="rounded-t-xl border-b-4 border-b-[#F5A623] object-cover transition-opacity duration-500 h-full w-full"
             />
           </div>
         )}
