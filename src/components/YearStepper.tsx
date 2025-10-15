@@ -3,11 +3,11 @@ import { useState } from "react";
 
 interface YearStepperProps {
   maxYear: number;
+  initialYear: number;
   onYearChange: (year: number) => void;
 }
 
-export function YearStepper({ onYearChange, maxYear }: YearStepperProps) {
-  const initialYear = new Date().getFullYear() // Ano default é o atual
+export function YearStepper({ onYearChange, maxYear, initialYear }: YearStepperProps) {
   const minYear = 2023 // Ano mínimo é 2023
   const [currentYear, setCurrentYear] = useState(initialYear);
 
