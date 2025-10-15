@@ -31,7 +31,7 @@ export default function ProjetosPage() {
 
   // Busca os dados da API
   useEffect(() => {
-    fetch("/api/admin/projeto")
+    fetch("/api/projetos")
       .then((res) => res.json())
       .then((json: TimelineItem[]) => {
         const years = json.map((item) => new Date(item.data).getFullYear());
