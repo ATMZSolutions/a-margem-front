@@ -4,8 +4,8 @@ import { ConfigProvider, Timeline, Typography, Skeleton } from "antd";
 import AppDrawer from "@/components/AppDrawer";
 import { YearStepper } from "@/components/YearStepper";
 import BackBtn from "@/components/BackBtn";
-import PhotoCarousel from "@/components/PhotoCarousel";
-import { projetosImgs } from "@/data/projetos";
+import CarouselWithInfo from "@/components/CarouselWithInfo";
+import { projectImgs } from "@/data/projetos";
 
 interface TimelineItem {
   data: string;
@@ -127,10 +127,10 @@ export default function ProjetosPage() {
           </Typography.Paragraph>
 
           <div
-            className="w-full aspect-[4/3] sm:max-w-xl"
+            className="w-full aspect-[4/3] sm:max-w-xl mb-16"
             style={{ height: "clamp(200px, calc(38vw + 70px), 350px)" }}
           >
-            <PhotoCarousel images={projetosImgs} />
+            <CarouselWithInfo imagesInfo={projectImgs.sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime())} />
           </div>
 
           <Typography.Title
