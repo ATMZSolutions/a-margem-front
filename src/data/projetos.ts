@@ -10,11 +10,6 @@ export const projectImgs = [
     img: "/projetos/2024-09-28.jpg"
   },
   {
-    descricao: "Apresentação do espetáculo Brechas da Muximba — local: Teatro Milton Baccarelli",
-    data: "2024-03-13T12:00:00",
-    img: "/projetos/2024-03-13.jpg"
-  },
-  {
     descricao: "Oficina de teatro hip-hop: Reinventando o corpo de periferia — local: Neimfa",
     data: "2025-06-17T12:00:00",
     img: "/projetos/2025-06-17.jpg"
@@ -55,11 +50,6 @@ export const projectImgs = [
     img: "/projetos/2025-07-27.jpg"
   },
   {
-    descricao: "Apresentação de XIRÊ — foto: Lucas Carneiro — local: Teatro Milton Baccarelli",
-    data: "2023-04-18T12:00:00",
-    img: "/projetos/2023-04-18.jpg"
-  },
-  {
     descricao: "Apresentação de XIRÊ no 23º Festival Recife do Teatro Nacional — foto: Acervo À Margem — local: Teatro Hermilo Borba Filho",
     data: "2024-11-26T12:00:00",
     img: "/projetos/2024-11-26.jpg"
@@ -75,12 +65,7 @@ export const projectImgs = [
     img: "/projetos/2024-06-01.jpg"
   },
   {
-    descricao: "Capa do anúncio para circulação de XIRÊ — foto: Lucas Carneiro",
-    data: "2024-01-01T12:00:00",
-    img: "/projetos/2024-01-01.jpg"
-  },
-  {
-    descricao: "Apresentação de XIRÊ no evento Pernambuco Meu Paí — foto: Acervo À Margem — local: Estação da Cultura de Arcoverde",
+    descricao: "Apresentação de XIRÊ no evento Pernambuco Meu País — foto: Acervo À Margem — local: Estação da Cultura de Arcoverde",
     data: "2024-08-24T12:00:00",
     img: "/projetos/2024-08-24.jpg"
   },
@@ -150,7 +135,7 @@ export const projectImgs = [
     img: "/projetos/2024-06-09.jpg"
   },
   {
-    descricao: "Foto — Acervo À Margem — local: Não especificado",
+    descricao: "Foto — Acervo À Margem",
     data: "2023-06-14T12:00:00",
     img: "/projetos/2023-06-14.jpg"
   }

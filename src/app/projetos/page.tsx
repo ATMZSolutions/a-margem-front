@@ -130,7 +130,7 @@ export default function ProjetosPage() {
             className="w-full aspect-[4/3] sm:max-w-xl mb-16"
             style={{ height: "clamp(200px, calc(38vw + 70px), 350px)" }}
           >
-            <CarouselWithInfo imagesInfo={projectImgs} />
+            <CarouselWithInfo imagesInfo={projectImgs.sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime())} />
           </div>
 
           <Typography.Title
