@@ -2,9 +2,9 @@
 import React, { useState } from "react";
 import PhotoCarousel from "./PhotoCarousel";
 
-interface ImageInfo {
-  local: string;
-  date: string;
+export interface ImageInfo {
+  descricao: string;
+  data: string;
   img: string;
 }
 
@@ -27,16 +27,16 @@ export default function CarouselWithInfo({ imagesInfo }: CarouselWithInfoProps) 
       {imagesInfo.length > 0 && (
         <div className="w-full flex flex-col items-end mt-2">
           <span className="text-white italic text-xs font-bold">
-            {imagesInfo[currentIndex].date.length > 0 ? (
+            {imagesInfo[currentIndex].data.length > 0 ? (
               new Intl.DateTimeFormat("pt-BR", {
                 day: "2-digit",
                 month: "2-digit",
                 year: "numeric",
-              }).format(new Date(imagesInfo[currentIndex].date))
+              }).format(new Date(imagesInfo[currentIndex].data))
             ) : ''}
           </span>
           <span className="text-white italic text-xs font-bold">
-            {imagesInfo[currentIndex].local}
+            {imagesInfo[currentIndex].descricao}
           </span>
         </div>
       )}
