@@ -101,7 +101,7 @@ const AgendaCard: React.FC<AgendaCardProps> = ({
                     </div>
                 </form>
             ) : (
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center gap-2">
                     <div>
                         <div className="font-semibold text-sm">{agenda.titulo}</div>
                         <div className="text-gray-300 text-xs">
