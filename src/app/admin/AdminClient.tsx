@@ -8,7 +8,7 @@ import AdminSobre from "@/components/admin/Sobre";
 import React, { useEffect, useState } from "react";
 
 export interface BufferData {
-  type: 'Buffer';
+  type: "Buffer";
   data: number[];
 }
 
@@ -17,11 +17,9 @@ export default function AdminClient() {
 
   async function logout() {
     await fetch("/api/admin/auth", { method: "DELETE" });
-    // redirect to login
     window.location.href = "/admin/login";
   }
 
-  // scroll detection
   useEffect(() => {
     const onScroll = () => {
       const scrollTop = window.scrollY;
@@ -36,21 +34,60 @@ export default function AdminClient() {
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
   return (
-    <main className="min-h-screen items-center justify-center flex flex-col py-20 bg-gray-900 text-white ">
-      <div className="max-w-lg mx-auto p-4">
-        <div className="flex justify-between items-center mb-4 bg-black/30 p-4 rounded">
-          <h1 className="text-2xl font-bold">Painel do Admin</h1>
-          <button onClick={logout} className="bg-gray-700 px-3 py-1 rounded">
-            Sair
-          </button>
-        </div>
-
-        <AdminAgenda/>
-        <AdminNoticia/>
-        <AdminLivro/>
-        <AdminProjeto/>
-        <AdminSobre/>
+    <main
+      className="
+        min-h-screen 
+        w-screen 
+        overflow-x-hidden 
+        flex flex-col 
+        items-center 
+        py-10 px-1 
+        bg-[#2F4158] 
+        text-white 
+      "
+      style={{
+        backgroundImage: "url('padrao1.webp')",
+      }}
+    >
+      {/* HEADER */}
+      <div className="flex flex-row mt-8 sm:flex-row justify-between items-center w-full max-w-md mb-8 bg-black/40 p-4 rounded-lg gap-3">
+        <h1 className="text-xl flex flex-row font-bold text-center sm:text-left">
+          Painel do Admin
+        </h1>
+        <button
+          onClick={logout}
+          className="bg-gray-700 hover:bg-gray-800 px-4 py-2 rounded transition"
+        >
+          Sair
+        </button>
       </div>
+
+      {/* GRID DE CARDS */}
+      <div
+        className="
+          grid 
+          grid-cols-1 
+          gap-4 
+          w-full 
+          max-w-md
+        "
+      >
+        <AdminAgenda />
+        <AdminNoticia />
+        <AdminLivro />
+        <AdminProjeto />
+        <AdminSobre />
+      </div>
+
+      {/* BOTÃO TOPO */}
+      {atBottom && (
+        <button
+          onClick={scrollToTop}
+          className="fixed bottom-5 right-5 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-full shadow-lg transition"
+        >
+          ↑ Topo
+        </button>
+      )}
     </main>
   );
 }
