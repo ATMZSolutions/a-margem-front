@@ -1,7 +1,9 @@
 "use client"
 import { useEffect, useState } from "react";
+import NoticiaCard from "./subcomponents/NoticiaCard";
+import { Button, ConfigProvider, Modal, Pagination } from "antd";
 
-type NoticiaItem = {
+export type NoticiaItem = {
     id?: number;
     titulo: string;
     conteudo: string;
@@ -18,6 +20,11 @@ const AdminNoticia = () => {
     const [editingNoticia, setEditingNoticia] = useState<NoticiaItem | null>(
         null
     );
+    const [modal, contextHolder] = Modal.useModal();
+    const [loading, setLoading] = useState(false)
+
+    const [currentPage, setCurrentPage] = useState<number>(1);
+    const pageSize = 3;
 
     async function load() {
         const n = await fetch("/api/admin/noticias").then((r) => r.json());
@@ -30,19 +37,59 @@ const AdminNoticia = () => {
 
     async function createNoticia(e: React.FormEvent) {
         e.preventDefault();
-        await fetch("/api/admin/noticias", {
-            method: "POST",
-            body: JSON.stringify(newNoticia),
-            headers: { "Content-Type": "application/json" },
-        });
-        setNewNoticia({ titulo: "", conteudo: "", link: "" });
-        load();
+        setLoading(true);
+        try {
+            const res = await fetch("/api/admin/noticias", {
+                method: "POST",
+                body: JSON.stringify(newNoticia),
+                headers: { "Content-Type": "application/json" },
+            });
+
+            if (!res.ok) throw new Error(await res.text());
+
+            setNewNoticia({ titulo: "", conteudo: "", link: "" });
+            await load();
+
+            modal.success({
+                title: "Sucesso",
+                content: "Notícia criada com sucesso!",
+                okText: "OK",
+            });
+        } catch (err) {
+            console.error("Erro ao criar notícia:", err);
+            modal.error({
+                title: "Erro",
+                content: "Não foi possível criar a notícia.",
+                okText: "OK",
+            });
+        } finally {
+            setLoading(false);
+        }
     }
 
     async function deleteNoticia(id?: number) {
         if (!id) return;
-        await fetch("/api/admin/noticias?id=" + id, { method: "DELETE" });
-        load();
+        setLoading(true);
+        try {
+            const res = await fetch("/api/admin/noticias?id=" + id, { method: "DELETE" });
+            if (!res.ok) throw new Error(await res.text());
+
+            await load();
+            modal.success({
+                title: "Notícia excluída",
+                content: "A notícia foi excluída com sucesso!",
+                okText: "OK",
+            });
+        } catch (err) {
+            console.error("Erro ao excluir notícia:", err);
+            modal.error({
+                title: "Erro ao excluir",
+                content: "Não foi possível excluir a notícia.",
+                okText: "OK",
+            });
+        } finally {
+            setLoading(false);
+        }
     }
 
     function startEditNoticia(noticia: NoticiaItem) {
@@ -56,19 +103,63 @@ const AdminNoticia = () => {
     async function updateNoticia(e: React.FormEvent) {
         e.preventDefault();
         if (!editingNoticia) return;
+        setLoading(true);
+        try {
+            const res = await fetch("/api/admin/noticias", {
+                method: "PUT",
+                body: JSON.stringify(editingNoticia),
+                headers: { "Content-Type": "application/json" },
+            });
 
-        await fetch("/api/admin/noticias", {
-            method: "PUT",
-            body: JSON.stringify(editingNoticia),
-            headers: { "Content-Type": "application/json" },
-        });
-        setEditingNoticia(null);
-        load();
+            if (!res.ok) throw new Error(await res.text());
+
+            setEditingNoticia(null);
+            await load();
+
+            modal.success({
+                title: "Notícia atualizada",
+                content: "A notícia foi atualizada com sucesso!",
+                okText: "OK",
+            });
+        } catch (err) {
+            console.error("Erro ao atualizar notícia:", err);
+            modal.error({
+                title: "Erro",
+                content: "Não foi possível atualizar a notícia.",
+                okText: "OK",
+            });
+        } finally {
+            setLoading(false);
+        }
     }
 
+    // --- Paginação ---
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    const currentNoticias = noticias.slice(startIndex, endIndex);
+
     return (
-        <section>
-            <h2 className="text-xl border-l-4 my-8 border-orange-500 pl-2 font-semibold">
+        <section className="mb-8 w-auto gap-20 bg-black/50 px-4 rounded">
+            { contextHolder }
+            <ConfigProvider
+                theme={{
+                    components: {
+                        Pagination: {
+                            itemBg: "#ffffff40",
+                            itemActiveBg: "#ffffff10",
+                        },
+                        Button: {
+                            defaultBg: "#FF6900",
+                            defaultBorderColor: "#FF6900",
+                            defaultHoverBg: "#e05900",
+                            defaultHoverBorderColor: "#e05900",
+                            defaultHoverColor: "white",
+                            defaultColor: "white",
+                        },
+                    },
+                }}
+            >
+            <h2 className="text-xl border-l-4 my-4 border-orange-500 pl-2 font-semibold">
                 Notícias
             </h2>
             <form
@@ -101,112 +192,50 @@ const AdminNoticia = () => {
                     }
                     className="p-2 border border-white rounded"
                 />
-                <button className="bg-orange-500 px-3 rounded py-2 mb-4 hover:cursor-pointer active:bg-orange-700">
-                    Adicionar
-                </button>
+                <Button htmlType="submit" loading={loading} style={{ padding: 18, fontSize: '16px', borderRadius: '4px' }}>Adicionar</Button>
             </form>
 
             {noticias.length > 0 && (
                 <h3 className="text-lg mt-4 my-2">Notícias cadastradas: </h3>
             )}
             <ul className="space-y-2">
-                {noticias.map((n) => (
-                    <li key={n.id} className="bg-black/30 p-2 rounded">
-                        {editingNoticia?.id === n.id && editingNoticia ? (
-                            <form onSubmit={updateNoticia} className="space-y-2">
-                                <input
-                                    required
-                                    placeholder="Título"
-                                    value={editingNoticia.titulo}
-                                    onChange={(e) =>
-                                        setEditingNoticia({
-                                            ...editingNoticia,
-                                            titulo: e.target.value,
-                                            conteudo: editingNoticia.conteudo || "",
-                                            link: editingNoticia.link || "",
-                                        })
-                                    }
-                                    className="w-full p-2 border border-white rounded text-white"
-                                />
-                                <textarea
-                                    required
-                                    placeholder="Adicione o conteúdo ..."
-                                    value={editingNoticia.conteudo}
-                                    onChange={(e) =>
-                                        setEditingNoticia({
-                                            ...editingNoticia,
-                                            conteudo: e.target.value,
-                                            titulo: editingNoticia.titulo || "",
-                                            link: editingNoticia.link || "",
-                                        })
-                                    }
-                                    className="w-full p-2 border border-white rounded text-white"
-                                    rows={3}
-                                />
-                                <input
-                                    placeholder="Link"
-                                    value={editingNoticia.link || ""}
-                                    onChange={(e) =>
-                                        setEditingNoticia({
-                                            ...editingNoticia,
-                                            link: e.target.value,
-                                            titulo: editingNoticia.titulo || "",
-                                            conteudo: editingNoticia.conteudo || "",
-                                        })
-                                    }
-                                    className="w-full p-2 border border-white rounded text-white"
-                                />
-                                <div className="flex gap-2">
-                                    <button
-                                        type="submit"
-                                        className="bg-green-600 px-3 py-1 rounded hover:bg-green-700"
-                                    >
-                                        Salvar
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={cancelEditNoticia}
-                                        className="bg-gray-600 px-3 py-1 rounded hover:bg-gray-700"
-                                    >
-                                        Cancelar
-                                    </button>
-                                </div>
-                            </form>
-                        ) : (
-                            <div className="flex justify-between items-center">
-                                <div>
-                                    <div className="font-semibold">{n.titulo}</div>
-                                    <div className="text-sm text-gray-300 line-clamp-2">
-                                        {n.conteudo}
-                                    </div>
-                                    {n.link && (
-                                        <a
-                                            href={n.link}
-                                            className="text-blue-500 hover:underline"
-                                        >
-                                            {n.link}
-                                        </a>
-                                    )}
-                                </div>
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={() => startEditNoticia(n)}
-                                        className="bg-blue-600 px-2 rounded hover:bg-blue-700"
-                                    >
-                                        Editar
-                                    </button>
-                                    <button
-                                        onClick={() => deleteNoticia(n.id)}
-                                        className="bg-red-600 px-2 rounded hover:bg-red-700"
-                                    >
-                                        Excluir
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-                    </li>
+                {currentNoticias.map((n) => (
+                    <NoticiaCard
+                        key={n.id}
+                        noticia={editingNoticia?.id === n.id ? editingNoticia! : n}
+                        isEditing={editingNoticia?.id === n.id}
+                        onEditStart={startEditNoticia}
+                        onEditCancel={cancelEditNoticia}
+                        onEditChange={(updates) =>
+                            setEditingNoticia((prev) => (prev ? { ...prev, ...updates } : prev))
+                        }
+                        onEditSubmit={updateNoticia}
+                        onDelete={deleteNoticia}
+                    />
                 ))}
             </ul>
+
+            {/* --- PAGINAÇÃO --- */}
+            {noticias.length > pageSize && (
+                    <div className="flex mt-4 mb-4 w-full justify-center">
+                        <Pagination
+                            current={currentPage}
+                            pageSize={pageSize}
+                            total={noticias.length}
+                            responsive
+                            onChange={(page) => setCurrentPage(page)}
+                            className="manual-small-pagination"
+                            itemRender={(page, type, originalElement) => {
+                                const el = originalElement as React.ReactElement<any>;
+                                const isActive = el.props?.className?.includes("ant-pagination-item-active");
+                                const classes = `text-white !text-white hover:text-white ${isActive ? "font-bold !text-white" : ""}`;
+                                if (type === "page") return <a className={classes}>{page}</a>;
+                                return <a className={classes}>{el.props?.children}</a>;
+                            }}
+                        />
+                    </div>
+            )}
+            </ConfigProvider>
         </section>
     )
 }
