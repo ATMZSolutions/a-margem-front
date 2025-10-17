@@ -12,7 +12,7 @@ model Agenda {
   titulo    String
   data      DateTime @db.Timestamptz(6)
   local     String
-  createdAt DateTime @db.Timestamptz(6)
+  createdAt DateTime @db.Timestamptz(6) @default(now()) 
   cidade    String
 }
 
