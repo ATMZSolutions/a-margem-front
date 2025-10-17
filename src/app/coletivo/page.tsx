@@ -51,7 +51,7 @@ export default function ColetivoPage() {
       }}
     >
       {/* Botão de voltar */}
-      <BackBtn label="Coletivo" />
+      <BackBtn label="Integrantes" />
 
       {/* Grid de integrantes */}
       <div className="w-full max-w-3xl mt-40 grid grid-cols-2 sm:grid-cols-3 gap-6">
