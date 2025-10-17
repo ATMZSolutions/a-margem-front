@@ -43,15 +43,12 @@ const AdminNoticia = () => {
     }, [filteredNoticias, currentPage]);
 
     async function load() {
-        setLoading(true);
         try {
             const n = await fetch("/api/admin/noticias").then((r) => r.json());
             setNoticias(n || []);
         } catch (error) {
             console.error("Falha ao carregar notícias:", error);
             modal.error({ title: "Erro", content: "Falha ao carregar notícias." });
-        } finally {
-            setLoading(false);
         }
     }
 

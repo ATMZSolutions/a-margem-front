@@ -33,8 +33,13 @@ const AdminAgenda = () => {
     const pageSize = 3;
 
     async function load() {
-        const a = await fetch("/api/admin/agenda").then((r) => r.json());
-        setAgendas(a || []);
+        try {
+            const a = await fetch("/api/admin/agenda").then((r) => r.json());
+            setAgendas(a || []);
+        } catch (error) {
+            console.error("Falha ao carregar agenda:", error);
+            modal.error({ title: "Erro", content: "Falha ao carregar agenda." });
+        }
     }
 
     useEffect(() => {

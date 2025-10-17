@@ -38,15 +38,12 @@ const AdminProjeto = () => {
     }, [filteredProjetos, currentPage]);
 
     async function load() {
-        setLoading(true);
         try {
             const p = await fetch("/api/admin/projeto").then((r) => r.json());
             setProjetos(p || []);
         } catch (error) {
             console.error("Falha ao carregar projetos:", error);
             modal.error({ title: "Erro", content: "Falha ao carregar projetos." });
-        } finally {
-            setLoading(false);
         }
     }
 

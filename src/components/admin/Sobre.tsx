@@ -48,7 +48,6 @@ const AdminSobre = () => {
     }, [filteredSobres, currentPage]);
 
     async function load() {
-        setLoading(true);
         try {
             const s = await fetch("/api/admin/sobre").then((r) => r.json());
             const sobresWithImageUrls = (s || []).map((sobre: SobreItem) => ({
@@ -59,8 +58,6 @@ const AdminSobre = () => {
         } catch (error) {
             console.error("Falha ao carregar sobre:", error);
             modal.error({ title: "Erro", content: "Falha ao carregar sobre." });
-        } finally {
-            setLoading(false);
         }
     }
 

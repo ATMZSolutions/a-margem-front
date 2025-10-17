@@ -50,7 +50,6 @@ const AdminLivro = () => {
 
     // --- Carregamento de Dados ---
     async function load() {
-        setLoading(true);
         try {
             const l = await fetch("/api/admin/livros").then((r) => r.json());
             const livrosWithImageUrls = (l || []).map((livro: LivroItem) => ({
@@ -61,8 +60,6 @@ const AdminLivro = () => {
         } catch (error) {
             console.error("Falha ao carregar livros:", error);
             modal.error({ title: "Erro", content: "Falha ao carregar livros." });
-        } finally {
-            setLoading(false);
         }
     }
 

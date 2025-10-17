@@ -53,7 +53,6 @@ export default function AdminClient() {
         className="
           grid 
           grid-cols-1 
-          gap-4 
           w-full 
           max-w-md
           px-2
