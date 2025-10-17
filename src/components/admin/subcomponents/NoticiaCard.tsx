@@ -5,6 +5,7 @@ import { NoticiaItem } from "../Noticia";
 
 interface NoticiaCardProps {
   noticia: NoticiaItem;
+  processingEdit?: boolean;
   isEditing: boolean;
   loading?: boolean;
   onEditStart: (noticia: NoticiaItem) => void;
@@ -16,6 +17,7 @@ interface NoticiaCardProps {
 
 const NoticiaCard: React.FC<NoticiaCardProps> = ({
   noticia,
+  processingEdit,
   isEditing,
   loading,
   onEditStart,
@@ -96,6 +98,7 @@ const NoticiaCard: React.FC<NoticiaCardProps> = ({
           <div className="flex flex-col gap-2">
             <Button
               onClick={() => onEditStart(noticia)}
+              loading={processingEdit}
               style={{
                 fontSize: "14px",
                 borderRadius: "4px",
