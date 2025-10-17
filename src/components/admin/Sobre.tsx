@@ -365,7 +365,7 @@ const AdminSobre = () => {
                             showSizeChanger={false}
                             className="custom-pagination"
                             itemRender={(page, type, originalElement) => {
-                                const el = originalElement as React.ReactElement<any>;
+                                const el = originalElement as React.ReactElement<{ className?: string; children?: React.ReactNode }>;
                                 const isActive = el.props?.className?.includes("ant-pagination-item-active");
                                 const classes = `text-white hover:text-white ${isActive ? "font-bold" : ""}`;
                                 if (type === "page") return <a className={classes}>{page}</a>;

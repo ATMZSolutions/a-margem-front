@@ -348,11 +348,9 @@ const AdminAgenda = () => {
                             responsive
                             onChange={(page) => setCurrentPage(page)}
                             itemRender={(page, type, originalElement) => {
-                                const el = originalElement as React.ReactElement<any>;
-                                const isActive =
-                                    el.props?.className?.includes("ant-pagination-item-active");
-                                const classes = `text-white hover:text-white ${isActive ? "font-bold" : ""
-                                    }`;
+                                const el = originalElement as React.ReactElement<{ className?: string; children?: React.ReactNode }>;
+                                const isActive = el.props?.className?.includes("ant-pagination-item-active");
+                                const classes = `text-white hover:text-white ${isActive ? "font-bold" : ""}`;
                                 if (type === "page") return <a className={classes}>{page}</a>;
                                 return <a className={classes}>{el.props?.children}</a>;
                             }}
