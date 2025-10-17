@@ -53,7 +53,7 @@ const AdminSobre = () => {
             const s = await fetch("/api/admin/sobre").then((r) => r.json());
             const sobresWithImageUrls = (s || []).map((sobre: SobreItem) => ({
                 ...sobre,
-                imagem: sobre.imagem ? `/api/image/sobre/${sobre.ano}` : null
+                imagem: sobre.imagem ? `/api/image/sobre/${sobre.ano}?${new Date().getTime()}` : undefined
             }));
             setSobres(sobresWithImageUrls);
         } catch (error) {
