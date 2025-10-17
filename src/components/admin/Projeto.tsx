@@ -102,7 +102,7 @@ const AdminProjeto = () => {
                 try {
                     const res = await fetch("/api/admin/projeto?id=" + id, { method: "DELETE" });
                     if (!res.ok) throw new Error("Falha ao excluir projeto");
-                    
+
                     // Verifica se vai ficar sem itens na página atual após exclusão
                     const willBeEmptyPage = currentProjetos.length === 1 && currentPage > 1;
 
@@ -284,6 +284,7 @@ const AdminProjeto = () => {
                 {filteredProjetos.length > pageSize && (
                     <div className="flex mt-6 mb-4 w-full justify-center">
                         <Pagination
+                            responsive
                             current={currentPage}
                             pageSize={pageSize}
                             total={filteredProjetos.length}

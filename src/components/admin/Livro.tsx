@@ -352,6 +352,7 @@ const AdminLivro = () => {
                             current={currentPage}
                             pageSize={pageSize}
                             total={filteredLivros.length}
+                            responsive
                             onChange={(page) => setCurrentPage(page)}
                             showSizeChanger={false}
                             className="custom-pagination"

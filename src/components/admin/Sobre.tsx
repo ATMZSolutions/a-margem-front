@@ -158,7 +158,7 @@ const AdminSobre = () => {
                 try {
                     const res = await fetch("/api/admin/sobre?ano=" + ano, { method: "DELETE" });
                     if (!res.ok) throw new Error("Falha ao excluir ítem");
-                    
+
                     // Verifica se vai ficar sem itens na página atual após exclusão
                     const willBeEmptyPage = currentSobres.length === 1 && currentPage > 1;
 
@@ -360,6 +360,7 @@ const AdminSobre = () => {
                 {filteredSobres.length > pageSize && (
                     <div className="flex mt-6 mb-4 w-full justify-center">
                         <Pagination
+                            responsive
                             current={currentPage}
                             pageSize={pageSize}
                             total={filteredSobres.length}

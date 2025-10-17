@@ -303,6 +303,7 @@ const AdminNoticia = () => {
                 {filteredNoticias.length > pageSize && (
                     <div className="flex mt-6 mb-4 w-full justify-center">
                         <Pagination
+                            responsive
                             current={currentPage}
                             pageSize={pageSize}
                             total={filteredNoticias.length}

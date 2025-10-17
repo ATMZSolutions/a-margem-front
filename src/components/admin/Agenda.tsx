@@ -342,7 +342,6 @@ const AdminAgenda = () => {
                             total={filteredAgendas.length}
                             responsive
                             onChange={(page) => setCurrentPage(page)}
-                            className="manual-small-pagination"
                             itemRender={(page, type, originalElement) => {
                                 const el = originalElement as React.ReactElement<any>;
                                 const isActive =
