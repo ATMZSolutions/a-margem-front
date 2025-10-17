@@ -210,7 +210,7 @@ const AdminLivro = () => {
                         Pagination: {
                             itemBg: "#ffffff20",
                             itemActiveBg: "#FF6900",
-                            colorPrimary: "#FF6900",
+                            colorPrimary: "#ffffffff",
                             colorText: "white",
                             colorPrimaryHover: "#ffa366",
                             colorTextDisabled: "rgba(255,255,255,0.3)",
