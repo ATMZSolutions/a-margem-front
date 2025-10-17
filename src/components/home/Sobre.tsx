@@ -71,7 +71,7 @@ const Sobre = () => {
             topButton={{
               show: true,
               href: "/coletivo",
-              label: "Conheça o Coletivo",
+              label: "Conheça os Integrantes",
             }}
             images={randomImages}
           />
