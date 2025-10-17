@@ -85,7 +85,15 @@ const AdminNoticia = () => {
             const res = await fetch("/api/admin/noticias?id=" + id, { method: "DELETE" });
             if (!res.ok) throw new Error(await res.text());
 
+            // Verifica se vai ficar sem itens na página atual após exclusão
+            const willBeEmptyPage = currentNoticias.length === 1 && currentPage > 1;
+
             await load();
+
+            // Ajusta a página se necessário
+            if (willBeEmptyPage) {
+                setCurrentPage(currentPage - 1);
+            }
             modal.success({
                 title: "Notícia excluída",
                 content: "A notícia foi excluída com sucesso!",

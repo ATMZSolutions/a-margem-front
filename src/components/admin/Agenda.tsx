@@ -77,7 +77,15 @@ const AdminAgenda = () => {
             const res = await fetch(`/api/admin/agenda?id=${id}`, { method: "DELETE" });
             if (!res.ok) throw new Error(await res.text());
 
+            // Verifica se vai ficar sem itens na página atual após exclusão
+            const willBeEmptyPage = currentAgendas.length === 1 && currentPage > 1;
+
             await load();
+
+            // Ajusta a página se necessário
+            if (willBeEmptyPage) {
+                setCurrentPage(currentPage - 1);
+            }
             modal.success({ title: "Agenda excluída", content: "A agenda foi excluída com sucesso!", okText: "OK" });
         } catch (err) {
             console.error("Erro ao excluir agenda:", err);
