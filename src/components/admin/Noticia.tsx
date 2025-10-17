@@ -22,6 +22,7 @@ const AdminNoticia = () => {
     );
     const [modal, contextHolder] = Modal.useModal();
     const [loading, setLoading] = useState(false);
+    const [dataLoading, setDataLoading] = useState<boolean>(true)
     const [processingEdit, setProcessingEdit] = useState(false);
 
     // --- Estados para filtro e paginação ---
@@ -49,6 +50,8 @@ const AdminNoticia = () => {
         } catch (error) {
             console.error("Falha ao carregar notícias:", error);
             modal.error({ title: "Erro", content: "Falha ao carregar notícias." });
+        } finally {
+            setDataLoading(false)
         }
     }
 
@@ -292,7 +295,11 @@ const AdminNoticia = () => {
                     </ul>
                 ) : (
                     <div className="text-center py-8 text-white/60">
-                        {filter ? "Nenhuma notícia encontrada para o filtro aplicado." : "Nenhuma notícia cadastrada."}
+                        {filter
+                            ? "Nenhuma notícia encontrada para o filtro aplicado."
+                            : dataLoading
+                                ? ("Carregando...")
+                                : "Nenhuma notícia cadastrada."}
                     </div>
                 )}
 

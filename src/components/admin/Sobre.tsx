@@ -25,6 +25,7 @@ const AdminSobre = () => {
 
     // --- Estados ---
     const [loading, setLoading] = useState(false);
+    const [dataLoading, setDataLoading] = useState<boolean>(true);
     const [modal, contextHolder] = Modal.useModal();
     const [filter, setFilter] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
@@ -58,6 +59,8 @@ const AdminSobre = () => {
         } catch (error) {
             console.error("Falha ao carregar sobre:", error);
             modal.error({ title: "Erro", content: "Falha ao carregar sobre." });
+        } finally {
+            setDataLoading(false)
         }
     }
 
@@ -349,7 +352,11 @@ const AdminSobre = () => {
                     </ul>
                 ) : (
                     <div className="text-center py-8 text-white/60">
-                        {filter ? "Nenhum item encontrado para o filtro aplicado." : "Nenhum item cadastrado."}
+                        {filter
+                            ? "Nenhum item encontrado para o filtro aplicado."
+                            : dataLoading
+                                ? ("Carregando...")
+                                : "Nenhum item cadastrado."}
                     </div>
                 )}
 

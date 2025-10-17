@@ -25,8 +25,8 @@ const AdminAgenda = () => {
     const [loading, setLoading] = useState<boolean>(false);
     const [processingEdit, setProcessingEdit] = useState<boolean>(false);
     const [filterText, setFilterText] = useState<string>("");
-
     const [modal, contextHolder] = Modal.useModal();
+    const [dataLoading, setDataLoading] = useState<boolean>(true);
 
     // --- PAGINAÇÃO ---
     const [currentPage, setCurrentPage] = useState<number>(1);
@@ -39,6 +39,8 @@ const AdminAgenda = () => {
         } catch (error) {
             console.error("Falha ao carregar agenda:", error);
             modal.error({ title: "Erro", content: "Falha ao carregar agenda." });
+        } finally {
+            setDataLoading(false)
         }
     }
 
@@ -291,7 +293,7 @@ const AdminAgenda = () => {
                 </form>
 
                 {/* Filtro e lista de projetos */}
-                {agendas.length > 0 && (
+                {agendas.length > 0 ? (
                     <div className="my-4">
                         <div className="flex items-center justify-between mb-2">
                             <h3 className="text-lg font-semibold">Agendas cadastradas:</h3>
@@ -313,6 +315,14 @@ const AdminAgenda = () => {
                             variant="borderless"
                             allowClear
                         />
+                    </div>
+                ) : (
+                    <div className="text-center py-8 text-white/60">
+                        {filterText
+                            ? "Nenhuma agenda encontrada para o filtro aplicado."
+                            : dataLoading
+                                ? ("Carregando...")
+                                : "Nenhuma agenda cadastrado."}
                     </div>
                 )}
 

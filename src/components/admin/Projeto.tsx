@@ -18,6 +18,7 @@ const AdminProjeto = () => {
 
     // --- Novos Estados ---
     const [loading, setLoading] = useState(false);
+    const [dataLoading, setDataLoading] = useState<boolean>(true)
     const [modal, contextHolder] = Modal.useModal();
     const [filter, setFilter] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
@@ -44,6 +45,8 @@ const AdminProjeto = () => {
         } catch (error) {
             console.error("Falha ao carregar projetos:", error);
             modal.error({ title: "Erro", content: "Falha ao carregar projetos." });
+        } finally {
+            setDataLoading(false)
         }
     }
 
@@ -273,7 +276,11 @@ const AdminProjeto = () => {
                     </ul>
                 ) : (
                     <div className="text-center py-8 text-white/60">
-                        {filter ? "Nenhum projeto encontrado para o filtro aplicado." : "Nenhum projeto cadastrado."}
+                        {filter
+                            ? "Nenhum projeto encontrado para o filtro aplicado."
+                            : dataLoading
+                                ? ("Carregando...")
+                                : "Nenhum projeto cadastrado."}
                     </div>
                 )}
 

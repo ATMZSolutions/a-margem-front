@@ -34,6 +34,7 @@ const AdminLivro = () => {
     const pageSize = 2;
     const fileInputRef = useRef<HTMLInputElement>(null);
     const editFileInputRef = useRef<HTMLInputElement>(null);
+    const [dataLoading, setDataLoading] = useState<boolean>(true);
 
     // --- Lógica de Filtro e Paginação ---
     const filteredLivros = useMemo(() => {
@@ -60,6 +61,8 @@ const AdminLivro = () => {
         } catch (error) {
             console.error("Falha ao carregar livros:", error);
             modal.error({ title: "Erro", content: "Falha ao carregar livros." });
+        } finally {
+            setDataLoading(false)
         }
     }
 
@@ -338,7 +341,11 @@ const AdminLivro = () => {
                     </ul>
                 ) : (
                     <div className="text-center py-8 text-white/60">
-                        {filter ? "Nenhum livro encontrado para o filtro aplicado." : "Nenhum livro cadastrado."}
+                        {filter
+                            ? "Nenhum livro encontrado para o filtro aplicado."
+                            : dataLoading
+                                ? ("Carregando...")
+                                : "Nenhum livro cadastrado."}
                     </div>
                 )}
 
