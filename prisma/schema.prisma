@@ -12,7 +12,7 @@ model Agenda {
   titulo    String
   data      DateTime @db.Timestamptz(6)
   local     String
-  createdAt DateTime @db.Timestamptz(6) @default(now()) 
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
   cidade    String
 }
 
@@ -25,13 +25,13 @@ model Noticia {
 }
 
 model Book {
-  id           Int      @id @default(autoincrement())
-  titulo       String
-  autor        String
-  descricao    String
-  imagem       Bytes?
-  imagemTipo   String?
-  createdAt    DateTime @default(now())
+  id         Int      @id @default(autoincrement())
+  titulo     String
+  autor      String
+  descricao  String
+  imagem     Bytes?
+  imagemTipo String?
+  createdAt  DateTime @default(now())
 
   @@map("Livro")
 }
@@ -43,7 +43,7 @@ model Projeto {
 }
 
 model Sobre {
-  ano        Int      @id
+  ano        Int     @id
   imagem     Bytes?
   imagemTipo String?
   descricao  String
