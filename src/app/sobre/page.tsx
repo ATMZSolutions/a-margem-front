@@ -95,7 +95,7 @@ export default function SobrePage() {
         {item.imageUrl && (
           <div className="relative h-[200px] w-full">
             <img
-              src={item.imageUrl}
+              src={`${item.imageUrl}?t=${new Date().getTime()}`}
               alt={`Evento de ${item.ano} - Coletivo À Margem`}
               className="rounded-t-xl border-b-4 border-b-[#F5A623] object-cover transition-opacity duration-500 h-full w-full"
             />
