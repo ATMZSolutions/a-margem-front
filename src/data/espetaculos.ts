@@ -77,16 +77,21 @@ Sonoplastia ao vivo: Torres ZN (batuque no tantã)`
             },
             {
                 subtitle: "Trajetória e Apresentações",
-                description: `18/10/2023 – XXIV ENEARTE, Belo Horizonte, Sala Preta (EBA/UFMG)
-24/08/2024 – Estação da Cultura de Arcoverde/PE (Festival Pernambuco Meu País)
+                description: `18/04/2023 – Estreia XIRÊ no Teatro Milton Baccarelli (CAC/UFPE)
+26/09/2023 – Apresentação na programação do projeto Terça em Cena, no Teatro Milton Baccarelli (CAC/UFPE).
+18/10/2023 – XXIV ENEARTE, Belo Horizonte, Sala Preta (EBA/UFMG)
 2024 – Circulação XIRÊ (Lei Paulo Gustavo + SIC):
 • Museu da Abolição
 • MAMAM
 • Compaz Eduardo Campos
 • Daruê Malungo
 • MUAFRO
+24/08/2024 – Estação da Cultura de Arcoverde/PE (Festival Pernambuco Meu País)
+08/10/2024 – Apresentação no Teatro Marco Camarotti na 2° edição do projeto Entre-Ruas: Fluxos Periféricos realizado pelo SESC Santo Amaro.
 26/11/2024 – Teatro Hermilo Borba Filho (Festival Recife do Teatro Nacional)
+29/11/2024 – Apresentação no EREM Olinto Victor, no Recife. Para celebrar a Consciência Negra.
 22/01/2025 – Teatro Marco Camarotti, Recife (Festival Janeiro de Grandes Espetáculos)
+30/01/2025 – Apresentação na Bienal da UNE, no Centro de Convenções de Olinda, Pernambuco.
 26 e 27/07/2025 – Mostra Nacional de Teatro Universitário (TUSP), Teatro da USP – São Paulo`
             }
         ]
