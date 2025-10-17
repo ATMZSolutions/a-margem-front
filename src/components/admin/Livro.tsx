@@ -1,5 +1,8 @@
+"use client"
 import { BufferData } from "@/app/admin/AdminClient";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Button, ConfigProvider, Input, Modal, Pagination } from "antd";
+import LivroCard from "./subcomponents/LivroCard"; 
 
 type LivroItem = {
     id?: number;
@@ -20,26 +23,51 @@ const AdminLivro = () => {
         imagem: "",
     });
     const [editingLivro, setEditingLivro] = useState<LivroItem | null>(null);
-    const [uploadingImage, setUploadingImage] = useState<boolean>(false);
 
+    // --- Novos Estados ---
+    const [loading, setLoading] = useState(false);
+    const [uploadingImage, setUploadingImage] = useState(false);
+    const [modal, contextHolder] = Modal.useModal();
+    const [filter, setFilter] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
+    const pageSize = 2;
+    const [processingEdit, setProcessingEdit] = useState(false);
+
+    // --- Lógica de Filtro e Paginação ---
+    const filteredLivros = useMemo(() => {
+        if (!filter) return livros;
+        return livros.filter((livro) =>
+            livro.titulo.toLowerCase().includes(filter.toLowerCase())
+        );
+    }, [livros, filter]);
+
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    const currentLivros = filteredLivros.slice(startIndex, endIndex);
+
+    // --- Carregamento de Dados ---
     async function load() {
-        const l = await fetch("/api/admin/livros").then((r) => r.json());
-
-        // Para livros e sobre, converter as imagens para URLs da API se existem
-        const livrosWithImageUrls = (l || []).map((livro: LivroItem) => ({
-            ...livro,
-            imagem: livro.imagem ? `/api/image/livro/${livro.id}` : null
-        }));
-
-        setLivros(livrosWithImageUrls);
+        try {
+            const l = await fetch("/api/admin/livros").then((r) => r.json());
+            const livrosWithImageUrls = (l || []).map((livro: LivroItem) => ({
+                ...livro,
+                imagem: livro.imagem ? `/api/image/livro/${livro.id}?${new Date().getTime()}` : undefined
+            }));
+            setLivros(livrosWithImageUrls);
+        } catch (error) {
+            console.error("Falha ao carregar livros:", error);
+        }
     }
 
     useEffect(() => {
         load();
     }, []);
 
-    // Livro functions
-    async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [filter]);
+
+    async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>, target: 'new' | 'edit') {
         const file = e.target.files?.[0];
         if (!file) return;
 
@@ -48,21 +76,23 @@ const AdminLivro = () => {
         formData.append("file", file);
 
         try {
-            const response = await fetch("/api/upload", {
-                method: "POST",
-                body: formData,
-            });
+            const response = await fetch("/api/upload", { method: "POST", body: formData });
             const data = await response.json();
             if (data.imageData && data.imagemTipo) {
-                setNewLivro({
-                    ...newLivro,
-                    imagem: data.previewUrl, // Para mostrar preview
-                    imageData: data.imageData, // Dados para salvar no banco
+                const imageUpdates = {
+                    imagem: data.previewUrl,
+                    imageData: data.imageData,
                     imagemTipo: data.imagemTipo
-                });
+                };
+                if (target === 'new') {
+                    setNewLivro(prev => ({ ...prev, ...imageUpdates }));
+                } else if (target === 'edit' && editingLivro) {
+                    setEditingLivro(prev => prev ? { ...prev, ...imageUpdates } : null);
+                }
             }
         } catch (error) {
             console.error("Upload failed:", error);
+            modal.error({ title: "Erro de Upload", content: "Não foi possível enviar a imagem." });
         } finally {
             setUploadingImage(false);
         }
@@ -70,265 +100,166 @@ const AdminLivro = () => {
 
     async function createLivro(e: React.FormEvent) {
         e.preventDefault();
-        await fetch("/api/admin/livros", {
-            method: "POST",
-            body: JSON.stringify(newLivro),
-            headers: { "Content-Type": "application/json" },
-        });
-        setNewLivro({ titulo: "", autor: "", descricao: "", imagem: "" });
-        load();
+        setLoading(true);
+        try {
+            const res = await fetch("/api/admin/livros", {
+                method: "POST",
+                body: JSON.stringify(newLivro),
+                headers: { "Content-Type": "application/json" },
+            });
+            if (!res.ok) throw new Error("Falha ao criar livro");
+            setNewLivro({ titulo: "", autor: "", descricao: "", imagem: "" });
+            await load();
+            modal.success({ title: "Sucesso", content: "Livro criado com sucesso!" });
+        } catch (err) {
+            modal.error({ title: "Erro", content: "Não foi possível criar o livro." });
+        } finally {
+            setLoading(false);
+        }
     }
 
     async function deleteLivro(id?: number) {
         if (!id) return;
-        await fetch("/api/admin/livros?id=" + id, { method: "DELETE" });
-        load();
-    }
 
-    function startEditLivro(livro: LivroItem) {
-        setEditingLivro(livro);
-    }
-
-    function cancelEditLivro() {
-        setEditingLivro(null);
+        try {
+            const res = await fetch("/api/admin/livros?id=" + id, { method: "DELETE" });
+            if (!res.ok) throw new Error("Falha ao excluir livro");
+            await load();
+            modal.success({ title: "Sucesso", content: "Livro excluído com sucesso!" });
+        } catch (err) {
+            modal.error({ title: "Erro", content: "Não foi possível excluir o livro." });
+        }
     }
 
     async function updateLivro(e: React.FormEvent) {
         e.preventDefault();
         if (!editingLivro) return;
+        setProcessingEdit(true)
 
-        await fetch("/api/admin/livros", {
-            method: "PUT",
-            body: JSON.stringify(editingLivro),
-            headers: { "Content-Type": "application/json" },
-        });
-        setEditingLivro(null);
-        load();
-    }
+        const payload = { ...editingLivro };
 
-    async function handleEditImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
-        const file = e.target.files?.[0];
-        if (!file || !editingLivro) return;
-
-        setUploadingImage(true);
-        const formData = new FormData();
-        formData.append("file", file);
+        // Se não há nova imagem, não envia o campo 'imagem' com a URL de preview.
+        if (!payload.imageData) {
+            delete payload.imagem;
+        }
 
         try {
-            const response = await fetch("/api/upload", {
-                method: "POST",
-                body: formData,
+            const res = await fetch("/api/admin/livros", {
+                method: "PUT",
+                body: JSON.stringify(payload),
+                headers: { "Content-Type": "application/json" },
             });
-            const data = await response.json();
-            if (data.imageData && data.imagemTipo) {
-                setEditingLivro({
-                    ...editingLivro,
-                    imagem: data.previewUrl, // Para mostrar preview
-                    imageData: data.imageData, // Dados para salvar no banco
-                    imagemTipo: data.imagemTipo
-                });
-            }
-        } catch (error) {
-            console.error("Upload failed:", error);
+            if (!res.ok) throw new Error("Falha ao atualizar livro");
+            setEditingLivro(null);
+            await load();
+            modal.success({ title: "Sucesso", content: "Livro atualizado com sucesso!" });
+        } catch (err) {
+            modal.error({ title: "Erro", content: "Não foi possível atualizar o livro." });
         } finally {
-            setUploadingImage(false);
+            setProcessingEdit(false);
         }
     }
 
     return (
-        <section>
-            <h2 className="text-xl border-l-4 my-8 border-orange-500 pl-2 font-semibold">
-                Livros
-            </h2>
-            <form onSubmit={createLivro} className="space-y-3 my-3">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <input
-                        required
-                        placeholder="Título"
-                        value={newLivro.titulo}
-                        onChange={(e) =>
-                            setNewLivro({ ...newLivro, titulo: e.target.value })
+        <section className="mb-8 w-auto gap-20 bg-black/50 p-4 rounded">
+            {contextHolder}
+            <ConfigProvider
+                theme={{
+                    components: {
+                        Pagination: {
+                            itemBg: "#ffffff20",
+                            itemActiveBg: "#FF6900",
+                            colorPrimary: "#FF6900",
+                            colorText: "white", 
+                            colorPrimaryHover: "#ffa366",
+                            colorTextDisabled: "rgba(255,255,255,0.3)",
+                            itemLinkBg: "transparent",
+                        },
+                        Button: {
+                            defaultBg: "#FF6900",
+                            defaultBorderColor: "#FF6900",
+                            defaultHoverBg: "#e05900",
+                            defaultHoverBorderColor: "#e05900",
+                            defaultHoverColor: "white",
+                            defaultColor: "white",
+                        },
+                        Input: {
+                            colorText: 'white',
+                            colorTextPlaceholder: 'rgba(255, 255, 255, 0.45)',
                         }
-                        className="p-2 text-white rounded border border-white"
-                    />
-                    <input
-                        required
-                        placeholder="Autor"
-                        value={newLivro.autor}
-                        onChange={(e) =>
-                            setNewLivro({ ...newLivro, autor: e.target.value })
-                        }
-                        className="p-2 text-white rounded border border-white"
-                    />
-                </div>
-                <textarea
-                    required
-                    placeholder="Descrição"
-                    value={newLivro.descricao}
-                    onChange={(e) =>
-                        setNewLivro({ ...newLivro, descricao: e.target.value })
-                    }
-                    className="w-full p-2 text-white rounded border border-white"
-                    rows={3}
-                />
-                <div className="flex gap-3 items-center">
-                    <input
-                        type="file"
-                        accept="image/*"
-                        required
-                        onChange={handleImageUpload}
-                        disabled={uploadingImage}
-                        className="p-2 text-white bg-gray-700 rounded"
-                    />
-                    {uploadingImage && (
-                        <span className="text-yellow-400">Enviando...</span>
-                    )}
-                    {newLivro.imagem && (
-                        <img
-                            src={newLivro.imagem}
-                            alt="Preview"
-                            className="w-12 h-12 object-cover rounded"
-                        />
-                    )}
-                </div>
-                <button
-                    type="submit"
-                    className="bg-orange-500 px-3 py-2 rounded hover:bg-orange-600 disabled:opacity-50"
-                    disabled={uploadingImage}
-                >
-                    Criar Livro
-                </button>
-            </form>
+                    },
+                }}
+            >
+                <h2 className="text-xl border-l-4 my-4 border-orange-500 pl-2 font-semibold">
+                    Livros
+                </h2>
+                <form onSubmit={createLivro} className="space-y-3 my-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <input required placeholder="Título" value={newLivro.titulo} onChange={(e) => setNewLivro({ ...newLivro, titulo: e.target.value })} className="p-2 text-white rounded border border-white" />
+                        <input required placeholder="Autor" value={newLivro.autor} onChange={(e) => setNewLivro({ ...newLivro, autor: e.target.value })} className="p-2 text-white rounded border border-white" />
+                    </div>
+                    <textarea required placeholder="Descrição" value={newLivro.descricao} onChange={(e) => setNewLivro({ ...newLivro, descricao: e.target.value })} className="w-full p-2 text-white rounded border border-white" rows={3} />
+                    <div className="flex gap-3 items-center">
+                        <input type="file" accept="image/*" required onChange={(e) => handleImageUpload(e, 'new')} disabled={uploadingImage} className="p-2 text-white bg-gray-700 rounded text-sm" />
+                        {uploadingImage && <span className="text-yellow-400">Enviando...</span>}
+                        {newLivro.imagem && <img src={newLivro.imagem} alt="Preview" className="w-12 h-12 object-cover rounded" />}
+                    </div>
+                    <Button
+                        style={{ padding: 18, fontSize: '16px', borderRadius: '4px', width: '100%' }}
+                        htmlType="submit" loading={loading || uploadingImage}>Criar Livro</Button>
+                </form>
 
-            {livros.length > 0 && (
-                <h3 className="text-lg mt-4 my-2">Livros cadastrados: </h3>
-            )}
-            <ul className="space-y-2">
-                {livros.map((l) => (
-                    <li key={l.id} className="bg-black/30 p-2 rounded">
-                        {editingLivro?.id === l.id && editingLivro ? (
-                            <form onSubmit={updateLivro} className="space-y-3">
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                    <input
-                                        required
-                                        placeholder="Título"
-                                        value={editingLivro.titulo}
-                                        onChange={(e) =>
-                                            setEditingLivro({
-                                                ...editingLivro,
-                                                titulo: e.target.value,
-                                                autor: editingLivro.autor || "",
-                                                descricao: editingLivro.descricao || "",
-                                            })
-                                        }
-                                        className="p-2 text-white rounded border border-white"
-                                    />
-                                    <input
-                                        required
-                                        placeholder="Autor"
-                                        value={editingLivro.autor}
-                                        onChange={(e) =>
-                                            setEditingLivro({
-                                                ...editingLivro,
-                                                autor: e.target.value,
-                                                titulo: editingLivro.titulo || "",
-                                                descricao: editingLivro.descricao || "",
-                                            })
-                                        }
-                                        className="p-2 text-white rounded border border-white"
-                                    />
-                                </div>
-                                <textarea
-                                    required
-                                    placeholder="Descrição"
-                                    value={editingLivro.descricao}
-                                    onChange={(e) =>
-                                        setEditingLivro({
-                                            ...editingLivro,
-                                            descricao: e.target.value,
-                                            titulo: editingLivro.titulo || "",
-                                            autor: editingLivro.autor || "",
-                                        })
-                                    }
-                                    className="w-full p-2 text-white rounded border border-white"
-                                    rows={3}
-                                />
-                                <div className="flex gap-3 items-center">
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={handleEditImageUpload}
-                                        disabled={uploadingImage}
-                                        className="p-2 text-white bg-gray-700 rounded"
-                                    />
-                                    {uploadingImage && (
-                                        <span className="text-yellow-400">Enviando...</span>
-                                    )}
-                                    {editingLivro.imagem && (
-                                        <img
-                                            src={editingLivro.imagem}
-                                            alt="Preview"
-                                            className="w-12 h-12 object-cover rounded"
-                                        />
-                                    )}
-                                </div>
-                                <div className="flex gap-2">
-                                    <button
-                                        type="submit"
-                                        className="bg-green-600 px-3 py-1 rounded hover:bg-green-700"
-                                        disabled={uploadingImage}
-                                    >
-                                        Salvar
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={cancelEditLivro}
-                                        className="bg-gray-600 px-3 py-1 rounded hover:bg-gray-700"
-                                    >
-                                        Cancelar
-                                    </button>
-                                </div>
-                            </form>
-                        ) : (
-                            <div className="flex justify-between items-start">
-                                <div className="flex gap-3 items-start flex-1">
-                                    {l.imagem && (
-                                        <img
-                                            src={l.imagem}
-                                            alt={l.titulo}
-                                            className="w-16 h-20 object-cover rounded"
-                                        />
-                                    )}
-                                    <div className="flex-1">
-                                        <div className="font-semibold">{l.titulo}</div>
-                                        <div className="text-sm text-gray-300">
-                                            por {l.autor}
-                                        </div>
-                                        <div className="text-xs text-gray-400 mt-1">
-                                            {l.descricao}
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={() => startEditLivro(l)}
-                                        className="bg-blue-600 px-2 rounded hover:bg-blue-700"
-                                    >
-                                        Editar
-                                    </button>
-                                    <button
-                                        onClick={() => deleteLivro(l.id)}
-                                        className="bg-red-600 px-2 rounded hover:bg-red-700"
-                                    >
-                                        Excluir
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-                    </li>
-                ))}
-            </ul>
+                {livros.length > 0 && (
+                    <div className="my-4">
+                        <h3 className="text-lg mt-4 my-2">Livros cadastrados:</h3>
+                        <Input.Search
+                            placeholder="Filtrar por título..."
+                            value={filter}
+                            onChange={(e) => setFilter(e.target.value)}
+                            className="[&_.ant-input-search-button_.anticon]:!text-white/60 hover:[&_.ant-input-search-button_.anticon]:!text-white border border-white rounded"
+                            variant="borderless"
+                        />
+                    </div>
+                )}
+
+                <ul className="space-y-2">
+                    {currentLivros.map((l) => (
+                        <LivroCard
+                            key={l.id}
+                            livro={editingLivro?.id === l.id ? editingLivro! : l}
+                            isEditing={editingLivro?.id === l.id}
+                            processingEdit={processingEdit}
+                            uploadingImage={uploadingImage}
+                            onEditStart={setEditingLivro}
+                            onEditCancel={() => setEditingLivro(null)}
+                            onEditChange={(updates) => setEditingLivro(prev => prev ? { ...prev, ...updates } : null)}
+                            onEditImageChange={(e) => handleImageUpload(e, 'edit')}
+                            onEditSubmit={updateLivro}
+                            onDelete={deleteLivro}
+                        />
+                    ))}
+                </ul>
+
+                {filteredLivros.length > pageSize && (
+                    <div className="flex mt-4 mb-4 w-full justify-center">
+                        <Pagination
+                            current={currentPage}
+                            pageSize={pageSize}
+                            total={filteredLivros.length}
+                            onChange={(page) => setCurrentPage(page)}
+                            itemRender={(page, type, originalElement) => {
+                                const el = originalElement as React.ReactElement<any>;
+                                const isActive = el.props?.className?.includes("ant-pagination-item-active");
+                                const classes = `text-white !text-white hover:text-white ${isActive ? "font-bold !text-white" : ""}`;
+                                if (type === "page") return <a className={classes}>{page}</a>;
+                                return <a className={classes}>{el.props?.children}</a>;
+                            }}
+                        />
+                    </div>
+                )}
+            </ConfigProvider>
         </section>
     )
 }
+
 export default AdminLivro;
