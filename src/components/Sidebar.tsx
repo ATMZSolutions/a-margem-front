@@ -11,7 +11,7 @@ const menuItems = [
   { label: "Home", href: "/" },
   { label: "Agenda", href: "/agenda" },
   { label: "Sobre", href: "/sobre" },
-  { label: "Coletivo", href: "/coletivo" },
+  { label: "Integrantes", href: "/coletivo" },
   { label: "Prêmios", href: "/premios" },
   { label: "Espetáculos", href: "/espetaculos" },
   { label: "Projetos", href: "/projetos" },

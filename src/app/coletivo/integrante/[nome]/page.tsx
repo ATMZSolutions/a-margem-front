@@ -29,7 +29,7 @@ export default function IntegrantePage() {
         backgroundImage: "url('/padrao2.webp')",
       }}
     >
-      <BackBtn label="Coletivo" />
+      <BackBtn label="Integrantes" />
 
       <div className="pt-28 flex flex-col md:flex-row md:items-start items-center">
         <IntegranteCard
