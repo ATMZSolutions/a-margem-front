@@ -46,9 +46,9 @@ export default function EspetaculosPage() {
             alt={`Evento de ${item.title}`}
             className="h-[200px] md:min-h-[300px] max-w-[300px] md:max-w-[500px] lg:max-w-[650px] object-cover"
           />
-          <div className="flex flex-row justify-between">
+          <div className="flex flex-row gap-8 justify-between max-w-[300px] md:max-w-[500px] lg:max-w-[650px]">
             <span className="text-black">{item.release}</span>
-            <span className="text-4xl md:text-4xl text-black font-sedgwick uppercase tracking-widest mt-2">
+            <span className="text-4xl text-black font-sedgwick uppercase tracking-widest mt-2 text-right">
               {item.title}
             </span>
           </div>
