@@ -92,7 +92,7 @@ Sonoplastia ao vivo: Torres ZN (batuque no tantã)`
         ]
     },
     {
-        title: 'Muximba',
+        title: "Brechas da Muximba",
         opening: '2024-03-13T12:00:00Z',
         local: 'Teatro Milton Baccarelli (CAC/UFPE)',
         bgColor: '#412551',
@@ -145,7 +145,7 @@ Atualmente – Processo de experimentação e criação de novas possibilidades 
 
 export const espetaculosData = [
     {
-        title: "Muximba",
+        title: "Brechas da Muximba",
         release: "2024",
         img: "/espetaculos/muximba/img3.jpg",
     },
