@@ -12,6 +12,7 @@ export interface AgendaItem {
 
 interface AgendaCardProps {
     agenda: AgendaItem;
+    processingEdit: boolean;
     isEditing: boolean;
     editingAgendaTime: string;
     loading?: boolean;
@@ -25,6 +26,7 @@ interface AgendaCardProps {
 
 const AgendaCard: React.FC<AgendaCardProps> = ({
     agenda,
+    processingEdit,
     isEditing,
     editingAgendaTime,
     loading,
@@ -112,6 +114,7 @@ const AgendaCard: React.FC<AgendaCardProps> = ({
                     <div className="flex flex-col gap-2">
                         <Button
                             onClick={() => onEditStart(agenda)}
+                            loading={processingEdit}
                             style={{
                                 fontSize: "14px",
                                 borderRadius: "4px",

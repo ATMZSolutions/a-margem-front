@@ -1,6 +1,6 @@
 "use client";
-import { Button, ConfigProvider, Modal, Pagination } from "antd";
-import { ReactElement, useEffect, useState } from "react";
+import { Button, ConfigProvider, Input, Modal, Pagination } from "antd";
+import { useEffect, useState } from "react";
 import AgendaCard from "./subcomponents/AgendaCard";
 
 type AgendaItem = {
@@ -23,13 +23,14 @@ const AdminAgenda = () => {
     const [editingAgenda, setEditingAgenda] = useState<AgendaItem | null>(null);
     const [editingAgendaTime, setEditingAgendaTime] = useState<string>("19:00");
     const [loading, setLoading] = useState<boolean>(false);
-    const [filterDate, setFilterDate] = useState<string>(""); // filtro por data
+    const [processingEdit, setProcessingEdit] = useState<boolean>(false);
+    const [filterText, setFilterText] = useState<string>("");
 
     const [modal, contextHolder] = Modal.useModal();
 
     // --- PAGINAÇÃO ---
     const [currentPage, setCurrentPage] = useState<number>(1);
-    const pageSize = 3; // itens por página
+    const pageSize = 3;
 
     async function load() {
         const a = await fetch("/api/admin/agenda").then((r) => r.json());
@@ -40,7 +41,12 @@ const AdminAgenda = () => {
         load();
     }, []);
 
-    // --- CRUD funções (mantidas intactas) ---
+    const clearFilter = () => {
+        setFilterText("");
+        setCurrentPage(1);
+    };
+
+    // --- CRIAR ---
     async function createAgenda(e: React.FormEvent) {
         e.preventDefault();
         setLoading(true);
@@ -61,13 +67,34 @@ const AdminAgenda = () => {
             setAgendaTime("19:00");
             await load();
 
-            modal.success({ title: "Sucesso", content: "Agenda criada com sucesso!", okText: "OK" });
+            modal.success({
+                title: "Sucesso",
+                content: "Agenda criada com sucesso!",
+                okText: "OK",
+            });
         } catch (err) {
             console.error("Erro ao criar agenda:", err);
-            modal.error({ title: "Erro", content: "Não foi possível criar a agenda.", okText: "OK" });
+            modal.error({
+                title: "Erro",
+                content: "Não foi possível criar a agenda.",
+                okText: "OK",
+            });
         } finally {
             setLoading(false);
         }
+    }
+
+    // --- EXCLUIR COM CONFIRMAÇÃO ---
+    function confirmDelete(id?: number) {
+        if (!id) return;
+        modal.confirm({
+            title: "Confirmar exclusão",
+            content: "Deseja realmente excluir esta agenda?",
+            okText: "Excluir",
+            cancelText: "Cancelar",
+            okButtonProps: { danger: true },
+            onOk: () => deleteAgenda(id),
+        });
     }
 
     async function deleteAgenda(id?: number) {
@@ -77,24 +104,29 @@ const AdminAgenda = () => {
             const res = await fetch(`/api/admin/agenda?id=${id}`, { method: "DELETE" });
             if (!res.ok) throw new Error(await res.text());
 
-            // Verifica se vai ficar sem itens na página atual após exclusão
             const willBeEmptyPage = currentAgendas.length === 1 && currentPage > 1;
-
             await load();
 
-            // Ajusta a página se necessário
-            if (willBeEmptyPage) {
-                setCurrentPage(currentPage - 1);
-            }
-            modal.success({ title: "Agenda excluída", content: "A agenda foi excluída com sucesso!", okText: "OK" });
+            if (willBeEmptyPage) setCurrentPage(currentPage - 1);
+
+            modal.success({
+                title: "Agenda excluída",
+                content: "A agenda foi excluída com sucesso!",
+                okText: "OK",
+            });
         } catch (err) {
             console.error("Erro ao excluir agenda:", err);
-            modal.error({ title: "Erro ao excluir", content: "Não foi possível excluir a agenda.", okText: "OK" });
+            modal.error({
+                title: "Erro ao excluir",
+                content: "Não foi possível excluir a agenda.",
+                okText: "OK",
+            });
         } finally {
             setLoading(false);
         }
     }
 
+    // --- EDITAR ---
     function startEditAgenda(agenda: AgendaItem) {
         setEditingAgenda(agenda);
         const date = new Date(agenda.data);
@@ -111,7 +143,7 @@ const AdminAgenda = () => {
     async function updateAgenda(e: React.FormEvent) {
         e.preventDefault();
         if (!editingAgenda) return;
-        setLoading(true);
+        setProcessingEdit(true);
         try {
             const currentDate = new Date(editingAgenda.data);
             const dateOnly = currentDate.toISOString().split("T")[0];
@@ -130,21 +162,36 @@ const AdminAgenda = () => {
             setEditingAgenda(null);
             setEditingAgendaTime("19:00");
             await load();
-            modal.success({ title: "Agenda atualizada", content: "A agenda foi atualizada com sucesso!", okText: "OK" });
+
+            modal.success({
+                title: "Agenda atualizada",
+                content: "A agenda foi atualizada com sucesso!",
+                okText: "OK",
+            });
         } catch (err) {
             console.error("Erro ao atualizar agenda:", err);
-            modal.error({ title: "Erro", content: "Não foi possível atualizar a agenda.", okText: "OK" });
+            modal.error({
+                title: "Erro",
+                content: "Não foi possível atualizar a agenda.",
+                okText: "OK",
+            });
         } finally {
-            setLoading(false);
+            setProcessingEdit(false);
         }
     }
 
-    // --- FILTRO POR DATA ---
-    const filteredAgendas = filterDate
-        ? agendas.filter(a => a.data.startsWith(filterDate))
-        : agendas;
+    // --- FILTRO POR TEXTO ---
+    const filteredAgendas = agendas.filter((a) => {
+        if (!filterText) return true;
+        const query = filterText.toLowerCase();
+        return (
+            a.titulo.toLowerCase().includes(query) ||
+            (a.cidade?.toLowerCase().includes(query) ?? false) ||
+            (a.local?.toLowerCase().includes(query) ?? false)
+        );
+    });
 
-    // --- Paginação ---
+    // --- PAGINAÇÃO ---
     const startIndex = (currentPage - 1) * pageSize;
     const endIndex = startIndex + pageSize;
     const currentAgendas = filteredAgendas.slice(startIndex, endIndex);
@@ -152,7 +199,9 @@ const AdminAgenda = () => {
     return (
         <section className="mb-8 w-auto gap-20 bg-black/50 p-4 rounded">
             {contextHolder}
-            <h2 className="text-xl border-l-4 border-orange-500 pl-2 font-semibold">Agendas</h2>
+            <h2 className="text-xl border-l-4 border-orange-500 pl-2 font-semibold">
+                Agendas
+            </h2>
             <ConfigProvider
                 theme={{
                     components: {
@@ -174,32 +223,95 @@ const AdminAgenda = () => {
                             defaultColor: "white",
                         },
                         Input: {
-                            colorText: 'white',
-                            colorTextPlaceholder: 'rgba(255, 255, 255, 0.45)',
-                        }
+                            colorText: "white",
+                            colorTextPlaceholder: "rgba(255, 255, 255, 0.45)",
+                        },
                     },
                 }}
             >
-                {/* Formulário de criação */}
-                <form onSubmit={createAgenda} className="flex flex-col gap-2 my-3 text-white">
-                    <input required placeholder="Título" value={newAgenda.titulo} onChange={(e) => setNewAgenda({ ...newAgenda, titulo: e.target.value })} className="p-2 border border-white rounded" />
+                {/* FORMULÁRIO DE CRIAÇÃO */}
+                <form
+                    onSubmit={createAgenda}
+                    className="flex flex-col gap-2 my-3 text-white"
+                >
+                    <input
+                        required
+                        placeholder="Título"
+                        value={newAgenda.titulo}
+                        onChange={(e) =>
+                            setNewAgenda({ ...newAgenda, titulo: e.target.value })
+                        }
+                        className="p-2 border border-white rounded"
+                    />
                     <div className="flex gap-2 w-full">
-                        <input required type="date" value={newAgenda.data} onChange={(e) => setNewAgenda({ ...newAgenda, data: e.target.value })} className="p-2 border border-white rounded flex-1 min-w-0" />
-                        <input type="time" value={agendaTime} onChange={(e) => setAgendaTime(e.target.value)} className="p-2 border border-white rounded flex-1 min-w-0" />
+                        <input
+                            required
+                            type="date"
+                            value={newAgenda.data}
+                            onChange={(e) =>
+                                setNewAgenda({ ...newAgenda, data: e.target.value })
+                            }
+                            className="p-2 border border-white rounded flex-1 min-w-0"
+                        />
+                        <input
+                            type="time"
+                            value={agendaTime}
+                            onChange={(e) => setAgendaTime(e.target.value)}
+                            className="p-2 border border-white rounded flex-1 min-w-0"
+                        />
                     </div>
-                    <input placeholder="Cidade" value={newAgenda.cidade} onChange={(e) => setNewAgenda({ ...newAgenda, cidade: e.target.value })} className="p-2 border border-white rounded" />
-                    <input placeholder="Local" value={newAgenda.local} onChange={(e) => setNewAgenda({ ...newAgenda, local: e.target.value })} className="p-2 border border-white rounded" />
-                    <Button htmlType="submit" loading={loading} style={{ padding: 18, fontSize: '16px', borderRadius: '4px' }}>Adicionar Agenda</Button>
+                    <input
+                        placeholder="Cidade"
+                        value={newAgenda.cidade}
+                        onChange={(e) =>
+                            setNewAgenda({ ...newAgenda, cidade: e.target.value })
+                        }
+                        className="p-2 border border-white rounded"
+                    />
+                    <input
+                        placeholder="Local"
+                        value={newAgenda.local}
+                        onChange={(e) =>
+                            setNewAgenda({ ...newAgenda, local: e.target.value })
+                        }
+                        className="p-2 border border-white rounded"
+                    />
+                    <Button
+                        htmlType="submit"
+                        loading={loading}
+                        style={{ padding: 18, fontSize: "16px", borderRadius: "4px" }}
+                    >
+                        Adicionar Agenda
+                    </Button>
                 </form>
 
-                {/* Filtro por data */}
-                <div className="flex flex-col w-2/3 md:w-full md:flex-row gap-2 mt-4 justify-between md:items-center">
-                    <label className="text-white">Filtrar por data:</label>
-                    <input type="date" value={filterDate} onChange={(e) => { setFilterDate(e.target.value); setCurrentPage(1); }} className="p-2 border border-white rounded" />
-                    <Button onClick={() => { setFilterDate(""); setCurrentPage(1); }}>Limpar</Button>
-                </div>
+                {/* Filtro e lista de projetos */}
+                {agendas.length > 0 && (
+                    <div className="my-4">
+                        <div className="flex items-center justify-between mb-2">
+                            <h3 className="text-lg font-semibold">Agendas cadastradas:</h3>
+                            {filterText && (
+                                <Button
+                                    size="small"
+                                    onClick={clearFilter}
+                                    className="text-xs"
+                                >
+                                    Limpar filtro
+                                </Button>
+                            )}
+                        </div>
+                        <Input.Search
+                            placeholder="Digite parte do título, cidade ou local..."
+                            value={filterText}
+                            onChange={(e) => setFilterText(e.target.value)}
+                            className="[&_.ant-input-search-button_.anticon]:!text-white/60 hover:[&_.ant-input-search-button_.anticon]:!text-white border border-white rounded"
+                            variant="borderless"
+                            allowClear
+                        />
+                    </div>
+                )}
 
-                {currentAgendas.length > 0 && <h3 className="text-lg mt-4 my-2">Agendas cadastradas:</h3>}
+                {/* LISTAGEM */}
                 <ul className="space-y-2">
                     {currentAgendas.map((a) => (
                         <AgendaCard
@@ -208,12 +320,15 @@ const AdminAgenda = () => {
                             isEditing={editingAgenda?.id === a.id}
                             editingAgendaTime={editingAgendaTime}
                             loading={loading}
+                            processingEdit={processingEdit}
                             onEditStart={startEditAgenda}
                             onEditCancel={cancelEditAgenda}
                             onEditSubmit={updateAgenda}
-                            onEditChange={(updates) => setEditingAgenda((prev) => (prev ? { ...prev, ...updates } : prev))}
+                            onEditChange={(updates) =>
+                                setEditingAgenda((prev) => (prev ? { ...prev, ...updates } : prev))
+                            }
                             onTimeChange={setEditingAgendaTime}
-                            onDelete={deleteAgenda}
+                            onDelete={confirmDelete}
                         />
                     ))}
                 </ul>
@@ -224,18 +339,17 @@ const AdminAgenda = () => {
                         <Pagination
                             current={currentPage}
                             pageSize={pageSize}
-                            total={agendas.length}
+                            total={filteredAgendas.length}
                             responsive
-                            // Remove o size="small" e fazemos manualmente
                             onChange={(page) => setCurrentPage(page)}
                             className="manual-small-pagination"
                             itemRender={(page, type, originalElement) => {
                                 const el = originalElement as React.ReactElement<any>;
-                                const isActive = el.props?.className?.includes("ant-pagination-item-active");
-
-                                const classes = `text-white !text-white hover:text-white ${isActive ? 'font-bold !text-white' : ''}`;
-
-                                if (type === 'page') return <a className={classes}>{page}</a>;
+                                const isActive =
+                                    el.props?.className?.includes("ant-pagination-item-active");
+                                const classes = `text-white hover:text-white ${isActive ? "font-bold" : ""
+                                    }`;
+                                if (type === "page") return <a className={classes}>{page}</a>;
                                 return <a className={classes}>{el.props?.children}</a>;
                             }}
                         />
@@ -244,6 +358,6 @@ const AdminAgenda = () => {
             </ConfigProvider>
         </section>
     );
-}
+};
 
 export default AdminAgenda;
