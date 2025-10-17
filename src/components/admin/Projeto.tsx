@@ -102,7 +102,16 @@ const AdminProjeto = () => {
                 try {
                     const res = await fetch("/api/admin/projeto?id=" + id, { method: "DELETE" });
                     if (!res.ok) throw new Error("Falha ao excluir projeto");
+                    
+                    // Verifica se vai ficar sem itens na página atual após exclusão
+                    const willBeEmptyPage = currentProjetos.length === 1 && currentPage > 1;
+
                     await load();
+
+                    // Ajusta a página se necessário
+                    if (willBeEmptyPage) {
+                        setCurrentPage(currentPage - 1);
+                    }
                     modal.success({ title: "Sucesso", content: "Projeto excluído com sucesso!" });
                 } catch (err) {
                     modal.error({ title: "Erro", content: "Não foi possível excluir o projeto." });
