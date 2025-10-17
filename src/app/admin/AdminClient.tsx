@@ -13,35 +13,21 @@ export interface BufferData {
 }
 
 export default function AdminClient() {
-  const [atBottom, setAtBottom] = useState(false);
 
   async function logout() {
     await fetch("/api/admin/auth", { method: "DELETE" });
     window.location.href = "/admin/login";
   }
 
-  useEffect(() => {
-    const onScroll = () => {
-      const scrollTop = window.scrollY;
-      const windowHeight = window.innerHeight;
-      const fullHeight = document.body.scrollHeight;
-      setAtBottom(scrollTop + windowHeight >= fullHeight - 10);
-    };
-    window.addEventListener("scroll", onScroll);
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
-
   return (
     <main
       className="
         min-h-screen 
-        w-screen 
         overflow-x-hidden 
         flex flex-col 
         items-center 
-        py-10 px-1 
+        py-10 
+        px-2
         bg-[#2F4158] 
         text-white 
       "
@@ -50,13 +36,13 @@ export default function AdminClient() {
       }}
     >
       {/* HEADER */}
-      <div className="flex flex-row mt-8 sm:flex-row justify-between items-center w-full max-w-md mb-8 bg-black/40 p-4 rounded-lg gap-3">
-        <h1 className="text-xl flex flex-row font-bold text-center sm:text-left">
+      <div className="flex flex-row mt-8 sm:flex-row justify-between items-center w-full max-w-md mb-8 bg-black/70 p-4 rounded-lg gap-3">
+        <h1 className="text-2xl font-sedgwick font-normal flex flex-row text-center sm:text-left">
           Painel do Admin
         </h1>
         <button
           onClick={logout}
-          className="bg-gray-700 hover:bg-gray-800 px-4 py-2 rounded transition"
+          className="bg-gray-700 cursor-pointer hover:bg-gray-800 px-4 py-2 rounded transition"
         >
           Sair
         </button>
@@ -70,6 +56,7 @@ export default function AdminClient() {
           gap-4 
           w-full 
           max-w-md
+          px-2
         "
       >
         <AdminAgenda />
@@ -78,16 +65,6 @@ export default function AdminClient() {
         <AdminProjeto />
         <AdminSobre />
       </div>
-
-      {/* BOTÃO TOPO */}
-      {atBottom && (
-        <button
-          onClick={scrollToTop}
-          className="fixed bottom-5 right-5 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-full shadow-lg transition"
-        >
-          ↑ Topo
-        </button>
-      )}
     </main>
   );
 }
