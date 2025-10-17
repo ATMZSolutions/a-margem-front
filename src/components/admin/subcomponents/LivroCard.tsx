@@ -1,5 +1,6 @@
 import { Button, Popconfirm } from "antd";
 import Image from "next/image";
+import type { RefObject } from "react";
 
 // Reutilize o tipo BufferData se ele estiver em um arquivo compartilhado
 type BufferData = {
@@ -19,6 +20,7 @@ type LivroItem = {
 
 type LivroCardProps = {
     livro: LivroItem;
+    editFileRef: RefObject<HTMLInputElement | null>
     isEditing: boolean;
     uploadingImage: boolean;
     processingEdit: boolean;
@@ -32,6 +34,7 @@ type LivroCardProps = {
 
 const LivroCard = ({
     livro,
+    editFileRef,
     isEditing,
     uploadingImage,
     onEditStart,
@@ -73,6 +76,7 @@ const LivroCard = ({
                     />
                     <div className="flex gap-3 items-center">
                         <input
+                            ref={editFileRef}
                             type="file"
                             accept="image/*"
                             onChange={onEditImageChange}
@@ -127,19 +131,12 @@ const LivroCard = ({
                             borderColor: "blue",
                         }}
                         onClick={() => onEditStart(livro)}>Editar</Button>
-                    <Popconfirm
-                        title="Tem certeza que deseja excluir este livro?"
-                        okText="Sim"
-                        cancelText="Não"
-                        onConfirm={() => onDelete(livro.id)}
-                        okButtonProps={{ danger: true }}
+                    <button
+                        className="bg-red-600 px-2 cursor-pointer rounded hover:bg-red-700"
+                        onClick={() => onDelete(livro.id)}
                     >
-                        <button
-                            className="bg-red-600 px-2 cursor-pointer rounded hover:bg-red-700"
-                        >
-                            Excluir
-                        </button>
-                    </Popconfirm>
+                        Excluir
+                    </button>
                 </div>
             </div>
         </li>
