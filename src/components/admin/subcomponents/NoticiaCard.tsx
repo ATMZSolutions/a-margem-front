@@ -45,6 +45,8 @@ const NoticiaCard: React.FC<NoticiaCardProps> = ({
           />
           <input
             placeholder="Link"
+            required
+            type='url'
             value={noticia.link || ""}
             onChange={(e) => onEditChange({ link: e.target.value })}
             className="w-full p-2 border border-white rounded text-white bg-transparent"

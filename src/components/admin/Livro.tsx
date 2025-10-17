@@ -277,7 +277,7 @@ const AdminLivro = () => {
                             required
                             onChange={(e) => handleImageUpload(e, 'new')}
                             disabled={uploadingImage}
-                            className="p-2 text-white bg-gray-700 rounded text-sm"
+                            className="w-full p-2 border border-white rounded text-white bg-transparent file:mr-4 file:py-1 file:px-4 file:rounded file:border-0 file:text-sm file:bg-orange-500 file:text-white hover:file:bg-orange-600"
                         />
                         {uploadingImage && <span className="text-yellow-400">Enviando...</span>}
                         {newLivro.imagem && (
@@ -289,7 +289,7 @@ const AdminLivro = () => {
                         htmlType="submit"
                         loading={loading || uploadingImage}
                     >
-                        Criar Livro
+                        Adicionar Livro
                     </Button>
                 </form>
 

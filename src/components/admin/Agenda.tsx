@@ -156,17 +156,26 @@ const AdminAgenda = () => {
             <ConfigProvider
                 theme={{
                     components: {
-                        Button: {
-                            defaultBg: '#FF6900',
-                            defaultBorderColor: '#FF6900',
-                            defaultHoverBg: '#e05900',
-                            defaultHoverBorderColor: '#e05900',
-                            defaultHoverColor: 'white',
-                            defaultColor: 'white'
-                        },
                         Pagination: {
-                            itemBg: '#ffffff40',
-                            itemActiveBg: '#ffffff10'
+                            itemBg: "#ffffff20",
+                            itemActiveBg: "#FF6900",
+                            colorPrimary: "#ffffffff",
+                            colorText: "white",
+                            colorPrimaryHover: "#ffa366",
+                            colorTextDisabled: "rgba(255,255,255,0.3)",
+                            itemLinkBg: "transparent",
+                        },
+                        Button: {
+                            defaultBg: "#FF6900",
+                            defaultBorderColor: "#FF6900",
+                            defaultHoverBg: "#e05900",
+                            defaultHoverBorderColor: "#e05900",
+                            defaultHoverColor: "white",
+                            defaultColor: "white",
+                        },
+                        Input: {
+                            colorText: 'white',
+                            colorTextPlaceholder: 'rgba(255, 255, 255, 0.45)',
                         }
                     },
                 }}
@@ -180,7 +189,7 @@ const AdminAgenda = () => {
                     </div>
                     <input placeholder="Cidade" value={newAgenda.cidade} onChange={(e) => setNewAgenda({ ...newAgenda, cidade: e.target.value })} className="p-2 border border-white rounded" />
                     <input placeholder="Local" value={newAgenda.local} onChange={(e) => setNewAgenda({ ...newAgenda, local: e.target.value })} className="p-2 border border-white rounded" />
-                    <Button htmlType="submit" loading={loading} style={{ padding: 18, fontSize: '16px', borderRadius: '4px' }}>Adicionar</Button>
+                    <Button htmlType="submit" loading={loading} style={{ padding: 18, fontSize: '16px', borderRadius: '4px' }}>Adicionar Agenda</Button>
                 </form>
 
                 {/* Filtro por data */}

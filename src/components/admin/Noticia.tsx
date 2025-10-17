@@ -159,8 +159,13 @@ const AdminNoticia = () => {
                 theme={{
                     components: {
                         Pagination: {
-                            itemBg: "#ffffff40",
-                            itemActiveBg: "#ffffff10",
+                            itemBg: "#ffffff20",
+                            itemActiveBg: "#FF6900",
+                            colorPrimary: "#ffffffff",
+                            colorText: "white",
+                            colorPrimaryHover: "#ffa366",
+                            colorTextDisabled: "rgba(255,255,255,0.3)",
+                            itemLinkBg: "transparent",
                         },
                         Button: {
                             defaultBg: "#FF6900",
@@ -173,7 +178,6 @@ const AdminNoticia = () => {
                         Input: {
                             colorText: 'white',
                             colorTextPlaceholder: 'rgba(255, 255, 255, 0.45)',
-                            colorIcon: 'rgba(255, 255, 255, 1)'
                         }
                     },
                 }}
@@ -205,13 +209,15 @@ const AdminNoticia = () => {
                     />
                     <input
                         placeholder="Link"
+                        type="url"
+                        required
                         value={newNoticia.link || ""}
                         onChange={(e) =>
                             setNewNoticia({ ...newNoticia, link: e.target.value })
                         }
                         className="p-2 border border-white rounded"
                     />
-                    <Button htmlType="submit" loading={loading} style={{ padding: 18, fontSize: '16px', borderRadius: '4px' }}>Adicionar</Button>
+                    <Button htmlType="submit" loading={loading} style={{ padding: 18, fontSize: '16px', borderRadius: '4px' }}>Adicionar Notícia</Button>
                 </form>
 
                 {noticias.length > 0 && (
