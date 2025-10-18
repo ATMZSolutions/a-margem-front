@@ -32,7 +32,7 @@ export default function AdminClient() {
         text-white 
       "
       style={{
-        backgroundImage: "url('padrao1.webp')",
+        backgroundImage: "url('/padrao1.webp')",
       }}
     >
       {/* HEADER */}
