@@ -155,6 +155,9 @@ export default function SobrePage() {
       variants={containerVariants}
       initial="hidden"
       animate="show"
+      style={{
+        backgroundImage: "url('/padrao2.webp')",
+      }}
     >
       <BackBtn label="Sobre Nós" />
       <div className="max-w-3xl mt-48 mx-2">
