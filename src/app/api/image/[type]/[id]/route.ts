@@ -1,54 +1,52 @@
-import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { NextRequest, NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
 
 export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ type: string; id: string }> }
+  _req: NextRequest,
+  context: { params: { type: string; id: string } }
 ) {
   try {
-    const { type, id } = await params;
+    const { type, id } = await context.params; // ✅ mantido o await como pediu
 
-    let imageData;
-    let imagemTipo;
+    let record: { imagem: Uint8Array | null; imagemTipo: string | null } | null = null;
 
-    switch (type) {
-      case 'livro':
-        const livro = await prisma.book.findUnique({
-          where: { id: parseInt(id) },
-          select: { imagem: true, imagemTipo: true }
-        });
-        imageData = livro?.imagem;
-        imagemTipo = livro?.imagemTipo;
-        break;
-
-      case 'sobre':
-        const sobre = await prisma.sobre.findUnique({
-          where: { ano: parseInt(id) },
-          select: { imagem: true, imagemTipo: true }
-        });
-        imageData = sobre?.imagem;
-        imagemTipo = sobre?.imagemTipo;
-        break;
-
-      default:
-        return NextResponse.json({ error: 'Invalid image type' }, { status: 400 });
+    if (type === "livro") {
+      record = await prisma.book.findUnique({
+        where: { id: parseInt(id, 10) },
+        select: { imagem: true, imagemTipo: true },
+      });
+    } else if (type === "sobre") {
+      record = await prisma.sobre.findUnique({
+        where: { ano: parseInt(id, 10) },
+        select: { imagem: true, imagemTipo: true },
+      });
+    } else {
+      return NextResponse.json({ error: "Tipo inválido" }, { status: 400 });
     }
 
-    if (!imageData || !imagemTipo) {
-      return NextResponse.json({ error: 'Image not found' }, { status: 404 });
+    if (!record?.imagem) {
+      return NextResponse.json({ error: "Imagem não encontrada" }, { status: 404 });
     }
 
-    // Converter para Uint8Array que é aceito pelo NextResponse
-    const uint8Array = new Uint8Array(imageData);
-
-    return new NextResponse(uint8Array, {
-      headers: {
-        'Content-Type': imagemTipo,
-        'Cache-Control': 'public, max-age=86400', // Cache por 24 horas
+    // ✅ cria stream a partir do Uint8Array
+    const stream = new ReadableStream({
+      start(controller) {
+        controller.enqueue(record!.imagem);
+        controller.close();
       },
     });
-  } catch (error) {
-    console.error('Error serving image:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+
+    // ✅ resposta otimizada e sem cache
+    return new NextResponse(stream, {
+      headers: {
+        "Content-Type": record.imagemTipo || "image/jpeg",
+        "Cache-Control": "public, max-age=120, must-revalidate",
+        Pragma: "no-cache",
+        Expires: "0",
+      },
+    });
+  } catch (err) {
+    console.error("Erro ao servir imagem:", err);
+    return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 });
   }
 }
