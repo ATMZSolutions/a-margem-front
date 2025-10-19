@@ -3,10 +3,10 @@ import prisma from "@/lib/prisma";
 
 export async function GET(
   _req: NextRequest,
-  context: { params: { type: string; id: string } }
+  context: { params: Promise<{ type: string; id: string }> }
 ) {
   try {
-    const { type, id } = await context.params; // ✅ mantido o await como pediu
+    const { type, id } = await context.params;
 
     let record: { imagem: Uint8Array | null; imagemTipo: string | null } | null = null;
 
@@ -28,7 +28,6 @@ export async function GET(
       return NextResponse.json({ error: "Imagem não encontrada" }, { status: 404 });
     }
 
-    // ✅ cria stream a partir do Uint8Array
     const stream = new ReadableStream({
       start(controller) {
         controller.enqueue(record!.imagem);
@@ -36,7 +35,6 @@ export async function GET(
       },
     });
 
-    // ✅ resposta otimizada e sem cache
     return new NextResponse(stream, {
       headers: {
         "Content-Type": record.imagemTipo || "image/jpeg",
