@@ -2,9 +2,10 @@
 
 import BackBtn from "@/components/BackBtn";
 import React from "react";
-import { Mail, Instagram, Phone, AtSign } from "lucide-react";
+import { Mail, Instagram } from "lucide-react";
 import { TikTokOutlined, WhatsAppOutlined } from "@ant-design/icons";
 import { motion, Variants } from "framer-motion";
+import Image from "next/image";
 
 const contactVariants: Variants = {
   hidden: { opacity: 0, x: 50 },
@@ -53,9 +54,11 @@ export default function ContatoPage() {
       <div className="relative z-10 w-full max-w-md flex flex-col items-center mt-16 sm:mt-20 text-center">
         {/* Logo */}
         <div className="w-36 h-36 sm:w-40 sm:h-40 rounded-full border-4 border-white overflow-hidden mb-8 shadow-lg">
-          <img
+          <Image
             src="/amargem-logo-insta.webp"
             alt="Logo"
+            width={160}
+            height={160}
             className="w-full h-full object-cover"
           />
         </div>

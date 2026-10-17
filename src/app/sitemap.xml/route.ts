@@ -1,40 +1,33 @@
-import { MetadataRoute } from "next";
+import { espetaculosData } from "@/data/espetaculos";
+import { integrantes } from "@/data/integrantes";
+import { premios } from "@/data/premios";
+import { slugify } from "@/utils/helpers";
 
 const BASE_URL = "https://www.amargem.com.br";
 
-const firstDayOfMonth = () => new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+const staticUrls = [
+  "/", "/agenda", "/sobre", "/coletivo", "/premios", "/espetaculos",
+  "/projetos", "/noticias", "/indicacoes", "/contato",
+];
 
-export const GET = (): Response => {
-  const urls: MetadataRoute.Sitemap = [
-    { url: `${BASE_URL}/`, lastModified: firstDayOfMonth(), changeFrequency: "monthly", priority: 1.0 },
-    { url: `${BASE_URL}/agenda`, lastModified: firstDayOfMonth(), changeFrequency: "weekly", priority: 0.9 },
-    { url: `${BASE_URL}/sobre`, lastModified: firstDayOfMonth(), changeFrequency: "yearly", priority: 0.8 },
-    { url: `${BASE_URL}/coletivo`, lastModified: firstDayOfMonth(), changeFrequency: "yearly", priority: 0.8 },
-    { url: `${BASE_URL}/premios`, lastModified: firstDayOfMonth(), changeFrequency: "yearly", priority: 0.7 },
-    { url: `${BASE_URL}/espetaculos`, lastModified: firstDayOfMonth(), changeFrequency: "weekly", priority: 0.8 },
-    { url: `${BASE_URL}/projetos`, lastModified: firstDayOfMonth(), changeFrequency: "monthly", priority: 0.7 },
-    { url: `${BASE_URL}/noticias`, lastModified: firstDayOfMonth(), changeFrequency: "daily", priority: 0.9 },
-    { url: `${BASE_URL}/indicacoes`, lastModified: firstDayOfMonth(), changeFrequency: "monthly", priority: 0.7 },
-    { url: `${BASE_URL}/contato`, lastModified: firstDayOfMonth(), changeFrequency: "yearly", priority: 0.6 },
+function xmlEscape(value: string) {
+  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+export function GET(): Response {
+  const urls = [
+    ...staticUrls,
+    ...espetaculosData.map((show) => `/espetaculos/${slugify(show.title)}`),
+    ...premios.map((premio) => `/premios/${slugify(premio.title)}/${premio.year}`),
+    ...integrantes.map((person) => `/coletivo/integrante/${person.id}`),
   ];
-
-  // Converte para XML
+  const uniqueUrls = [...new Set(urls)];
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls
-  .map(({ url, lastModified, priority, changeFrequency }) => {
-    const isoDate = lastModified instanceof Date ? lastModified.toISOString() : new Date().toISOString();
-    return `  <url>
-    <loc>${url}</loc>
-    <lastmod>${isoDate}</lastmod>
-    <changefreq>${changeFrequency}</changefreq>
-    <priority>${priority}</priority>
-  </url>`;
-  })
-  .join("\n")}
+${uniqueUrls.map((path) => `  <url><loc>${xmlEscape(`${BASE_URL}${path}`)}</loc></url>`).join("\n")}
 </urlset>`;
 
   return new Response(xml, {
-    headers: { "Content-Type": "application/xml" },
+    headers: { "Content-Type": "application/xml; charset=utf-8", "Cache-Control": "public, max-age=3600" },
   });
-};
+}

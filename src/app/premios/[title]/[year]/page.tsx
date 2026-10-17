@@ -1,13 +1,28 @@
 import React from "react"
 import { premios } from "@/data/premios";
+import type { Metadata } from "next";
 import { slugify } from "@/utils/helpers";
 import Premio from "@/components/Premio";
 import BackBtn from "@/components/BackBtn";
 import { notFound } from "next/navigation";
+import Image from "next/image";
 import Paragraph from "antd/es/typography/Paragraph";
 
 interface PremioDetalhesProps {
     params: Promise<{ title: string, year: string; }>;
+}
+
+export async function generateMetadata({ params }: PremioDetalhesProps): Promise<Metadata> {
+    const { title, year } = await params;
+    const premio = premios.find((item) => slugify(item.title) === title && item.year === year);
+    if (!premio) return { title: "Prêmio não encontrado" };
+    const description = premio.description.slice(0, 155);
+    return {
+        title: `${premio.title} (${premio.year})`,
+        description,
+        alternates: { canonical: `/premios/${slugify(premio.title)}/${premio.year}` },
+        openGraph: { title: `${premio.title} | Coletivo À Margem`, description, url: `https://www.amargem.com.br/premios/${slugify(premio.title)}/${premio.year}` },
+    };
 }
 
 const PremioDetalhes = async ({ params }: PremioDetalhesProps) => {
@@ -34,11 +49,11 @@ const PremioDetalhes = async ({ params }: PremioDetalhesProps) => {
                     year={premio.year}
                     isSaibaMais={true}
                 />
-                {premio.img &&
-                    <div
-                        className="w-full h-64 md:h-72 bg-cover bg-center rounded"
-                        style={{ backgroundImage: `url(${premio.img})` }}
-                    />}
+                {premio.img && (
+                    <div className="relative w-full h-64 md:h-72 rounded overflow-hidden">
+                        <Image src={premio.img} alt={`Registro do prêmio ${premio.title}`} fill sizes="(max-width: 768px) 100vw, 640px" className="object-cover" />
+                    </div>
+                )}
                 <Paragraph style={{ whiteSpace: 'pre-wrap', color: 'white', textAlign: 'justify' }}>
                     {premio.description}
                 </Paragraph>

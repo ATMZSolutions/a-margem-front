@@ -1,6 +1,7 @@
 "use client"; 
 
 import BackBtn from "@/components/BackBtn";
+import Image from "next/image";
 import Link from "next/link";
 import { slugify } from "@/utils/helpers";
 import { espetaculosData } from "@/data/espetaculos";
@@ -26,7 +27,7 @@ const itemVariants: Variants = {
 };
 
 export default function EspetaculosPage() {
-  const sortedShows = espetaculosData
+  const sortedShows = [...espetaculosData]
     .sort((a, b) => Number(a.release) - Number(b.release))
     .reverse();
 
@@ -41,10 +42,13 @@ export default function EspetaculosPage() {
           style={{ color: "white" }}
           className="flex flex-col cursor-pointer mx-2"
         >
-          <img
+          <Image
             src={item.img}
             alt={`Evento de ${item.title}`}
-            className="h-[200px] md:min-h-[300px] max-w-[300px] md:max-w-[500px] lg:max-w-[650px] object-cover"
+            width={1300}
+            height={850}
+            sizes="(max-width: 640px) 300px, (max-width: 1024px) 500px, 650px"
+            className="h-[200px] md:h-[300px] w-full max-w-[300px] md:max-w-[500px] lg:max-w-[650px] object-cover"
           />
           <div className="flex flex-row gap-8 justify-between max-w-[300px] md:max-w-[500px] lg:max-w-[650px]">
             <span className="text-black">{item.release}</span>

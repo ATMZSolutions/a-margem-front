@@ -1,4 +1,5 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Title from 'antd/es/typography/Title';
 import Paragraph from 'antd/es/typography/Paragraph';
@@ -10,6 +11,19 @@ import { shows } from '@/data/espetaculos';
 type EspetaculosDetalhesProps = {
     params: Promise<{ title: string }>;
 };
+
+export async function generateMetadata({ params }: EspetaculosDetalhesProps): Promise<Metadata> {
+    const { title } = await params;
+    const show = shows.find((item) => slugify(item.title) === title);
+    if (!show) return { title: 'Espetáculo não encontrado' };
+    const description = show.sections[0]?.description.slice(0, 155) || `Conheça ${show.title}, espetáculo do Coletivo À Margem.`;
+    return {
+        title: show.title,
+        description,
+        alternates: { canonical: `/espetaculos/${slugify(show.title)}` },
+        openGraph: { title: `${show.title} | Coletivo À Margem`, description, url: `https://www.amargem.com.br/espetaculos/${slugify(show.title)}` },
+    };
+}
 
 
 export default async function EspetaculosDetalhes({ params }: EspetaculosDetalhesProps) {
