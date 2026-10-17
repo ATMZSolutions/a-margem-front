@@ -5,7 +5,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { motion, Variants } from "framer-motion";
 import Image from "next/image";
-import { EnvironmentOutlined } from "@ant-design/icons";
+import { MapPin } from "lucide-react";
 
 interface AgendaItem {
   id: number;
@@ -133,7 +133,7 @@ const AgendaHome = () => {
                   whileInView="visible"
                   viewport={{ once: true }}
                 >
-                  <EnvironmentOutlined className="mr-2" />
+                  <MapPin aria-hidden="true" className="mr-2 inline-block" size={16} />
                   {capitalize(city)}
                 </motion.h3>
 
@@ -159,9 +159,9 @@ const AgendaHome = () => {
                               {format(eventDate, "MMM", { locale: ptBR })}
                             </span>
                           </div>
-                          <span className="text-[12px] text-white/80 leading-none">
+                          {/* <span className="text-[12px] text-white/80 leading-none">
                             {format(eventDate, "HH:mm")}
-                          </span>
+                          </span> */}
                         </div>
 
                         <div className="flex-1 flex flex-col justify-center text-left leading-none ml-2 gap-1">

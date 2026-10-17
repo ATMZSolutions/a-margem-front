@@ -7,12 +7,12 @@ import PhotoCarousel from "../PhotoCarousel";
 import Image from "next/image";
 
 const randomImages = [
-  "/home/img9.jpg",
-  "/home/img5.jpg",
-  "/home/img6.jpg",
-  "/home/img7.jpg",
-  "/home/img8.jpg",
-  "/home/img4.jpg",
+  "/home/img9.webp",
+  "/home/img5.webp",
+  "/home/img6.webp",
+  "/home/img7.webp",
+  "/home/img8.webp",
+  "/home/img4.webp",
 ];
 
 const Sobre = () => {
@@ -66,7 +66,7 @@ const Sobre = () => {
         </motion.div>
 
         {/* Carousel */}
-        <div className="w-full md:w-1/2 flex justify-center">
+        <div className="w-full md:w-1/2 h-[clamp(220px,60vw,350px)] flex justify-center">
           <PhotoCarousel
             topButton={{
               show: true,
