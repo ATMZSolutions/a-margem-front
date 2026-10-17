@@ -1,54 +1,36 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
-import { validateSession } from './src/lib/adminSession';
-
-const AUTH_USER = process.env.ADMIN_USER || 'admin';
-const AUTH_PASS = process.env.ADMIN_PASS || 'ChangeMe123!';
-
-function unauthorized() {
-  return new NextResponse('Unauthorized', {
-    status: 401,
-    headers: { ['WWW-Authenticate']: 'Basic realm="Admin Area"' },
-  });
-}
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { validateSession } from "./src/lib/adminSession";
+import { getAdminConfig } from "./src/lib/adminConfig";
 
 export async function middleware(req: NextRequest) {
-  const pathname = req.nextUrl?.pathname || new URL(req.url).pathname;
-
-  if (pathname === '/admin' || pathname.startsWith('/admin/') || pathname.startsWith('/api/admin')) {
-    // Allow the public login page and auth endpoint through
-    if (pathname === '/admin/login' || pathname.startsWith('/admin/login/')) return NextResponse.next();
-    if (pathname === '/api/admin/auth' || pathname.startsWith('/api/admin/auth/')) return NextResponse.next();
-
-    // For UI access (/admin) require an internal session cookie `a_token`.
-    const cookie = req.cookies.get('a_token')?.value;
-    if (cookie && await validateSession(cookie)) return NextResponse.next();
-
-    // If request is an API call, allow Basic Auth as a secondary route
-    if (pathname.startsWith('/api/admin')) {
-      const auth = req.headers.get('authorization');
-      if (auth && auth.startsWith('Basic ')) {
-        try {
-          const payload = auth.split(' ')[1];
-          const decoded = typeof atob === 'function' ? atob(payload) : Buffer.from(payload, 'base64').toString();
-          const [user, pass] = decoded.split(':');
-          if (user === AUTH_USER && pass === AUTH_PASS) return NextResponse.next();
-        } catch (e) {
-          // fall through
-        }
-      }
-      return unauthorized();
-    }
-
-    // Redirect UI to login if not authorized
-    const url = req.nextUrl.clone();
-    url.pathname = '/admin/login';
-    return NextResponse.redirect(url);
+  const pathname = req.nextUrl.pathname;
+  if (pathname === "/admin/login" || pathname === "/api/admin/auth") {
+    return NextResponse.next();
   }
 
-  return NextResponse.next();
+  const isAdminUi = pathname === "/admin" || pathname.startsWith("/admin/");
+  const isAdminApi = pathname.startsWith("/api/admin/") || pathname === "/api/admin";
+  const isUpload = pathname === "/api/upload" || pathname.startsWith("/api/upload/");
+  if (!isAdminUi && !isAdminApi && !isUpload) return NextResponse.next();
+
+  try {
+    getAdminConfig();
+    const token = req.cookies.get("a_token")?.value;
+    if (token && await validateSession(token)) return NextResponse.next();
+  } catch {
+    return NextResponse.json({ error: "Admin authentication is not configured" }, { status: 503 });
+  }
+
+  if (isAdminUi) {
+    const loginUrl = req.nextUrl.clone();
+    loginUrl.pathname = "/admin/login";
+    loginUrl.search = "";
+    return NextResponse.redirect(loginUrl);
+  }
+  return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/api/admin/:path*'],
+  matcher: ["/admin/:path*", "/api/admin/:path*", "/api/upload/:path*"],
 };

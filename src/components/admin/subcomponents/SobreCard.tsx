@@ -2,10 +2,7 @@ import { Button } from "antd";
 import Image from "next/image";
 import type { RefObject } from "react";
 
-type BufferData = {
-    type: 'Buffer';
-    data: number[];
-};
+type BufferData = string;
 
 type SobreItem = {
     ano: number;
@@ -68,7 +65,7 @@ const SobreCard = ({
                             required
                             ref={editFileRef}
                             type="file"
-                            accept="image/*"
+                            accept="image/jpeg,image/png,image/webp"
                             onChange={onEditImageChange}
                             disabled={uploadingImage}
                             className="w-full p-2 border border-white rounded text-white bg-transparent file:mr-4 file:py-1 file:px-4 file:rounded file:border-0 file:text-sm file:bg-orange-500 file:text-white hover:file:bg-orange-600"

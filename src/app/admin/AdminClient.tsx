@@ -5,12 +5,8 @@ import AdminLivro from "@/components/admin/Livro";
 import AdminNoticia from "@/components/admin/Noticia";
 import AdminProjeto from "@/components/admin/Projeto";
 import AdminSobre from "@/components/admin/Sobre";
-import React, { useEffect, useState } from "react";
 
-export interface BufferData {
-  type: "Buffer";
-  data: number[];
-}
+export type BufferData = string;
 
 export default function AdminClient() {
 

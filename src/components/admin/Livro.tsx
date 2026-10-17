@@ -1,5 +1,6 @@
 "use client"
 import { BufferData } from "@/app/admin/AdminClient";
+import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Button, ConfigProvider, Input, Modal, Pagination } from "antd";
 import LivroCard from "./subcomponents/LivroCard";
@@ -80,8 +81,8 @@ const AdminLivro = () => {
         if (!file) return;
 
         // Validação básica de tipo de arquivo
-        if (!file.type.startsWith('image/')) {
-            modal.error({ title: "Erro", content: "Por favor, selecione um arquivo de imagem." });
+        if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+            modal.error({ title: "Erro", content: "Selecione uma imagem JPEG, PNG ou WebP." });
             return;
         }
 
@@ -96,7 +97,7 @@ const AdminLivro = () => {
             const data = await response.json();
             if (data.imageData && data.imagemTipo) {
                 const imageUpdates = {
-                    imagem: data.previewUrl,
+                    imagem: URL.createObjectURL(file),
                     imageData: data.imageData,
                     imagemTipo: data.imagemTipo
                 };
@@ -273,7 +274,7 @@ const AdminLivro = () => {
                         <input
                             ref={fileInputRef}
                             type="file"
-                            accept="image/*"
+                            accept="image/jpeg,image/png,image/webp"
                             required
                             onChange={(e) => handleImageUpload(e, 'new')}
                             disabled={uploadingImage}
@@ -281,7 +282,7 @@ const AdminLivro = () => {
                         />
                         {uploadingImage && <span className="text-yellow-400">Enviando...</span>}
                         {newLivro.imagem && (
-                            <img src={newLivro.imagem} alt="Preview" className="w-12 h-12 object-cover rounded" />
+                            <Image src={newLivro.imagem} alt="Preview" width={48} height={48} unoptimized className="w-12 h-12 object-cover rounded" />
                         )}
                     </div>
                     <Button
