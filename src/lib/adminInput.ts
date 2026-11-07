@@ -2,7 +2,8 @@ const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const MAX_JSON_BYTES = Math.ceil(MAX_IMAGE_BYTES * 4 / 3) + 128 * 1024;
 
 export async function readJsonObject(request: Request): Promise<Record<string, unknown> | null> {
-  if (!request.headers.get("content-type")?.toLowerCase().includes("application/json")) return null;
+  const mediaType = request.headers.get("content-type")?.split(";", 1)[0].trim().toLowerCase();
+  if (mediaType !== "application/json") return null;
   const contentLength = Number(request.headers.get("content-length"));
   if (Number.isFinite(contentLength) && contentLength > MAX_JSON_BYTES) return null;
 

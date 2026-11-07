@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAdminConfig } from "@/lib/adminConfig";
 import { createSession, sessionMaxAge } from "@/lib/adminSession";
+import { hasExactJsonContentType, hasSameOrigin } from "@/lib/adminRequest";
 
 const WINDOW_MS = 15 * 60 * 1000;
 const attemptsByAddress = new Map<string, { count: number; windowStartedAt: number; blockedUntil: number }>();
@@ -44,7 +45,7 @@ async function readLoginBody(request: Request): Promise<Record<string, unknown> 
 function getRateLimit(address: string) {
   const now = Date.now();
   let record = attemptsByAddress.get(address);
-  if (!record || now - record.windowStartedAt > WINDOW_MS) {
+  if (!record || (record.blockedUntil <= now && now - record.windowStartedAt > WINDOW_MS)) {
     record = { count: 0, windowStartedAt: now, blockedUntil: 0 };
     attemptsByAddress.set(address, record);
   }
@@ -62,9 +63,12 @@ function getRateLimit(address: string) {
 }
 
 export async function POST(request: Request) {
+  if (!hasSameOrigin(request)) {
+    return NextResponse.json({ error: "Cross-origin request rejected" }, { status: 403 });
+  }
   const contentLength = Number(request.headers.get("content-length") || 0);
   if (contentLength > 2048) return NextResponse.json({ error: "Invalid request" }, { status: 413 });
-  if (!request.headers.get("content-type")?.toLowerCase().includes("application/json")) {
+  if (!hasExactJsonContentType(request)) {
     return NextResponse.json({ error: "Invalid request" }, { status: 415 });
   }
 
@@ -112,7 +116,10 @@ export async function POST(request: Request) {
   return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
 }
 
-export async function DELETE() {
+export async function DELETE(request: Request) {
+  if (!hasSameOrigin(request)) {
+    return NextResponse.json({ error: "Cross-origin request rejected" }, { status: 403 });
+  }
   const response = NextResponse.json({ ok: true });
   response.cookies.set("a_token", "", {
     httpOnly: true,

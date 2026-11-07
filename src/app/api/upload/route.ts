@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import sharp from "sharp";
+import { authorizeAdminRequest } from "@/lib/adminRequest";
 
 const MAX_FILE_BYTES = 5 * 1024 * 1024;
 const MAX_REQUEST_BYTES = MAX_FILE_BYTES + 64 * 1024;
@@ -26,10 +27,8 @@ function detectImageType(bytes: Uint8Array): "image/jpeg" | "image/png" | "image
 }
 
 export async function POST(request: NextRequest) {
-  const origin = request.headers.get("origin");
-  if (origin && origin !== request.nextUrl.origin) {
-    return NextResponse.json({ error: "Cross-origin upload rejected" }, { status: 403 });
-  }
+  const denied = await authorizeAdminRequest(request, { write: true });
+  if (denied) return denied;
 
   const contentLength = Number(request.headers.get("content-length"));
   if (Number.isFinite(contentLength) && contentLength > MAX_REQUEST_BYTES) {

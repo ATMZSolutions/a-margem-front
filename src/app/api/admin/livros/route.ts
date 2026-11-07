@@ -2,13 +2,18 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { listBookListings } from "@/lib/publicContent";
 import { decodeImageData, isPositiveInteger, isText, readJsonObject } from "@/lib/adminInput";
+import { authorizeAdminRequest } from "@/lib/adminRequest";
 
-export async function GET() {
+export async function GET(request: Request) {
+  const denied = await authorizeAdminRequest(request);
+  if (denied) return denied;
   const items = await listBookListings();
   return NextResponse.json(items.map(({ hasImage, ...item }) => ({ ...item, imagem: hasImage })));
 }
 
 export async function POST(request: Request) {
+  const denied = await authorizeAdminRequest(request, { write: true, json: true });
+  if (denied) return denied;
   const body = await readJsonObject(request);
   if (!body || !isText(body.titulo, 300) || !isText(body.autor, 300) || !isText(body.descricao, 10000)) {
     return NextResponse.json({ error: "Invalid book data" }, { status: 400 });
@@ -32,6 +37,8 @@ export async function POST(request: Request) {
 }
 
 export async function PUT(request: Request) {
+  const denied = await authorizeAdminRequest(request, { write: true, json: true });
+  if (denied) return denied;
   const body = await readJsonObject(request);
   if (!body || !isPositiveInteger(body.id)) return NextResponse.json({ error: "Invalid book id" }, { status: 400 });
 
@@ -61,6 +68,8 @@ export async function PUT(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  const denied = await authorizeAdminRequest(request, { write: true });
+  if (denied) return denied;
   const id = new URL(request.url).searchParams.get("id");
   const numericId = id && /^\d+$/.test(id) ? Number(id) : NaN;
   if (!Number.isSafeInteger(numericId) || numericId <= 0) {

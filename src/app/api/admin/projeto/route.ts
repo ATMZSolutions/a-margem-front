@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { isPositiveInteger, isText, readJsonObject } from "@/lib/adminInput";
+import { authorizeAdminRequest } from "@/lib/adminRequest";
 
 function parseDate(value: unknown): Date | null {
   if (typeof value !== "string" || value.length > 40) return null;
@@ -8,12 +9,16 @@ function parseDate(value: unknown): Date | null {
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  const denied = await authorizeAdminRequest(request);
+  if (denied) return denied;
   const items = await prisma.projeto.findMany({ orderBy: { data: "desc" } });
   return NextResponse.json(items);
 }
 
 export async function POST(request: Request) {
+  const denied = await authorizeAdminRequest(request, { write: true, json: true });
+  if (denied) return denied;
   const body = await readJsonObject(request);
   const date = body && parseDate(body.data);
   if (!body || !date || !isText(body.descricao, 10000)) {
@@ -24,6 +29,8 @@ export async function POST(request: Request) {
 }
 
 export async function PUT(request: Request) {
+  const denied = await authorizeAdminRequest(request, { write: true, json: true });
+  if (denied) return denied;
   const body = await readJsonObject(request);
   if (!body || !isPositiveInteger(body.id)) return NextResponse.json({ error: "Invalid project id" }, { status: 400 });
   const data: { data?: Date; descricao?: string } = {};
@@ -42,6 +49,8 @@ export async function PUT(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  const denied = await authorizeAdminRequest(request, { write: true });
+  if (denied) return denied;
   const id = new URL(request.url).searchParams.get("id");
   const numericId = id && /^\d+$/.test(id) ? Number(id) : NaN;
   if (!Number.isSafeInteger(numericId) || numericId <= 0) {

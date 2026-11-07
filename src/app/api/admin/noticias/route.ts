@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { isPositiveInteger, isText, readJsonObject } from "@/lib/adminInput";
+import { authorizeAdminRequest } from "@/lib/adminRequest";
 
 function validLink(value: unknown): value is string {
   if (typeof value !== "string" || value.length > 2048) return false;
@@ -13,12 +14,16 @@ function validLink(value: unknown): value is string {
   }
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  const denied = await authorizeAdminRequest(request);
+  if (denied) return denied;
   const items = await prisma.noticia.findMany({ orderBy: { createdAt: "desc" } });
   return NextResponse.json(items);
 }
 
 export async function POST(request: Request) {
+  const denied = await authorizeAdminRequest(request, { write: true, json: true });
+  if (denied) return denied;
   const body = await readJsonObject(request);
   if (!body || !isText(body.titulo, 300) || !isText(body.conteudo, 20000) || !validLink(body.link)) {
     return NextResponse.json({ error: "Invalid news data" }, { status: 400 });
@@ -30,6 +35,8 @@ export async function POST(request: Request) {
 }
 
 export async function PUT(request: Request) {
+  const denied = await authorizeAdminRequest(request, { write: true, json: true });
+  if (denied) return denied;
   const body = await readJsonObject(request);
   if (!body || !isPositiveInteger(body.id)) return NextResponse.json({ error: "Invalid news id" }, { status: 400 });
   const data: { titulo?: string; conteudo?: string; link?: string } = {};
@@ -51,6 +58,8 @@ export async function PUT(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  const denied = await authorizeAdminRequest(request, { write: true });
+  if (denied) return denied;
   const id = new URL(request.url).searchParams.get("id");
   const numericId = id && /^\d+$/.test(id) ? Number(id) : NaN;
   if (!Number.isSafeInteger(numericId) || numericId <= 0) {
