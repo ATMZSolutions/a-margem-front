@@ -8,7 +8,7 @@ export default async function AdminPage() {
   const cookieStore = await cookies();
   const token = cookieStore.get('a_token')?.value;
   
-  if (!token || !validateSession(token)) {
+  if (!token || !(await validateSession(token))) {
     redirect('/admin/login');
   }
 

@@ -1,91 +1,95 @@
-// JWT-based session store for Edge Runtime (stateless)
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-production';
+import { getAdminConfig } from "./adminConfig";
+
+const SESSION_SECONDS = 8 * 60 * 60;
+const encoder = new TextEncoder();
 
 interface JWTPayload {
   username: string;
   iat: number;
   exp: number;
-  [key: string]: unknown; // permite campos extras
 }
 
-function base64UrlEncode(str: string): string {
-  return Buffer.from(str)
-    .toString('base64')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=/g, '');
+function base64UrlEncode(bytes: Uint8Array): string {
+  let binary = "";
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
 }
 
-function base64UrlDecode(str: string): string {
-  str = (str + '===').slice(0, str.length + (str.length % 4));
-  str = str.replace(/-/g, '+').replace(/_/g, '/');
-  return Buffer.from(str, 'base64').toString();
+function base64UrlDecode(value: string): Uint8Array {
+  if (!/^[A-Za-z0-9_-]+$/.test(value)) throw new Error("Invalid base64url value");
+  const base64 = value.replace(/-/g, "+").replace(/_/g, "/");
+  const binary = atob(base64 + "=".repeat((4 - (base64.length % 4)) % 4));
+  return Uint8Array.from(binary, (character) => character.charCodeAt(0));
 }
 
-// Edge Runtime HMAC-SHA256
-async function createHmacSHA256(message: string): Promise<string> {
+function toArrayBuffer(bytes: Uint8Array): ArrayBuffer {
+  const copy = new Uint8Array(bytes.byteLength);
+  copy.set(bytes);
+  return copy.buffer;
+}
+
+async function sign(message: string, secret: string): Promise<string> {
   const key = await crypto.subtle.importKey(
-    'raw',
-    new TextEncoder().encode(JWT_SECRET),
-    { name: 'HMAC', hash: 'SHA-256' },
+    "raw",
+    encoder.encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
     false,
-    ['sign'] as KeyUsage[] // força compatibilidade TS
+    ["sign"],
   );
-  const sig = await crypto.subtle.sign(
-    'HMAC',
-    key,
-    new TextEncoder().encode(message)
-  );
-  const b64 = Buffer.from(sig).toString('base64');
-  return b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+  const signature = await crypto.subtle.sign("HMAC", key, encoder.encode(message));
+  return base64UrlEncode(new Uint8Array(signature));
 }
 
-// Cria JWT
-async function createJWT(payload: JWTPayload): Promise<string> {
-  const header = { alg: 'HS256', typ: 'JWT' };
-  const encodedHeader = base64UrlEncode(JSON.stringify(header));
-  const encodedPayload = base64UrlEncode(JSON.stringify(payload));
-
-  const signature = await createHmacSHA256(`${encodedHeader}.${encodedPayload}`);
-  return `${encodedHeader}.${encodedPayload}.${signature}`;
+async function verify(message: string, signature: string, secret: string): Promise<boolean> {
+  const key = await crypto.subtle.importKey(
+    "raw",
+    encoder.encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["verify"],
+  );
+  return crypto.subtle.verify("HMAC", key, toArrayBuffer(base64UrlDecode(signature)), encoder.encode(message));
 }
 
-// Verifica JWT
-async function verifyJWT(token: string): Promise<JWTPayload | null> {
+export async function createSession(username: string): Promise<string> {
+  const { username: configuredUsername, jwtSecret } = getAdminConfig();
+  if (username !== configuredUsername) throw new Error("Invalid admin user");
+
+  const now = Math.floor(Date.now() / 1000);
+  const header = base64UrlEncode(encoder.encode(JSON.stringify({ alg: "HS256", typ: "JWT" })));
+  const payload = base64UrlEncode(encoder.encode(JSON.stringify({
+    username,
+    iat: now,
+    exp: now + SESSION_SECONDS,
+  })));
+  const message = `${header}.${payload}`;
+  return `${message}.${await sign(message, jwtSecret)}`;
+}
+
+export async function validateSession(token?: string): Promise<boolean> {
+  if (!token || token.length > 2048) return false;
+
   try {
-    const [encodedHeader, encodedPayload, signature] = token.split('.');
-    const expectedSignature = await createHmacSHA256(
-      `${encodedHeader}.${encodedPayload}`
-    );
-    if (signature !== expectedSignature) return null;
+    const { username, jwtSecret } = getAdminConfig();
+    const parts = token.split(".");
+    if (parts.length !== 3) return false;
+    const [encodedHeader, encodedPayload, signature] = parts;
+    const header = JSON.parse(new TextDecoder().decode(base64UrlDecode(encodedHeader)));
+    if (header.alg !== "HS256" || header.typ !== "JWT") return false;
 
-    const payload: JWTPayload = JSON.parse(base64UrlDecode(encodedPayload));
-    if (payload.exp && Date.now() >= payload.exp * 1000) return null;
+    if (!await verify(`${encodedHeader}.${encodedPayload}`, signature, jwtSecret)) return false;
 
-    return payload;
+    const payload = JSON.parse(new TextDecoder().decode(base64UrlDecode(encodedPayload))) as JWTPayload;
+    const now = Math.floor(Date.now() / 1000);
+    return payload.username === username
+      && Number.isInteger(payload.iat)
+      && Number.isInteger(payload.exp)
+      && payload.iat <= now
+      && payload.exp > now
+      && payload.exp - payload.iat <= SESSION_SECONDS;
   } catch {
-    return null;
+    return false;
   }
 }
 
-// Cria sessão JWT
-export async function createSession(username: string) {
-  const payload: JWTPayload = {
-    username,
-    iat: Math.floor(Date.now() / 1000),
-    exp: Math.floor(Date.now() / 1000) + 24 * 60 * 60, // 24h
-  };
-  return await createJWT(payload);
-}
-
-// Valida JWT
-export async function validateSession(token?: string) {
-  if (!token) return false;
-  const payload = await verifyJWT(token);
-  return payload !== null;
-}
-
-// Delete session (JWT stateless)
-export function deleteSession(_token?: string) {
-  // JWT tokens are stateless; client clears cookie
-}
+export const sessionMaxAge = SESSION_SECONDS;

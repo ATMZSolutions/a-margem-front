@@ -1,20 +1,14 @@
-import { NextResponse } from 'next/server';
-import prisma from '../../../lib/prisma';
+import { NextResponse } from "next/server";
+import { listBookListings } from "@/lib/publicContent";
 
 export async function GET() {
-  const livros = await prisma.book.findMany({ 
-    orderBy: { createdAt: 'desc' }
-  });
-
-  // Adicionar URL da imagem para cada livro que tem imagem, mas não expor o blob
-  const livrosWithImageUrls = livros.map(livro => ({
-    id: livro.id,
-    titulo: livro.titulo,
-    autor: livro.autor,
-    descricao: livro.descricao,
-    createdAt: livro.createdAt,
-    imageUrl: livro.imagem ? `/api/image/livro/${livro.id}` : null
-  }));
-
-  return NextResponse.json(livrosWithImageUrls);
+  const books = await listBookListings();
+  return NextResponse.json(books.map((book) => ({
+    id: book.id,
+    titulo: book.titulo,
+    autor: book.autor,
+    descricao: book.descricao,
+    createdAt: book.createdAt,
+    imageUrl: book.hasImage ? `/api/image/livro/${book.id}` : null,
+  })));
 }

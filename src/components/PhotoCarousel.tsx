@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { LeftOutlined, RightOutlined } from "@ant-design/icons";
 
 interface TopButtonProps {
@@ -34,7 +35,7 @@ export default function PhotoCarousel({ images = [], topButton, onIndexChange }:
   if (!images.length) return null;
 
   return (
-    <div className="relative mx-auto h-full flex items-center justify-center">
+    <div className="relative mx-auto w-full h-full flex items-center justify-center">
       {/* Botão opcional no topo */}
       {topButton?.show && (
         <div className="absolute top-4 left-4 z-10">
@@ -57,11 +58,13 @@ export default function PhotoCarousel({ images = [], topButton, onIndexChange }:
       </button>
 
       {/* Imagem */}
-      <div className="overflow-hidden w-full h-full border-b-8 border border-[#F38901]/70">
-        <img
+      <div className="relative overflow-hidden w-full h-full border-b-8 border border-[#F38901]/70">
+        <Image
           src={images[currentIndex]}
-          alt={`Slide ${currentIndex + 1}`}
-          className="w-full h-full object-cover"
+          alt={`Fotografia do Coletivo À Margem, slide ${currentIndex + 1}`}
+          fill
+          sizes="(max-width: 640px) 100vw, 60vw"
+          className="object-cover"
         />
       </div>
 

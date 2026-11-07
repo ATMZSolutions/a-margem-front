@@ -29,14 +29,25 @@ export default function Home() {
 
   // scroll detection
   useEffect(() => {
+    let frame = 0;
+    let previousValue = false;
     const onScroll = () => {
-      const scrollTop = window.scrollY;
-      const windowHeight = window.innerHeight;
-      const fullHeight = document.body.scrollHeight;
-      setAtBottom(scrollTop + windowHeight >= fullHeight - 10);
+      if (frame) return;
+      frame = window.requestAnimationFrame(() => {
+        frame = 0;
+        const nextValue = window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 10;
+        if (nextValue !== previousValue) {
+          previousValue = nextValue;
+          setAtBottom(nextValue);
+        }
+      });
     };
-    window.addEventListener("scroll", onScroll);
-    return () => window.removeEventListener("scroll", onScroll);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
   }, []);
 
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });

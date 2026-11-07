@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+
 interface IntegranteCardProps {
   nome: string;
   image: string;
@@ -10,12 +12,14 @@ export default function IntegranteCard({ nome, image, onClick }: IntegranteCardP
   return (
     <div
       onClick={onClick}
-      className="relative cursor-pointer rounded-md overflow-hidden hover:scale-[1.03] transition-transform duration-200"
+      className="relative h-52 md:h-64 cursor-pointer rounded-md overflow-hidden hover:scale-[1.03] transition-transform duration-200"
     >
-      <img
+      <Image
         src={image}
         alt={nome}
-        className="w-full h-52 md:h-64 object-cover"
+        fill
+        sizes="(max-width: 640px) 50vw, 33vw"
+        className="object-cover"
       />
       <div className="absolute bottom-0 w-full bg-[#F38901] text-black text-center font-semibold">
         {nome}

@@ -1,4 +1,5 @@
 import { BufferData } from "@/app/admin/AdminClient";
+import Image from "next/image";
 import { useEffect, useState, useMemo, useRef } from "react";
 import { Button, ConfigProvider, Input, Modal, Pagination } from "antd";
 import SobreCard from "./subcomponents/SobreCard";
@@ -78,8 +79,8 @@ const AdminSobre = () => {
         if (!file) return;
 
         // Validação básica de tipo de arquivo
-        if (!file.type.startsWith('image/')) {
-            modal.error({ title: "Erro", content: "Por favor, selecione um arquivo de imagem." });
+        if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+            modal.error({ title: "Erro", content: "Selecione uma imagem JPEG, PNG ou WebP." });
             return;
         }
 
@@ -98,7 +99,7 @@ const AdminSobre = () => {
             const data = await response.json();
             if (data.imageData && data.imagemTipo) {
                 const imageUpdates = {
-                    imagem: data.previewUrl,
+                    imagem: URL.createObjectURL(file),
                     imageData: data.imageData,
                     imagemTipo: data.imagemTipo
                 };
@@ -277,7 +278,7 @@ const AdminSobre = () => {
                             ref={fileInputRef}
                             required
                             type="file"
-                            accept="image/*"
+                            accept="image/jpeg,image/png,image/webp"
                             onChange={(e) => handleSobreImageUpload(e, 'new')}
                             disabled={uploadingSobreImage}
                             className="w-full p-2 border border-white rounded text-white bg-transparent file:mr-4 file:py-1 file:px-4 file:rounded file:border-0 file:text-sm file:bg-orange-500 file:text-white hover:file:bg-orange-600"
@@ -287,9 +288,12 @@ const AdminSobre = () => {
                         )}
                         {newSobre.imagem && (
                             <div className="mt-2">
-                                <img
+                                <Image
                                     src={newSobre.imagem}
                                     alt="Preview"
+                                    width={128}
+                                    height={128}
+                                    unoptimized
                                     className="w-32 h-32 object-cover rounded border"
                                 />
                             </div>

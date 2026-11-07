@@ -18,10 +18,11 @@
     "date-fns": "^4.1.0",
     "framer-motion": "^12.23.22",
     "lucide-react": "^0.545.0",
-    "next": "15.5.4",
+    "next": "15.5.28",
     "pg": "^8.16.3",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react": "19.2.9",
+    "react-dom": "19.2.9",
+    "sharp": "0.35.5"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
@@ -30,7 +31,7 @@
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.1",
     "eslint": "^9.37.0",
-    "eslint-config-next": "15.5.4",
+    "eslint-config-next": "15.5.28",
     "prisma": "^6.17.0",
     "tailwindcss": "^4",
     "typescript": "^5.9.3"
