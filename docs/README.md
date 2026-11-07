@@ -4,7 +4,7 @@ Este diretório reúne auditorias, decisões, execução e trabalho ainda penden
 
 ## Pastas
 
-- [`planejamento/`](planejamento/): plano de correção e backlog aberto.
+- [`planejamento/`](planejamento/): planos de correção e UX/UI, além do backlog aberto.
 - [`desenvolvimento/`](desenvolvimento/): convenções de Gitflow, commits, nomes e testes.
 - [`execucao/`](execucao/): alterações feitas na branch de auditoria, verificações registradas e limitações conhecidas.
 - [`seguranca/`](seguranca/): auditoria inicial e revisão complementar de segurança.

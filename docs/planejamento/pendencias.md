@@ -16,7 +16,7 @@ Este backlog foi consolidado em 07/11/2026 a partir da auditoria e da revisão c
 
 - [ ] **P0 — Confirmar variáveis e conexão do banco em produção.** Verificar `DATABASE_URL` no ambiente publicado e testar as páginas que consultam Prisma; o build local não confirma conectividade com Supabase em produção.
 - [ ] **P1 — Executar smoke tests em staging.** Cobrir login inválido/válido, sessão expirada, logout, leitura e gravação de CRUD, upload válido, upload acima do limite e MIME falso; conferir também `/_next/image`.
-- [ ] **P1 — Configurar Vitest e atingir cobertura mínima.** O projeto não declara script de testes e os relatórios registram que testes automatizados não foram executados. Configurar Vitest, React Testing Library, `jsdom`, cobertura mínima de 80% para linhas, instruções, funções e branches, scripts de execução e gate na CI. Priorizar autorização, validação de payload e upload; seguir os [padrões de desenvolvimento](../desenvolvimento/padroes-de-desenvolvimento.md).
+- [ ] **P1 — Configurar Vitest e atingir cobertura mínima.** Vitest, React Testing Library, `jsdom`, scripts, gate na CI e cobertura acima de 80% foram configurados para a fatia administrativa testada em 07/11/2026: autorização, validação de payload, APIs CRUD, upload, cache, login e componentes de Notícias/imagens. Falta ampliar a cobertura para os demais módulos da aplicação; seguir os [padrões de desenvolvimento](../desenvolvimento/padroes-de-desenvolvimento.md).
 - [ ] **P1 — Validar fluxos com Server Components assíncronos.** O Vitest não cobre diretamente esses componentes do Next.js; testar a lógica isolada com testes unitários e os fluxos de renderização com testes ponta a ponta.
 
 ## Conteúdo, SEO e desempenho
