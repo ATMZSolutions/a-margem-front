@@ -1,8 +1,11 @@
 import { BufferData } from "@/app/admin/AdminClient";
-import Image from "next/image";
-import { useEffect, useState, useMemo, useRef } from "react";
+import { useCallback, useEffect, useState, useMemo, useRef } from "react";
 import { Button, ConfigProvider, Input, Modal, Pagination } from "antd";
 import SobreCard from "./subcomponents/SobreCard";
+import EstadoLista from "./EstadoLista";
+import CabecalhoSecao from "./CabecalhoSecao";
+import CampoImagemAdmin from "./campo-imagem-admin";
+import { buscarJsonAdministrativo, invalidarDadosCacheados, lerDadosCacheados, obterDadosCacheados } from "@/lib/cache-administrativo";
 
 type SobreItem = {
     ano: number;
@@ -13,7 +16,8 @@ type SobreItem = {
 };
 
 const AdminSobre = () => {
-    const [sobres, setSobres] = useState<SobreItem[]>([]);
+    const dadosIniciais = lerDadosCacheados<SobreItem[]>("admin:sobre");
+    const [sobres, setSobres] = useState<SobreItem[]>(dadosIniciais ?? []);
 
     // Estados para Sobre
     const [newSobre, setNewSobre] = useState<SobreItem>({
@@ -26,11 +30,12 @@ const AdminSobre = () => {
 
     // --- Estados ---
     const [loading, setLoading] = useState(false);
-    const [dataLoading, setDataLoading] = useState<boolean>(true);
+    const [dataLoading, setDataLoading] = useState<boolean>(dadosIniciais === undefined);
     const [modal, contextHolder] = Modal.useModal();
     const [filter, setFilter] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const [processingEdit, setProcessingEdit] = useState(false);
+    const [mostrarFormulario, setMostrarFormulario] = useState(false);
     const pageSize = 3;
     const fileInputRef = useRef<HTMLInputElement>(null);
     const editFileInputRef = useRef<HTMLInputElement>(null);
@@ -49,25 +54,28 @@ const AdminSobre = () => {
         return filteredSobres.slice(startIndex, startIndex + pageSize);
     }, [filteredSobres, currentPage]);
 
-    async function load() {
+    const load = useCallback(async (forcarAtualizacao = false) => {
+        if (forcarAtualizacao) invalidarDadosCacheados("admin:sobre");
         try {
-            const s = await fetch("/api/admin/sobre").then((r) => r.json());
-            const sobresWithImageUrls = (s || []).map((sobre: SobreItem) => ({
-                ...sobre,
-                imagem: sobre.imagem ? `/api/image/sobre/${sobre.ano}?${new Date().getTime()}` : undefined
-            }));
-            setSobres(sobresWithImageUrls);
+            const sobresComImagens = await obterDadosCacheados("admin:sobre", async () => {
+                const sobres = await buscarJsonAdministrativo<SobreItem[]>("/api/admin/sobre");
+                return (sobres || []).map((sobre) => ({
+                    ...sobre,
+                    imagem: sobre.imagem ? `/api/image/sobre/${sobre.ano}?${Date.now()}` : undefined,
+                }));
+            });
+            setSobres(sobresComImagens || []);
         } catch (error) {
             console.error("Falha ao carregar sobre:", error);
             modal.error({ title: "Erro", content: "Falha ao carregar sobre." });
         } finally {
             setDataLoading(false)
         }
-    }
+    }, [modal]);
 
     useEffect(() => {
-        load();
-    }, []);
+        void load();
+    }, [load]);
 
     useEffect(() => {
         setCurrentPage(1);
@@ -135,14 +143,15 @@ const AdminSobre = () => {
                 imagem: "",
                 descricao: "",
             });
-            await load();
+            setMostrarFormulario(false);
+            await load(true);
             modal.success({ title: "Sucesso", content: "Ítem criado com sucesso!" });
 
             // Limpa o input de arquivo usando ref
             if (fileInputRef.current) {
                 fileInputRef.current.value = '';
             }
-        } catch (err) {
+        } catch {
             modal.error({ title: "Erro", content: "Não foi possível criar o ítem." });
         } finally {
             setLoading(false);
@@ -163,14 +172,14 @@ const AdminSobre = () => {
                     // Verifica se vai ficar sem itens na página atual após exclusão
                     const willBeEmptyPage = currentSobres.length === 1 && currentPage > 1;
 
-                    await load();
+                    await load(true);
 
                     // Ajusta a página se necessário
                     if (willBeEmptyPage) {
                         setCurrentPage(currentPage - 1);
                     }
                     modal.success({ title: "Sucesso", content: "ítem excluído com sucesso!" });
-                } catch (err) {
+                } catch {
                     modal.error({ title: "Erro", content: "Não foi possível excluir o ítem." });
                 }
             }
@@ -197,14 +206,14 @@ const AdminSobre = () => {
             if (!res.ok) throw new Error("Falha ao atualizar sobre");
 
             setEditingSobre(null);
-            await load();
+            await load(true);
             modal.success({ title: "Sucesso", content: "Ítem atualizado com sucesso!" });
 
             // Limpa o input de arquivo usando ref
             if (editFileInputRef.current) {
                 editFileInputRef.current.value = '';
             }
-        } catch (err) {
+        } catch {
             modal.error({ title: "Erro", content: "Não foi possível atualizar o sobre." });
         } finally {
             setProcessingEdit(false);
@@ -217,102 +226,90 @@ const AdminSobre = () => {
     };
 
     return (
-        <section className="mb-8 w-auto gap-20 bg-black/50 p-4 rounded">
+        <section className="space-y-4" aria-labelledby="admin-secao-titulo">
+            <CabecalhoSecao titulo="Sobre" descricao="Registre a história e a trajetória do coletivo." acao="Novo registro" aberto={mostrarFormulario} aoAlternar={() => setMostrarFormulario((visivel) => !visivel)} />
+            <div className="w-full rounded-xl border border-slate-300 bg-white p-4 sm:p-6 2xl:p-5">
             {contextHolder}
             <ConfigProvider
                 theme={{
                     components: {
                         Pagination: {
-                            itemBg: "#ffffff20",
-                            itemActiveBg: "#FF6900",
-                            colorPrimary: "#ffffffff",
-                            colorText: "white",
-                            colorPrimaryHover: "#ffa366",
-                            colorTextDisabled: "rgba(255,255,255,0.3)",
-                            itemLinkBg: "transparent",
+                            itemBg: "#ffffff",
+                            itemActiveBg: "#fff1df",
+                            colorPrimary: "#412551",
+                            colorText: "#334155",
+                            colorPrimaryHover: "#681A01",
+                            colorTextDisabled: "#94a3b8",
+                            itemLinkBg: "#ffffff",
                         },
                         Button: {
-                            defaultBg: "#FF6900",
-                            defaultBorderColor: "#FF6900",
-                            defaultHoverBg: "#e05900",
-                            defaultHoverBorderColor: "#e05900",
-                            defaultHoverColor: "white",
-                            defaultColor: "white",
+                            defaultBg: "#ffffff",
+                            defaultBorderColor: "#cbd5e1",
+                            defaultHoverBg: "#f8fafc",
+                            defaultHoverBorderColor: "#94a3b8",
+                            defaultHoverColor: "#0f172a",
+                            defaultColor: "#334155",
+                            colorPrimary: "#F38901",
+                            colorPrimaryHover: "#FECA55",
+                            colorTextLightSolid: "#241c26",
                         },
                         Input: {
-                            colorText: 'white',
-                            colorTextPlaceholder: 'rgba(255, 255, 255, 0.45)',
+                            colorText: '#0f172a',
+                            colorTextPlaceholder: '#64748b',
                         }
                     },
                 }}
             >
-                <h2 className="text-xl border-l-4 my-4 border-orange-500 pl-2 font-semibold">
-                    Sobre
-                </h2>
-
                 {/* Formulário de criação */}
-                <form onSubmit={createSobre} className="space-y-3 my-3">
+                {mostrarFormulario && <form onSubmit={createSobre} className="my-5 space-y-4 rounded-xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
+                    <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-700">Ano
                     <input
                         required
                         type="number"
-                        placeholder="Ano"
                         value={newSobre.ano}
                         onChange={(e) =>
                             setNewSobre({ ...newSobre, ano: parseInt(e.target.value) })
                         }
-                        className="w-full p-2 text-white rounded border border-white bg-transparent"
+                        className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-base text-slate-900 focus:border-[#412551] focus:outline-none focus:ring-2 focus:ring-[#412551]/20"
                     />
+                    </label>
+                    <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-700">Descrição
                     <textarea
                         required
-                        placeholder="Descrição"
                         value={newSobre.descricao}
                         onChange={(e) =>
                             setNewSobre({ ...newSobre, descricao: e.target.value })
                         }
-                        className="w-full p-2 text-white rounded border border-white bg-transparent"
-                        rows={3}
+                        className="min-h-28 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-base text-slate-900 focus:border-[#412551] focus:outline-none focus:ring-2 focus:ring-[#412551]/20"
+                        rows={4}
                     />
-                    <div className="space-y-2">
-                        <label className="block text-sm font-medium text-white">Imagem:</label>
-                        <input
-                            ref={fileInputRef}
-                            required
-                            type="file"
-                            accept="image/jpeg,image/png,image/webp"
-                            onChange={(e) => handleSobreImageUpload(e, 'new')}
-                            disabled={uploadingSobreImage}
-                            className="w-full p-2 border border-white rounded text-white bg-transparent file:mr-4 file:py-1 file:px-4 file:rounded file:border-0 file:text-sm file:bg-orange-500 file:text-white hover:file:bg-orange-600"
-                        />
-                        {uploadingSobreImage && (
-                            <span className="text-yellow-400">Enviando imagem...</span>
-                        )}
-                        {newSobre.imagem && (
-                            <div className="mt-2">
-                                <Image
-                                    src={newSobre.imagem}
-                                    alt="Preview"
-                                    width={128}
-                                    height={128}
-                                    unoptimized
-                                    className="w-32 h-32 object-cover rounded border"
-                                />
-                            </div>
-                        )}
-                    </div>
+                    </label>
+                    <CampoImagemAdmin
+                        id="imagem-sobre"
+                        titulo="Imagem"
+                        ajuda="Escolha uma imagem para acompanhar este registro."
+                        imagem={newSobre.imagem}
+                        textoAlternativo="Prévia da imagem sobre o coletivo"
+                        obrigatoria
+                        enviando={uploadingSobreImage}
+                        referencia={fileInputRef}
+                        aoSelecionar={(e) => handleSobreImageUpload(e, "new")}
+                    />
                     <Button
+                        type="primary"
                         style={{ padding: 18, fontSize: '16px', borderRadius: '4px', width: '100%' }}
                         htmlType="submit"
                         loading={loading || uploadingSobreImage}
                     >
-                        Adicionar Sobre
+                        Publicar registro
                     </Button>
-                </form>
+                </form>}
 
                 {/* Filtro e lista de sobre */}
                 {sobres.length > 0 && (
                     <div className="my-4">
                         <div className="flex items-center justify-between mb-2">
-                            <h3 className="text-lg font-semibold">Sobre cadastrados:</h3>
+                            <h3 className="text-lg font-bold text-[#19121d]">Registros cadastrados</h3>
                             {filter && (
                                 <Button
                                     size="small"
@@ -324,10 +321,11 @@ const AdminSobre = () => {
                             )}
                         </div>
                         <Input.Search
+                            aria-label="Buscar registros por ano ou descrição"
                             placeholder="Filtrar por ano ou descrição..."
                             value={filter}
                             onChange={(e) => setFilter(e.target.value)}
-                            className="[&_.ant-input-search-button_.anticon]:!text-white/60 hover:[&_.ant-input-search-button_.anticon]:!text-white border border-white rounded"
+                            className="[&_.ant-input-search-button_.anticon]:!text-slate-500 hover:[&_.ant-input-search-button_.anticon]:!text-slate-900 border border-slate-300 rounded-lg"
                             variant="borderless"
                             allowClear
                         />
@@ -336,7 +334,7 @@ const AdminSobre = () => {
 
                 {/* Lista de sobre usando SobreCard */}
                 {currentSobres.length > 0 ? (
-                    <ul className="space-y-4">
+                    <ul className="divide-y divide-slate-300 border-t border-slate-300">
                         {currentSobres.map((s) => (
                             <SobreCard
                                 key={s.ano}
@@ -355,19 +353,20 @@ const AdminSobre = () => {
                         ))}
                     </ul>
                 ) : (
-                    <div className="text-center py-8 text-white/60">
-                        {filter
-                            ? "Nenhum item encontrado para o filtro aplicado."
-                            : dataLoading
-                                ? ("Carregando...")
-                                : "Nenhum item cadastrado."}
-                    </div>
+                    <EstadoLista
+                        carregando={dataLoading}
+                        buscando={Boolean(filter)}
+                        mensagemVazia="Ainda não há registros. Crie o primeiro para começar."
+                        textoAcao="Criar primeiro registro"
+                        aoCriar={() => setMostrarFormulario(true)}
+                    />
                 )}
 
                 {/* Paginação */}
                 {filteredSobres.length > pageSize && (
                     <div className="flex mt-6 mb-4 w-full justify-center">
                         <Pagination
+                            aria-label="Navegação de páginas da área Sobre"
                             responsive
                             current={currentPage}
                             pageSize={pageSize}
@@ -375,17 +374,11 @@ const AdminSobre = () => {
                             onChange={(page) => setCurrentPage(page)}
                             showSizeChanger={false}
                             className="custom-pagination"
-                            itemRender={(page, type, originalElement) => {
-                                const el = originalElement as React.ReactElement<{ className?: string; children?: React.ReactNode }>;
-                                const isActive = el.props?.className?.includes("ant-pagination-item-active");
-                                const classes = `text-white hover:text-white ${isActive ? "font-bold" : ""}`;
-                                if (type === "page") return <a className={classes}>{page}</a>;
-                                return <a className={classes}>{el.props?.children}</a>;
-                            }}
                         />
                     </div>
                 )}
             </ConfigProvider>
+            </div>
         </section>
     )
 }

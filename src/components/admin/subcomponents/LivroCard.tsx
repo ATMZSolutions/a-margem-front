@@ -1,6 +1,8 @@
-import { Button, Popconfirm } from "antd";
-import Image from "next/image";
+import { Button } from "antd";
 import type { RefObject } from "react";
+import { BookOpen, Pencil, Trash2 } from "lucide-react";
+import CampoImagemAdmin from "../campo-imagem-admin";
+import ImagemAmpliavel from "../imagem-ampliavel";
 
 // Reutilize o tipo BufferData se ele estiver em um arquivo compartilhado
 type BufferData = string;
@@ -45,56 +47,50 @@ const LivroCard = ({
 
     if (isEditing) {
         return (
-            <li className="bg-black/30 p-3 rounded">
-                <form onSubmit={onEditSubmit} className="space-y-3">
+            <li className="py-4 first:pt-4 last:pb-0 2xl:py-3">
+                <form onSubmit={onEditSubmit} className="space-y-4 rounded-lg bg-slate-50 p-4">
+                    <h3 className="text-sm font-semibold text-slate-900">Editar livro</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-700">Título
                         <input
                             required
-                            placeholder="Título"
                             value={livro.titulo}
                             onChange={(e) => onEditChange({ titulo: e.target.value })}
-                            className="p-2 text-white rounded border border-white"
+                            className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 text-base text-slate-900 focus:border-[#412551] focus:outline-none focus:ring-2 focus:ring-[#412551]/20"
                         />
+                        </label>
+                        <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-700">Autor
                         <input
                             required
-                            placeholder="Autor"
                             value={livro.autor}
                             onChange={(e) => onEditChange({ autor: e.target.value })}
-                            className="p-2 text-white rounded border border-white"
+                            className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 text-base text-slate-900 focus:border-[#412551] focus:outline-none focus:ring-2 focus:ring-[#412551]/20"
                         />
+                        </label>
                     </div>
+                    <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-700">Descrição
                     <textarea
                         required
-                        placeholder="Descrição"
                         value={livro.descricao}
                         onChange={(e) => onEditChange({ descricao: e.target.value })}
-                        className="w-full p-2 text-white rounded border border-white"
-                        rows={3}
+                        className="min-h-28 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-base text-slate-900 focus:border-[#412551] focus:outline-none focus:ring-2 focus:ring-[#412551]/20"
+                        rows={4}
                     />
-                    <div className="flex gap-3 items-center">
-                        <input
-                            ref={editFileRef}
-                            required
-                            type="file"
-                            accept="image/jpeg,image/png,image/webp"
-                            onChange={onEditImageChange}
-                            disabled={uploadingImage}
-                            className="w-full p-2 border border-white rounded text-white bg-transparent file:mr-4 file:py-1 file:px-4 file:rounded file:border-0 file:text-sm file:bg-orange-500 file:text-white hover:file:bg-orange-600"
-                        />
-                        {uploadingImage && <span className="text-yellow-400">Enviando...</span>}
-                        {livro.imagem && (
-                            <Image
-                                src={livro.imagem}
-                                alt="Preview"
-                                width={48}
-                                height={48}
-                                className="w-12 h-12 object-cover rounded"
-                            />
-                        )}
-                    </div>
-                    <div className="flex gap-2">
-                        <Button type="primary" htmlType="submit" loading={processingEdit}>Salvar</Button>
-                        <Button onClick={onEditCancel}>Cancelar</Button>
+                    </label>
+                    <CampoImagemAdmin
+                        id={`imagem-livro-${livro.id}`}
+                        titulo="Capa do livro"
+                        ajuda={livro.imagem ? "Imagem atual. Selecione outro arquivo para substituí-la." : "Escolha uma imagem para identificar a obra."}
+                        imagem={livro.imagem}
+                        textoAlternativo={`Prévia da capa de ${livro.titulo}`}
+                        aspecto="retrato"
+                        enviando={uploadingImage}
+                        referencia={editFileRef}
+                        aoSelecionar={onEditImageChange}
+                    />
+                    <div className="flex flex-wrap gap-2">
+                        <Button type="primary" htmlType="submit" loading={processingEdit} className="min-h-11 2xl:min-h-10">Salvar alterações</Button>
+                        <Button onClick={onEditCancel} disabled={processingEdit} className="min-h-11 2xl:min-h-10">Cancelar</Button>
                     </div>
                 </form>
             </li>
@@ -102,39 +98,42 @@ const LivroCard = ({
     }
 
     return (
-        <li className="bg-black/30 p-2 rounded">
-            <div className="flex justify-between items-start">
-                <div className="flex gap-3 items-center flex-1">
+        <li className="py-4 first:pt-4 last:pb-0 2xl:py-3">
+            <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+                <div className="flex min-w-0 flex-1 items-center gap-3">
                     {livro.imagem && (
-                        <Image
+                        <ImagemAmpliavel
                             src={livro.imagem}
                             alt={livro.titulo}
-                            width={64}
-                            height={80}
-                            className="w-16 h-20 object-cover rounded"
+                            sizes="(min-width: 1536px) 56px, 64px"
+                            className="h-24 w-16 shrink-0 rounded-lg 2xl:h-20 2xl:w-14"
                         />
                     )}
-                    <div className="flex-1">
-                        <div className="font-semibold">{livro.titulo}</div>
-                        <div className="text-sm text-gray-300">por {livro.autor}</div>
-                        <div className="text-gray-400 mt-2 text-xs line-clamp-3 whitespace-pre-wrap">{livro.descricao}</div>
+                    {!livro.imagem && (
+                        <span aria-hidden="true" className="grid h-24 w-16 shrink-0 place-items-center rounded-lg bg-[#f2f0f3] text-[#412551] 2xl:h-20 2xl:w-14">
+                            <BookOpen className="size-8 2xl:size-7" />
+                        </span>
+                    )}
+                    <span aria-hidden="true" className="hidden w-px self-stretch bg-slate-300 sm:block" />
+                    <div className="min-w-0 flex-1">
+                        <h3 className="font-bold text-[#19121d]">{livro.titulo}</h3>
+                        <div className="mt-0.5 text-sm text-slate-600">por {livro.autor}</div>
+                        <div className="mt-2 line-clamp-3 whitespace-pre-wrap text-sm text-slate-600">{livro.descricao}</div>
                     </div>
                 </div>
-                <div className="flex flex-col sm:flex-row gap-2">
+                <div className="flex shrink-0 gap-2 sm:pl-4">
                     <Button
-                        style={{
-                            fontSize: "14px",
-                            borderRadius: "4px",
-                            backgroundColor: "blue",
-                            borderColor: "blue",
-                        }}
+                        className="min-h-11 2xl:min-h-10"
+                        icon={<Pencil size={15} aria-hidden="true" />}
                         onClick={() => onEditStart(livro)}>Editar</Button>
-                    <button
-                        className="bg-red-600 px-2 cursor-pointer rounded hover:bg-red-700"
+                    <Button
+                        danger
                         onClick={() => onDelete(livro.id)}
+                        icon={<Trash2 size={15} aria-hidden="true" />}
+                        className="min-h-11 2xl:min-h-10"
                     >
                         Excluir
-                    </button>
+                    </Button>
                 </div>
             </div>
         </li>

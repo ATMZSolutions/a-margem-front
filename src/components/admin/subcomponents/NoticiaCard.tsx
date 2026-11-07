@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
 import { Button } from "antd";
+import { FileText, Pencil, Trash2 } from "lucide-react";
 import { NoticiaItem } from "../Noticia";
 
 interface NoticiaCardProps {
@@ -27,97 +28,86 @@ const NoticiaCard: React.FC<NoticiaCardProps> = ({
   onDelete,
 }) => {
   return (
-    <li className="bg-black/30 px-4 py-3 rounded-lg flex-1">
+    <li className="py-4 first:pt-4 last:pb-0 2xl:py-3">
       {isEditing ? (
-        <form onSubmit={onEditSubmit} className="space-y-2">
+        <form onSubmit={onEditSubmit} className="space-y-4 rounded-lg bg-slate-50 p-4">
+          <h3 className="text-sm font-semibold text-slate-900">Editar notícia</h3>
+          <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-700">Título
           <input
             required
-            placeholder="Título"
             value={noticia.titulo}
             onChange={(e) => onEditChange({ titulo: e.target.value })}
-            className="w-full p-2 border border-white rounded text-white bg-transparent"
+            className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-base text-slate-900 focus:border-[#412551] focus:outline-none focus:ring-2 focus:ring-[#412551]/20"
           />
+          </label>
+          <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-700">Conteúdo
           <textarea
             required
-            placeholder="Adicione o conteúdo ..."
             value={noticia.conteudo}
             onChange={(e) => onEditChange({ conteudo: e.target.value })}
-            className="w-full p-2 border border-white rounded text-white bg-transparent"
-            rows={3}
+            className="min-h-36 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-base text-slate-900 focus:border-[#412551] focus:outline-none focus:ring-2 focus:ring-[#412551]/20"
+            rows={6}
           />
+          </label>
+          <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-700">Link
           <input
-            placeholder="Link"
             required
             type='url'
             value={noticia.link || ""}
             onChange={(e) => onEditChange({ link: e.target.value })}
-            className="w-full p-2 border border-white rounded text-white bg-transparent"
+            className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-base text-slate-900 focus:border-[#412551] focus:outline-none focus:ring-2 focus:ring-[#412551]/20"
           />
+          </label>
 
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button
+              type="primary"
               htmlType="submit"
               loading={loading}
-              style={{
-                padding: 10,
-                fontSize: "16px",
-                borderRadius: "4px",
-                backgroundColor: "green",
-                borderColor: "green",
-              }}
+              className="min-h-11"
             >
-              Salvar
+              Salvar alterações
             </Button>
             <Button
-              type="default"
               onClick={onEditCancel}
-              style={{
-                padding: 10,
-                fontSize: "16px",
-                borderRadius: "4px",
-                backgroundColor: "gray",
-                borderColor: "gray",
-                color: "white",
-              }}
+              disabled={processingEdit}
+              className="min-h-11"
             >
               Cancelar
             </Button>
           </div>
         </form>
       ) : (
-        <div className="flex justify-between items-center w-full">
-          <div className="w-2/3">
-            <div className="font-semibold text-sm">{noticia.titulo}</div>
-            <div className="text-gray-300 text-xs truncate line-clamp-2">{noticia.conteudo}</div>
-            {noticia.link && (
-              <a href={noticia.link} className="text-blue-500 truncate block hover:underline">
-                {noticia.link}
-              </a>
-            )}
+        <div className="flex w-full flex-col justify-between gap-4 sm:flex-row sm:items-center">
+          <div className="flex min-w-0 flex-1 items-center gap-3">
+            <span aria-hidden="true" className="grid size-11 shrink-0 place-items-center rounded-lg bg-[#f2f0f3] text-[#412551] 2xl:size-10">
+              <FileText className="size-5 2xl:size-[18px]" />
+            </span>
+            <span aria-hidden="true" className="hidden w-px self-stretch bg-slate-300 sm:block" />
+            <div className="min-w-0 flex-1">
+              <h3 className="text-sm font-bold text-[#19121d]">{noticia.titulo}</h3>
+              <div className="mt-1 line-clamp-2 text-sm text-slate-600">{noticia.conteudo}</div>
+              {noticia.link && (
+                <a href={noticia.link} target="_blank" rel="noreferrer" className="mt-2 block truncate text-sm text-[#412551] underline decoration-[#F38901]/60 underline-offset-2 hover:text-[#681A01]">
+                  {noticia.link}
+                </a>
+              )}
+            </div>
           </div>
-          <div className="flex flex-col gap-2">
+          <div className="flex shrink-0 gap-2 sm:pl-4">
             <Button
               onClick={() => onEditStart(noticia)}
               loading={processingEdit}
-              style={{
-                fontSize: "14px",
-                borderRadius: "4px",
-                backgroundColor: "blue",
-                borderColor: "blue",
-                color: 'white'
-              }}
+              icon={<Pencil size={15} aria-hidden="true" />}
+              className="min-h-11 2xl:min-h-10"
             >
               Editar
             </Button>
             <Button
+              danger
               onClick={() => onDelete(noticia.id)}
-              style={{
-                fontSize: "14px",
-                borderRadius: "4px",
-                backgroundColor: "red",
-                borderColor: "red",
-                color: 'white'
-              }}
+              icon={<Trash2 size={15} aria-hidden="true" />}
+              className="min-h-11 2xl:min-h-10"
             >
               Excluir
             </Button>
