@@ -1,7 +1,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Sedgwick+Ave+Display&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Zen+Dots&display=swap');
 
 @import "tailwindcss";
 
 .font-sedgwick {
   font-family: 'Sedgwick Ave Display', cursive;
+}
+
+.font-zen-dots {
+  font-family: "Zen Dots", sans-serif;
+  font-weight: 400;
+  font-style: normal;
 }

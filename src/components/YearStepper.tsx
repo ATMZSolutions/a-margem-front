@@ -3,11 +3,11 @@ import { useState } from "react";
 
 interface YearStepperProps {
   maxYear: number;
+  initialYear: number;
   onYearChange: (year: number) => void;
 }
 
-export function YearStepper({ onYearChange, maxYear }: YearStepperProps) {
-  const initialYear = new Date().getFullYear() // Ano default é o atual
+export function YearStepper({ onYearChange, maxYear, initialYear }: YearStepperProps) {
   const minYear = 2023 // Ano mínimo é 2023
   const [currentYear, setCurrentYear] = useState(initialYear);
 
@@ -32,7 +32,12 @@ export function YearStepper({ onYearChange, maxYear }: YearStepperProps) {
         <ChevronLeft size={32} />
       </button>
 
-      <h1 className="text-4xl md:text-6xl font-display text-white" style={{ color: '#FECA55' }}>
+      <h1
+        className="text-3xl md:text-5xl font-sedgwick text-white"
+        style={{
+          color: '#FECA55',
+          fontWeight: 'normal'
+        }}>
         {currentYear}
       </h1>
 

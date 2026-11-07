@@ -1,23 +1,50 @@
-datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
-}
-
 generator client {
   provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model Agenda {
   id        Int      @id @default(autoincrement())
   titulo    String
-  data      DateTime
+  data      DateTime @db.Timestamptz(6)
   local     String
-  createdAt DateTime @default(now())
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  cidade    String
 }
 
 model Noticia {
   id        Int      @id @default(autoincrement())
   titulo    String
   conteudo  String
+  link      String
   createdAt DateTime @default(now())
+}
+
+model Book {
+  id         Int      @id @default(autoincrement())
+  titulo     String
+  autor      String
+  descricao  String
+  imagem     Bytes?
+  imagemTipo String?
+  createdAt  DateTime @default(now())
+
+  @@map("Livro")
+}
+
+model Projeto {
+  id        Int      @id @default(autoincrement())
+  data      DateTime
+  descricao String
+}
+
+model Sobre {
+  ano        Int     @id
+  imagem     Bytes?
+  imagemTipo String?
+  descricao  String
 }

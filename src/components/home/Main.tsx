@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Image from "next/image";
 
-const images = ["/home/img1.jpg", "/home/img2.jpg", "/home/img3.jpg"];
+const images = ["/home/img1.webp", "/home/img2.webp", "/home/img3.webp"];
 
 const Main = () => {
   const [currentBg, setCurrentBg] = useState(0);
@@ -31,22 +32,29 @@ const Main = () => {
   return (
     <section className="min-h-screen w-full flex justify-center items-center relative overflow-hidden">
       {/* Fundo dinâmico */}
-      <div
-        className={`absolute inset-0 bg-cover bg-center transition-opacity duration-500`}
-        style={{
-          backgroundImage: `url(${images[currentBg]})`,
-          opacity: fade ? 1 : 0,
-        }}
-      />
+      <div className={`absolute inset-0 transition-opacity duration-500 ${fade ? "opacity-100" : "opacity-0"}`}>
+        <Image
+          src={images[currentBg]}
+          alt=""
+          fill
+          sizes="100vw"
+          priority={currentBg === 0}
+          className="object-cover"
+        />
+      </div>
 
       {/* Overlay escuro */}
       <div className="absolute inset-0 bg-black/60" />
 
       {/* Logo centralizado com animação */}
       <div className="relative z-10 flex items-center justify-center w-full px-4">
-        <img
-          src="/grito-de-guerra.svg"
+        <Image
+          src="/grito-de-guerra.webp"
           alt="Grito de Guerra"
+          width={1080}
+          height={2000}
+          priority
+          unoptimized
           className={`max-w-[30vh] w-full h-auto mx-auto transition-all duration-1000 ease-out
             ${showLogo ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-90 translate-y-5"}`}
         />

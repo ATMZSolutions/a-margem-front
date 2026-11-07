@@ -1,5 +1,17 @@
 import { NextResponse } from "next/server";
+import prisma from "../../../lib/prisma";
 
 export async function GET() {
-  return NextResponse.json({ message: "Agenda list" });
+  try {
+    const items = await prisma.agenda.findMany({ 
+      orderBy: { data: 'asc' } 
+    });
+    return NextResponse.json(items);
+  } catch (error) {
+    console.error('Erro ao buscar agenda:', error);
+    return NextResponse.json(
+      { error: 'Erro interno do servidor' }, 
+      { status: 500 }
+    );
+  }
 }

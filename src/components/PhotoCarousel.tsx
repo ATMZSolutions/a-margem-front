@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { LeftOutlined, RightOutlined } from "@ant-design/icons";
 
 interface TopButtonProps {
@@ -13,23 +14,28 @@ interface TopButtonProps {
 interface PhotoCarouselProps {
   images?: string[];
   topButton?: TopButtonProps;
+    onIndexChange?: (index: number) => void; // callback opcional
 }
 
-export default function PhotoCarousel({ images = [], topButton }: PhotoCarouselProps) {
+export default function PhotoCarousel({ images = [], topButton, onIndexChange }: PhotoCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const prevSlide = () => {
-    setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+    const newIndex = currentIndex === 0 ? images.length - 1 : currentIndex - 1;
+    setCurrentIndex(newIndex);
+    onIndexChange?.(newIndex);
   };
 
   const nextSlide = () => {
-    setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+    const newIndex = currentIndex === images.length - 1 ? 0 : currentIndex + 1;
+    setCurrentIndex(newIndex);
+    onIndexChange?.(newIndex);
   };
 
   if (!images.length) return null;
 
   return (
-    <div className="relative mx-auto flex items-center justify-center">
+    <div className="relative mx-auto w-full h-full flex items-center justify-center">
       {/* Botão opcional no topo */}
       {topButton?.show && (
         <div className="absolute top-4 left-4 z-10">
@@ -52,11 +58,13 @@ export default function PhotoCarousel({ images = [], topButton }: PhotoCarouselP
       </button>
 
       {/* Imagem */}
-      <div className="overflow-hidden w-full border-b-8 border border-[#F38901]/70">
-        <img
+      <div className="relative overflow-hidden w-full h-full border-b-8 border border-[#F38901]/70">
+        <Image
           src={images[currentIndex]}
-          alt={`Slide ${currentIndex + 1}`}
-          className="w-full h-auto object-cover"
+          alt={`Fotografia do Coletivo À Margem, slide ${currentIndex + 1}`}
+          fill
+          sizes="(max-width: 640px) 100vw, 60vw"
+          className="object-cover"
         />
       </div>
 

@@ -4,6 +4,7 @@ export default {
     extend: {
       fontFamily: {
         sedgwick: ["var(--font-sedgwick)", "cursive"], // agora Tailwind reconhece
+        zenDots: ['"Zen Dots"', 'sans-serif'],
       },
     },
   },

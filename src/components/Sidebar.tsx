@@ -3,15 +3,16 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { MenuOutlined, CloseOutlined } from "@ant-design/icons";
-import { Drawer } from "antd";
-import { motion } from "framer-motion";
+import dynamic from "next/dynamic";
+import { Menu, X } from "lucide-react";
+
+const Drawer = dynamic(() => import("antd").then((module) => module.Drawer), { ssr: false });
 
 const menuItems = [
   { label: "Home", href: "/" },
   { label: "Agenda", href: "/agenda" },
   { label: "Sobre", href: "/sobre" },
-  { label: "Coletivo", href: "/coletivo" },
+  { label: "Integrantes", href: "/coletivo" },
   { label: "Prêmios", href: "/premios" },
   { label: "Espetáculos", href: "/espetaculos" },
   { label: "Projetos", href: "/projetos" },
@@ -28,32 +29,28 @@ export default function Sidebar() {
       {/* Barra superior com logo à esquerda e hamburguer à direita */}
       <div className="w-full flex justify-between items-center px-4 py-1 fixed top-0 left-0 z-50 bg-black/60 backdrop-blur-[5px]">
         {/* Logo com animação */}
-        <motion.div
-          initial={{ opacity: 0, x: -50 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-        >
+        <Link href="/" aria-label="À Margem, página inicial">
           <Image
             src="/logo-branca.png"
-            alt="Logo A Margem"
-            height={40}      // equivalente a h-10
-            width={160}      // define largura aproximada
-            style={{ height: "2.5rem", width: "auto" }} // h-10 = 2.5rem
+            alt="Logo À Margem"
+            height={40}
+            width={160}
+            style={{ height: "2.5rem", width: "auto" }}
             priority
           />
-        </motion.div>
+        </Link>
 
         <button
           onClick={() => setOpen(true)}
           className="text-white text-2xl p-2"
           aria-label="Abrir menu"
         >
-          <MenuOutlined />
+          <Menu aria-hidden="true" />
         </button>
       </div>
 
       {/* Drawer vindo da direita */}
-      <Drawer
+      {open && <Drawer
         placement="right"
         open={open}
         onClose={() => setOpen(false)}
@@ -75,7 +72,7 @@ export default function Sidebar() {
             className="text-[#F38901] text-3xl"
             aria-label="Fechar menu"
           >
-            <CloseOutlined />
+            <X aria-hidden="true" />
           </button>
 
           <nav className="flex flex-col gap-4 text-2xl font-semibold text-right">
@@ -92,7 +89,7 @@ export default function Sidebar() {
             ))}
           </nav>
         </div>
-      </Drawer>
+      </Drawer>}
     </div>
   );
 }

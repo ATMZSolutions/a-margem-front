@@ -1,11 +1,11 @@
 "use client";
 
-import { motion, Variants } from "framer-motion";
 import { useEffect, useState } from "react";
+import { motion, Variants } from "framer-motion";
 import Main from "@/components/home/Main";
 import Sobre from "@/components/home/Sobre";
-import Agenda from "@/components/home/Agenda";
 import Contato from "@/components/home/Contato";
+import AgendaHome from "@/components/home/Agenda";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
 const fadeUp: Variants = {
@@ -13,17 +13,13 @@ const fadeUp: Variants = {
   visible: (i: number) => ({
     opacity: 1,
     y: 0,
-    transition: {
-      delay: i * 0.1,
-      duration: 0.35,
-      ease: [0.25, 0.1, 0.25, 1], // curva "easeOut"
-    },
+    transition: { delay: i * 0.1, duration: 0.35, ease: [0.25, 0.1, 0.25, 1] },
   }),
 };
 
 const sections = [
   { component: <Main />, animate: true },
-  { component: <Agenda />, animate: true },
+  { component: <AgendaHome />, animate: true }, // agenda independente
   { component: <Sobre />, animate: true },
   { component: <Contato />, animate: true },
 ];
@@ -31,19 +27,30 @@ const sections = [
 export default function Home() {
   const [atBottom, setAtBottom] = useState(false);
 
+  // scroll detection
   useEffect(() => {
+    let frame = 0;
+    let previousValue = false;
     const onScroll = () => {
-      const scrollTop = window.scrollY;
-      const windowHeight = window.innerHeight;
-      const fullHeight = document.body.scrollHeight;
-      setAtBottom(scrollTop + windowHeight >= fullHeight - 10);
+      if (frame) return;
+      frame = window.requestAnimationFrame(() => {
+        frame = 0;
+        const nextValue = window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 10;
+        if (nextValue !== previousValue) {
+          previousValue = nextValue;
+          setAtBottom(nextValue);
+        }
+      });
     };
-    window.addEventListener("scroll", onScroll);
-    return () => window.removeEventListener("scroll", onScroll);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
   }, []);
 
-  const scrollToTop = () =>
-    window.scrollTo({ top: 0, behavior: "smooth" });
+  const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
   return (
     <div className="font-sans relative">
