@@ -58,7 +58,7 @@ export async function GET(
         "Content-Type": mimeType,
         "Content-Length": String(record.imagem.byteLength),
         "X-Content-Type-Options": "nosniff",
-        "Cache-Control": "public, max-age=3600, s-maxage=3600",
+        "Cache-Control": "public, max-age=60, s-maxage=60, must-revalidate",
       },
     });
   } catch {

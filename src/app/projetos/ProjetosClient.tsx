@@ -14,10 +14,11 @@ interface TimelineItem {
 }
 
 export default function ProjetosClient({ initialData }: { initialData: TimelineItem[] }) {
+  const currentYear = new Date().getFullYear();
   const newestProjectYear = initialData.reduce(
     (year, item) => Math.max(year, new Date(item.data).getFullYear()),
-    new Date().getFullYear(),
-  );
+    0,
+  ) || currentYear;
   const [filteredItems, setFilteredItems] = useState<TimelineItem[]>(() =>
     initialData.filter((item) => new Date(item.data).getFullYear() === newestProjectYear),
   );
