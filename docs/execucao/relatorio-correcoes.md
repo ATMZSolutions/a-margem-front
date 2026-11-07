@@ -72,4 +72,12 @@
 6. Planejar a migração do ESLint 9 para 10 junto de uma versão de `eslint-config-next` que declare suporte ao ESLint 10. A configuração Next 15.5.28 declara peer support até ESLint 9; a mudança foi isolada para não introduzir uma combinação incompatível.
 7. Avaliar CSP em modo `Report-Only` e resolver alertas restantes de lint sem alterar fluxos editoriais.
 
-O limitador de login em memória ajuda contra repetição dentro de uma instância, mas não substitui proteção no edge. A validade do JWT é curta, mas logout apaga o cookie do navegador e não revoga um token copiado antes da expiração.
+## Atualização local — 07/11/2026
+
+- Os Route Handlers administrativos agora validam a sessão independentemente do middleware; gravações exigem `Origin` da mesma origem e os endpoints JSON rejeitam tipos MIME diferentes de `application/json`.
+- O limitador de login não descarta mais um bloqueio ativo ao completar a janela de contagem. O estado continua em memória por instância; a proteção compartilhada permanece necessária para deploys com múltiplas instâncias/serverless.
+- O README do painel foi alinhado ao PostgreSQL, às variáveis obrigatórias e ao Yarn 4/Corepack.
+- O cache de imagens salvas no banco foi reduzido para 60 segundos; a tela de projetos seleciona o ano mais recente que possui registros.
+- Essas alterações foram revisadas localmente e `git diff --check` passou. A validação de fluxos no staging, a configuração do limitador compartilhado e os limites anteriores à aplicação continuam pendentes.
+
+O limitador de login em memória ajuda contra repetição dentro de uma instância, mas não substitui proteção no edge. A sessão JWT expira em até 8 horas; logout remove o cookie do navegador, mas não invalida um token copiado antes do vencimento.

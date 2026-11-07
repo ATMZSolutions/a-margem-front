@@ -1,33 +1,27 @@
-Admin panel setup
+# Acesso ao painel administrativo
 
-1) Default credentials
+O painel não possui credenciais padrão. Configure os segredos no `.env` local ou no ambiente da hospedagem:
 
-- Username: admin
-- Password: ChangeMe123!
+```env
+ADMIN_USER=seu_usuario
+ADMIN_PASS=sua_senha_com_ao_menos_16_caracteres
+JWT_SECRET=uma_chave_aleatoria_com_ao_menos_32_bytes
+DATABASE_URL="postgresql://USUARIO:SENHA@HOST:PORTA/BANCO?sslmode=require"
+```
 
-You can override with environment variables ADMIN_USER and ADMIN_PASS.
+`ADMIN_PASS` deve ter pelo menos 16 caracteres e ser diferente de `ADMIN_USER`. Gere um `JWT_SECRET` aleatório e exclusivo para cada ambiente. Não versione o `.env` nem compartilhe esses valores em logs ou mensagens. O `.env.example` contém apenas o formato esperado.
 
-2) Prisma database
+## Preparar e executar localmente
 
-This project uses Prisma with SQLite. If you haven't already, install dependencies and generate the client:
+Use Node.js compatível com a versão do Next.js do projeto e Yarn 4.10.3 via Corepack:
 
 ```bash
+corepack enable
 yarn install
-yarn prisma generate
+yarn generate
+yarn dev
 ```
 
-If you need to apply migrations (or create the database schema), run:
+Abra `http://localhost:3000/admin/login` e entre com `ADMIN_USER` e `ADMIN_PASS`. A configuração do banco usa PostgreSQL; as instruções antigas para SQLite e Basic Auth não se aplicam.
 
-```bash
-yarn prisma migrate dev --name init
-```
-
-3) Run the app
-
-```bash
-yarn run dev
-```
-
-4) Access the admin panel
-
-Open http://localhost:3000/admin and provide the Basic Auth credentials. There is no link in the UI to the admin page by design.
+Depois de alterar variáveis no `.env`, reinicie `yarn dev` para o servidor carregar os novos valores.
