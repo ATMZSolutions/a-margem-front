@@ -2,11 +2,13 @@
 
 **Data:** 17/10/2026
 
-**Auditoria base:** [auditoria técnica](auditoria-tecnica.md)
+**Auditoria base:** [auditoria técnica](../seguranca/auditoria-tecnica.md)
 
-**Plano:** [plano de correção](plano-de-correcao.md)
+**Plano:** [plano de correção](../planejamento/plano-de-correcao.md)
 
-**Atualização de imagens locais:** [medição antes/depois e limites de qualidade](otimizacao-imagens-2026-10-17.md).
+**Atualização de imagens locais:** [medição antes/depois e limites de qualidade](../performance/otimizacao-imagens-2026-10-17.md).
+
+> Este relatório descreve alterações presentes na branch `feature/auditoria-e-otimizacao`. Confira [pendências da aplicação](../planejamento/pendencias.md) para distinguir o que ainda falta integrar, validar ou configurar.
 
 ## Correções feitas
 
@@ -46,7 +48,7 @@
 
 ### Desempenho e cabeçalhos
 
-- Substituídas nove fotos da home por WebP qualidade 90, sem alterar suas dimensões; o conjunto caiu de 5.931.398 B para 1.423.264 B. O logotipo caiu de 989.669 B para 359.454 B com pixels decodificados idênticos. Os URLs antigos recebem redirecionamento permanente. A redução total em `public/` foi de 5.138.349 B (22,9%); veja as ressalvas de qualidade e tráfego no [relatório de imagens](otimizacao-imagens-2026-10-17.md).
+- Substituídas nove fotos da home por WebP qualidade 90, sem alterar suas dimensões; o conjunto caiu de 5.931.398 B para 1.423.264 B. O logotipo caiu de 989.669 B para 359.454 B com pixels decodificados idênticos. Os URLs antigos recebem redirecionamento permanente. A redução total em `public/` foi de 5.138.349 B (22,9%); veja as ressalvas de qualidade e tráfego no [relatório de imagens](../performance/otimizacao-imagens-2026-10-17.md).
 - Convertidas para `next/image` as imagens principais de carrosséis, espetáculos, integrantes, livros, histórico e home, com dimensões/responsividade ou `fill` e `sizes`.
 - O Drawer do menu global é carregado somente quando o menu abre; a animação Framer Motion foi retirada do cabeçalho global e ícones foram trocados por SVGs Lucide.
 - O listener de scroll da home agora limita o cálculo a um frame e só atualiza estado quando o valor muda.

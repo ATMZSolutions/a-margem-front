@@ -2,13 +2,13 @@
 
 **Data:** 17/10/2026
 
-**Base:** [Auditoria técnica](auditoria-tecnica.md)
+**Base:** [Auditoria técnica](../seguranca/auditoria-tecnica.md)
 
 ## Objetivo
 
-**Execução e estado atual:** [relatório de correções](relatorio-correcoes.md).
+**Execução e estado atual:** [relatório de correções](../execucao/relatorio-correcoes.md).
 
-**Fase de imagens:** dez arquivos locais otimizados; [resultado medido e próximos passos](otimizacao-imagens-2026-10-17.md). A medição visual e de tráfego real ainda está pendente.
+**Fase de imagens:** dez arquivos locais otimizados; [resultado medido e próximos passos](../performance/otimizacao-imagens-2026-10-17.md). A medição visual e de tráfego real ainda está pendente.
 
 Eliminar primeiro os caminhos de execução remota, acesso administrativo não autorizado e negação de serviço; em seguida melhorar rastreamento, conteúdo indexável, imagens e JavaScript enviado ao navegador.
 

@@ -3,13 +3,13 @@
 **Data da revisão:** 17/10/2026
 **Escopo:** análise estática do código, configuração, manifesto e lockfile.
 **Resultado:** foram identificados riscos críticos de dependências, falhas de proteção no admin e oportunidades de melhoria em imagens, carregamento de conteúdo e SEO.
-**Plano de correção:** [docs/plano-de-correcao.md](plano-de-correcao.md)
+**Plano de correção:** [plano de correção](../planejamento/plano-de-correcao.md)
 
-**Atualização das imagens locais:** [resultado e limitações da otimização](otimizacao-imagens-2026-10-17.md). Os números abaixo preservam o estado da auditoria inicial.
+**Atualização das imagens locais:** [resultado e limitações da otimização](../performance/otimizacao-imagens-2026-10-17.md). Os números abaixo preservam o estado da auditoria inicial.
 
 ## Resumo executivo
 
-> Este documento registra o estado encontrado na auditoria inicial. O código foi corrigido depois; veja [execução do plano](relatorio-correcoes.md) para o estado atual e as pendências.
+> Este documento registra o estado encontrado na auditoria inicial. Parte das correções foi implementada na branch da feature; veja [execução do plano](../execucao/relatorio-correcoes.md) e [pendências da aplicação](../planejamento/pendencias.md) para o status.
 
 1. Atualizar Next.js: o projeto usa `next@15.5.4` com App Router e há advisories críticos que abrangem essa versão. O lockfile também resolve `sharp@0.34.4`.
 2. Remover credenciais e segredo padrão do admin; credenciais de acesso estão documentadas em arquivo versionado.
