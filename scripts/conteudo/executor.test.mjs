@@ -190,11 +190,22 @@ describe('orquestrador de importação isolado', () => {
     expect(itemAgenda).toMatchObject({ estado: 'VERIFICADO', destinoId: '1' });
   });
 
-  it('recusa outros ambientes antes de consultar os adaptadores', async () => {
+  it('recusa produção sem confirmação do executor dedicado antes de consultar os adaptadores', async () => {
     const adaptadores = criarAdaptadoresFalsos();
     await expect(executarImportacao(preparado(), { ...contexto(adaptadores, '7'.repeat(64)), ambiente: 'producao' }))
-      .rejects.toThrow('somente para staging');
+      .rejects.toThrow('confirmação explícita do executor dedicado');
     expect(adaptadores.chamadasStorage.conferirBucket).toBe(0);
     expect(adaptadores.execucoes.size).toBe(0);
+  });
+
+  it('registra produção no escopo próprio quando o executor dedicado confirma a entrada', async () => {
+    const adaptadores = criarAdaptadoresFalsos();
+    const resultado = await executarImportacao(preparado(), {
+      ...contexto(adaptadores, '9'.repeat(64)),
+      ambiente: 'producao',
+      confirmacaoProducao: true,
+    });
+    expect(resultado.execucaoId).toMatch(/^exec_/);
+    expect([...adaptadores.execucoes.values()][0]).toMatchObject({ ambiente: 'producao', estado: 'VERIFICADO' });
   });
 });

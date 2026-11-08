@@ -62,7 +62,8 @@ function exigirContrato(repository, storage) {
 }
 
 function validarEntrada(preparado, contexto) {
-  if (contexto.ambiente !== 'staging') throw new Error('Executor habilitado somente para staging nesta etapa');
+  const producaoConfirmada = contexto.ambiente === 'producao' && contexto.confirmacaoProducao === true;
+  if (contexto.ambiente !== 'staging' && !producaoConfirmada) throw new Error('Executor habilitado para staging; produção exige confirmação explícita do executor dedicado');
   if (typeof contexto.destinoRef !== 'string' || !/^[A-Za-z0-9_-]{3,64}$/.test(contexto.destinoRef)) throw new Error('Identificador explícito do projeto de destino obrigatório');
   if (!['mesmo-banco', 'bancos-separados'].includes(contexto.topologia)) throw new Error('Topologia explícita obrigatória: mesmo-banco ou bancos-separados');
   for (const nome of ['manifestoSha256', 'origemSha256']) if (!/^[a-f0-9]{64}$/.test(contexto[nome] ?? '')) throw new Error(`${nome} inválido`);

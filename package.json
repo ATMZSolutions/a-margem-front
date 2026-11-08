@@ -13,10 +13,12 @@
     "test:coverage": "vitest run --coverage",
     "migrate": "prisma migrate dev",
     "migrate:staging": "node scripts/migrar-schema-staging.mjs",
+    "migrate:producao": "node scripts/migrar-schema-producao.mjs",
     "generate": "prisma generate",
     "conteudo:inventariar": "node scripts/conteudo/cli.mjs inventariar",
     "conteudo:migrar": "node scripts/conteudo/cli.mjs migrar",
     "conteudo:migrar:staging": "node scripts/conteudo/cli-staging.mjs",
+    "conteudo:migrar:producao": "node scripts/conteudo/cli-producao.mjs",
     "conteudo:reconciliar": "node scripts/conteudo/cli-reconciliar.mjs"
   },
   "dependencies": {
