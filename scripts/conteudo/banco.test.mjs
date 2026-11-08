@@ -46,12 +46,25 @@ describe('snapshot do banco sem gravação', () => {
     const fabrica = vi.fn(() => cliente);
     const resultado = await conectarELerBanco('postgres://usuario:segredo@localhost/banco', fabrica);
     expect(fabrica.mock.calls[0][0].options).toBe('-c default_transaction_read_only=on');
+    expect(fabrica.mock.calls[0][0].ssl).toBeUndefined();
     expect(resultado.identidadeOrigemSha256).toMatch(/^[a-f0-9]{64}$/);
     expect(cliente.end).toHaveBeenCalledOnce();
     cliente.connect.mockRejectedValueOnce(new Error('segredo'));
     await expect(conectarELerBanco('postgres://usuario:segredo@localhost/banco', fabrica)).rejects.toThrow('Falha na leitura da origem');
     await expect(conectarELerBanco()).rejects.toThrow('Defina ORIGEM_DATABASE_URL');
     await expect(conectarELerBanco('https://example.com')).rejects.toThrow('PostgreSQL');
+  });
+
+  it('exige TLS para Supabase e respeita explicitamente sslmode=disable', async () => {
+    const cliente = clienteDeTeste();
+    const fabrica = vi.fn(() => cliente);
+    await conectarELerBanco('postgres://usuario:segredo@aws-1-us-east-2.pooler.supabase.com:5432/postgres', fabrica);
+    expect(fabrica.mock.calls[0][0].ssl).toEqual({ rejectUnauthorized: false });
+    expect(new URL(fabrica.mock.calls[0][0].connectionString).searchParams.has('sslmode')).toBe(false);
+
+    const semTls = vi.fn(() => clienteDeTeste());
+    await conectarELerBanco('postgres://usuario:segredo@localhost/banco?sslmode=disable', semTls);
+    expect(semTls.mock.calls[0][0].ssl).toBe(false);
   });
 });
 

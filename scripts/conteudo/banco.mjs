@@ -57,7 +57,25 @@ export async function conectarELerBanco(url, criarCliente = (configuracao) => ne
   let endereco;
   try { endereco = new URL(url); } catch { throw new Error('ORIGEM_DATABASE_URL inválida'); }
   if (!['postgres:', 'postgresql:'].includes(endereco.protocol)) throw new Error('Origem deve ser PostgreSQL');
-  const cliente = criarCliente({ connectionString: url, connectionTimeoutMillis: 10000, application_name: 'amargem-inventario-somente-leitura', options: '-c default_transaction_read_only=on' });
+  const sslmode = endereco.searchParams.get('sslmode');
+  const supabaseHost = endereco.hostname.endsWith('.supabase.co') || endereco.hostname.endsWith('.pooler.supabase.com');
+  const configuracao = {
+    connectionString: url,
+    connectionTimeoutMillis: 10000,
+    application_name: 'amargem-inventario-somente-leitura',
+    options: '-c default_transaction_read_only=on',
+  };
+  if (sslmode === 'disable') configuracao.ssl = false;
+  else if (sslmode === 'require' || (!sslmode && supabaseHost) || (sslmode === 'prefer' && supabaseHost)) {
+    // The node-postgres URL parser does not consistently translate libpq's sslmode.
+    // Require TLS explicitly for Supabase, without logging or changing credentials.
+    endereco.searchParams.delete('sslmode');
+    configuracao.connectionString = endereco.toString();
+    configuracao.ssl = { rejectUnauthorized: false };
+  } else if (sslmode && !['prefer', 'verify-ca', 'verify-full'].includes(sslmode)) {
+    throw new Error('sslmode da origem inválido');
+  }
+  const cliente = criarCliente(configuracao);
   try {
     await cliente.connect();
     const snapshot = await leitor(cliente);
