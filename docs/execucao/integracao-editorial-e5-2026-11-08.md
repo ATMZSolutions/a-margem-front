@@ -28,8 +28,18 @@ Os cinco modelos mantiveram os **93 registros** importados; SEO permaneceu nulo 
 
 O smoke funcional reversível foi concluído em **08/11/2026**, usando o painel pela API administrativa e as rotas públicas servidas localmente com o staging isolado como banco. A configuração geral persistida apareceu na home; o override de SEO apareceu nos metadados de `/agenda`; a página publicada entrou no sitemap e, ao mudar para rascunho, respondeu 404 e saiu do sitemap. Uma Agenda temporária confirmou estado publicado inicial, ordenação manual, ocultação como rascunho e arquivado. O registro, a publicação/SEO de `/agenda` e a configuração global foram restaurados; a Agenda temporária foi removida. Nenhum registro temporário permaneceu.
 
+## Biblioteca de mídia — primeira entrega C15
+
+O painel ganhou a área **Mídia**, com busca, filtros de vínculo, prévias, tipo/tamanho/dimensões e referências detectadas em `UsoMidia`, nas relações editoriais e nas configurações JSON de site/páginas/seções. Cada referência abre a área correspondente para trocar ou remover o vínculo; os editores existentes oferecem seleção vazia ou ação explícita de remoção.
+
+Arquivos sem referência detectada aparecem como candidatos a órfãos. Esta entrega não apaga linhas nem objetos do Storage: o adaptador ainda não oferece exclusão, e a rotina prevista no plano exige retenção e uma nova verificação de referências antes de qualquer remoção física. O smoke visual/funcional desta área ainda não foi feito.
+
+Uma consulta somente leitura ao staging encontrou **70 mídias**, **68 com referência detectada**, **79 referências** e **2 candidatas a órfãs**. A consulta incluiu os seletores efetivos da identidade, home, contato e projetos para evitar classificar imagens de fallback como órfãs. Nenhuma linha ou objeto foi alterado.
+
+Uma revisão visual parcial em **390×844** cobriu a home, Projetos e Contato; não houve overflow horizontal nessas três páginas. A revisão do painel, da biblioteca, das demais rotas e do desktop permanece pendente.
+
 ## Pendências para concluir E5
 
-- Concluir a auditoria visual responsiva e revisar strings de interface que ainda são conteúdo fixo em componentes; o viewport mobile estreito continua pendente.
-- Concluir C15: biblioteca transversal com uso/referências, remoção explícita de vínculo e tratamento seguro de mídia órfã. Seleção e upload/reuso continuam parciais.
+- Fazer smoke visual/funcional da biblioteca e concluir a auditoria visual responsiva; o viewport mobile estreito continua pendente. Revisar também strings de interface que ainda são conteúdo fixo.
+- Concluir o tratamento de órfãos de C15: relatório de candidatos e referências está disponível no painel; a retenção, reconciliação com o Storage e remoção física continuam pendentes.
 - Confirmar em E0 que o manifesto representa a revisão publicada. E6 (backup, delta e corte de produção) continua sem execução.

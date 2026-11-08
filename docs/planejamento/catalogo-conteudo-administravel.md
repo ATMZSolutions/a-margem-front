@@ -30,7 +30,7 @@ No baseline, nenhuma página pública tinha controle completo de conteúdo e apr
 | C09–C10 | Smoke funcional aprovado em staging em E4 | Menu, logo, identidade, metadados globais e rodapé configuráveis; preview 858×900 conferido. |
 | C11–C12 | Parcial em E5 | Aparência geral, paletas, padrões, tipografia e textos comuns já têm configuração persistida e são consumidos em componentes públicos; falta revisar strings fixas restantes e validar visualmente desktop/mobile. |
 | C13–C14 | Smoke funcional aprovado em staging/local em E5 | SEO de `/agenda` e configurações gerais apareceram nas páginas; publicação removeu a página do sitemap e passou a responder 404. Estado e ordem de Agenda afetaram a API pública. Os valores temporários foram restaurados e o registro de teste removido; revisão visual responsiva ainda pendente. |
-| C15 | Parcial em E3/E4 | Seleção, upload e reuso de mídia nas áreas integradas; a biblioteca transversal e limpeza explícita de objetos órfãos continuam pendentes. |
+| C15 | Primeira entrega no código em E5; validação pendente | O painel lista arquivos, metadados técnicos e referências detectadas; abrir a área de origem permite trocar/remover o vínculo. Candidatos sem referência são sinalizados sem apagar objetos. Falta smoke visual e rotina de retenção/reconciliação para eventual limpeza física. |
 
 E5 ainda não está concluída. O [relatório da primeira entrega E5](../execucao/integracao-editorial-e5-2026-11-08.md) registra migração, dados preservados, validações locais e os critérios funcionais/visuais que faltam.
 
