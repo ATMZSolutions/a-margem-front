@@ -85,7 +85,10 @@ describe('inventário completo do checkout', () => {
     expect(manifesto.duplicadas.length).toBeGreaterThan(0);
     expect(planejarMigracao(manifesto, 'staging').objetos.length).toBeGreaterThan(0);
     const fontes = structuredClone(manifesto.fontes);
-    fontes.find((fonte) => fonte.caminho === 'src/app/coletivo/page.tsx').variaveis.find((item) => item.nome === 'integrantes').valor[0].nome = 'Divergente';
+    const paginaColetivo = fontes.find((fonte) => fonte.caminho === 'src/app/coletivo/page.tsx');
+    const perfis = fontes.find((fonte) => fonte.caminho === 'src/data/integrantes.ts').variaveis.find((item) => item.nome === 'integrantes').valor;
+    paginaColetivo.variaveis.push({ nome: 'integrantes', valor: perfis.map(({ id, nome, image }) => ({ id, nome, image })) });
+    paginaColetivo.variaveis.find((item) => item.nome === 'integrantes').valor[0].nome = 'Divergente';
     expect(normalizar(fontes).conflitos).toContain('Integrante divergente: bento');
     expect(() => normalizar([])).toThrow('Fonte obrigatória ausente');
   });

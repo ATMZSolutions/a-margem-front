@@ -10,7 +10,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/adminRequest", () => ({ authorizeAdminRequest: mocks.autorizar }));
-vi.mock("@/lib/publicContent", () => ({ listBookListings: mocks.listar }));
+vi.mock("@/lib/publicContent", () => ({ listAdminBookListings: mocks.listar }));
 vi.mock("@/lib/prisma", () => ({ default: { book: {
   findMany: mocks.prismaListar, create: mocks.criar, update: mocks.atualizar, delete: mocks.excluir,
 } } }));
@@ -44,14 +44,14 @@ describe("API administrativa de livros", () => {
   it("cria livro com ou sem imagem e valida os dados da obra", async () => {
     const corpo = { titulo: "Livro", autor: "Autora", descricao: "Descrição" };
     expect((await POST(requisicao("POST", corpo))).status).toBe(201);
-    expect(mocks.criar).toHaveBeenCalledWith({ data: corpo });
+    expect(mocks.criar).toHaveBeenCalledWith({ data: corpo, select: { id: true } });
 
     expect((await POST(requisicao("POST", { ...corpo, imageData: pngBase64, imagemTipo: "image/png" }))).status).toBe(201);
     expect(mocks.criar).toHaveBeenLastCalledWith({ data: expect.objectContaining({
       ...corpo,
       imagem: expect.any(Uint8Array),
       imagemTipo: "image/png",
-    }) });
+    }), select: { id: true } });
     const imagemCriada = mocks.criar.mock.calls.at(-1)?.[0].data.imagem as Uint8Array;
     expect(Array.from(imagemCriada)).toEqual([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00]);
     expect((await POST(requisicao("POST", { ...corpo, imageData: "inválida", imagemTipo: "image/png" }))).status).toBe(400);
@@ -61,9 +61,11 @@ describe("API administrativa de livros", () => {
   it("atualiza texto ou imagem e valida identificador e campos", async () => {
     const corpo = { id: 1, titulo: "Novo título", autor: "Nova autora", descricao: "Nova descrição" };
     expect((await PUT(requisicao("PUT", corpo))).status).toBe(200);
-    expect(mocks.atualizar).toHaveBeenCalledWith({ where: { id: 1 }, data: {
-      titulo: corpo.titulo, autor: corpo.autor, descricao: corpo.descricao,
-    } });
+    expect(mocks.atualizar).toHaveBeenCalledWith({
+      where: { id: 1 },
+      data: { titulo: corpo.titulo, autor: corpo.autor, descricao: corpo.descricao },
+      select: { id: true },
+    });
     expect((await PUT(requisicao("PUT", { id: 1, imageData: pngBase64, imagemTipo: "image/png" }))).status).toBe(200);
 
     for (const dados of [

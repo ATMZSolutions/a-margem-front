@@ -28,13 +28,19 @@ describe("API administrativa de projetos", () => {
   it("lista projetos do mais recente para o mais antigo", async () => {
     const resposta = await GET(requisicao("GET"));
     expect(resposta.status).toBe(200);
-    expect(mocks.listar).toHaveBeenCalledWith({ orderBy: { data: "desc" } });
+    expect(mocks.listar).toHaveBeenCalledWith({
+      orderBy: { data: "desc" },
+      select: { id: true, data: true, descricao: true },
+    });
   });
 
   it("cria projeto com data válida e rejeita campos inválidos", async () => {
     const resposta = await POST(requisicao("POST", { data: "2026-11-07", descricao: "Ação do coletivo" }));
     expect(resposta.status).toBe(201);
-    expect(mocks.criar).toHaveBeenCalledWith({ data: { data: new Date("2026-11-07"), descricao: "Ação do coletivo" } });
+    expect(mocks.criar).toHaveBeenCalledWith({
+      data: { data: new Date("2026-11-07"), descricao: "Ação do coletivo" },
+      select: { id: true },
+    });
     expect((await POST(requisicao("POST", { data: "inválida", descricao: "texto" }))).status).toBe(400);
     expect((await POST(requisicao("POST", { data: "2026-11-07", descricao: "" }))).status).toBe(400);
   });
@@ -42,7 +48,11 @@ describe("API administrativa de projetos", () => {
   it("atualiza data e descrição e rejeita identificador ou campos inválidos", async () => {
     const resposta = await PUT(requisicao("PUT", { id: 1, data: "2026-11-08", descricao: "Atualizado" }));
     expect(resposta.status).toBe(200);
-    expect(mocks.atualizar).toHaveBeenCalledWith({ where: { id: 1 }, data: { data: new Date("2026-11-08"), descricao: "Atualizado" } });
+    expect(mocks.atualizar).toHaveBeenCalledWith({
+      where: { id: 1 },
+      data: { data: new Date("2026-11-08"), descricao: "Atualizado" },
+      select: { id: true },
+    });
     for (const corpo of [{}, { id: 1, data: "inválida" }, { id: 1, descricao: " " }, { id: 1 }]) {
       expect((await PUT(requisicao("PUT", corpo))).status).toBe(400);
     }

@@ -40,7 +40,10 @@ describe("API administrativa de notícias", () => {
     const resposta = await GET(requisicao("GET"));
     expect(resposta.status).toBe(200);
     expect(await resposta.json()).toEqual([{ id: 3, titulo: "Notícia" }]);
-    expect(mocks.listar).toHaveBeenCalledWith({ orderBy: { createdAt: "desc" } });
+    expect(mocks.listar).toHaveBeenCalledWith({
+      orderBy: { createdAt: "desc" },
+      select: { id: true, titulo: true, conteudo: true, link: true, createdAt: true },
+    });
     mocks.autorizar.mockResolvedValueOnce(NextResponse.json({}, { status: 401 }));
     expect((await GET(requisicao("GET"))).status).toBe(401);
   });
@@ -48,7 +51,10 @@ describe("API administrativa de notícias", () => {
   it("aceita link vazio ou HTTP(S) e recusa conteúdo inválido", async () => {
     const resposta = await POST(requisicao("POST", { titulo: "Título", conteudo: "Texto", link: "" }));
     expect(resposta.status).toBe(201);
-    expect(mocks.criar).toHaveBeenCalledWith({ data: { titulo: "Título", conteudo: "Texto", link: "" } });
+    expect(mocks.criar).toHaveBeenCalledWith({
+      data: { titulo: "Título", conteudo: "Texto", link: "" },
+      select: { id: true },
+    });
     expect((await POST(requisicao("POST", { titulo: "Título", conteudo: "Texto", link: "javascript:alert(1)" }))).status).toBe(400);
     expect((await POST(requisicao("POST", { titulo: "", conteudo: "", link: 4 }))).status).toBe(400);
     expect((await POST(requisicao("POST", { titulo: "Título", conteudo: "Texto", link: `https://x.test/${"a".repeat(2050)}` }))).status).toBe(400);
@@ -58,7 +64,11 @@ describe("API administrativa de notícias", () => {
   it("atualiza campos enviados e recusa id, título, conteúdo, link ou atualização vazia", async () => {
     const resposta = await PUT(requisicao("PUT", { id: 3, titulo: "Novo", conteudo: "Atualizado", link: "http://amargem.test" }));
     expect(resposta.status).toBe(200);
-    expect(mocks.atualizar).toHaveBeenCalledWith({ where: { id: 3 }, data: { titulo: "Novo", conteudo: "Atualizado", link: "http://amargem.test" } });
+    expect(mocks.atualizar).toHaveBeenCalledWith({
+      where: { id: 3 },
+      data: { titulo: "Novo", conteudo: "Atualizado", link: "http://amargem.test" },
+      select: { id: true },
+    });
 
     for (const corpo of [
       {},

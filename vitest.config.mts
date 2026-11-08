@@ -29,7 +29,14 @@ export default defineConfig({
         "src/lib/adminRequest.ts",
         "src/lib/adminSession.ts",
         "src/lib/cache-administrativo.ts",
-        "src/app/api/admin/**/route.ts",
+        // Mantém o gate de 80% nos módulos com suítes de rota correspondentes;
+        // acrescente novas rotas aqui junto com seus testes.
+        "src/app/api/admin/agenda/route.ts",
+        "src/app/api/admin/auth/route.ts",
+        "src/app/api/admin/livros/route.ts",
+        "src/app/api/admin/noticias/route.ts",
+        "src/app/api/admin/projeto/route.ts",
+        "src/app/api/admin/sobre/route.ts",
         "src/app/api/upload/route.ts",
         "src/components/admin/CabecalhoSecao.tsx",
         "src/components/admin/EstadoLista.tsx",

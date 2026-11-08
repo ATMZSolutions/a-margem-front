@@ -42,7 +42,10 @@ describe("API administrativa da agenda", () => {
     const resposta = await GET(requisicao("GET"));
     expect(resposta.status).toBe(200);
     expect(await resposta.json()).toEqual([{ id: 1, titulo: "Apresentação" }]);
-    expect(mocks.listar).toHaveBeenCalledWith({ orderBy: { data: "asc" } });
+    expect(mocks.listar).toHaveBeenCalledWith({
+      orderBy: { data: "asc" },
+      select: { id: true, titulo: true, data: true, local: true, createdAt: true, cidade: true },
+    });
   });
 
   it("devolve a negativa de autorização sem consultar os dados", async () => {
@@ -60,7 +63,10 @@ describe("API administrativa da agenda", () => {
     }));
     expect(valida.status).toBe(201);
     expect(await valida.json()).toEqual({ id: 2 });
-    expect(mocks.criar).toHaveBeenCalledWith({ data: expect.objectContaining({ data: new Date("2026-12-20T19:00:00.000Z") }) });
+    expect(mocks.criar).toHaveBeenCalledWith({
+      data: expect.objectContaining({ data: new Date("2026-12-20T19:00:00.000Z") }),
+      select: { id: true },
+    });
 
     expect((await POST(requisicao("POST", { titulo: "", data: "inválida", local: "", cidade: "" }))).status).toBe(400);
     expect((await POST(requisicao("POST", { titulo: "A", data: "x".repeat(41), local: "B", cidade: "C" }))).status).toBe(400);
@@ -78,6 +84,7 @@ describe("API administrativa da agenda", () => {
     expect(mocks.atualizar).toHaveBeenCalledWith({
       where: { id: 1 },
       data: { titulo: "Novo título", data: new Date("2026-12-21T19:00:00.000Z"), local: "Espaço cultural", cidade: "Olinda" },
+      select: { id: true },
     });
 
     for (const corpo of [

@@ -9,7 +9,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/adminRequest", () => ({ authorizeAdminRequest: mocks.autorizar }));
-vi.mock("@/lib/publicContent", () => ({ listSobreListings: mocks.listar }));
+vi.mock("@/lib/publicContent", () => ({ listAdminSobreListings: mocks.listar }));
 vi.mock("@/lib/prisma", () => ({ default: { sobre: {
   create: mocks.criar, update: mocks.atualizar, delete: mocks.excluir,
 } } }));
@@ -43,14 +43,14 @@ describe("API administrativa de Sobre", () => {
   it("cria registro com imagem opcional e recusa ano ou descrição inválidos", async () => {
     const corpo = { ano: 2026, descricao: "Memória do coletivo" };
     expect((await POST(requisicao("POST", corpo))).status).toBe(201);
-    expect(mocks.criar).toHaveBeenCalledWith({ data: corpo });
+    expect(mocks.criar).toHaveBeenCalledWith({ data: corpo, select: { ano: true } });
 
     expect((await POST(requisicao("POST", { ...corpo, imageData: jpegBase64, imagemTipo: "image/jpeg" }))).status).toBe(201);
     expect(mocks.criar).toHaveBeenLastCalledWith({ data: expect.objectContaining({
       ...corpo,
       imagem: expect.any(Uint8Array),
       imagemTipo: "image/jpeg",
-    }) });
+    }), select: { ano: true } });
     const imagemCriada = mocks.criar.mock.calls.at(-1)?.[0].data.imagem as Uint8Array;
     expect(Array.from(imagemCriada)).toEqual([0xff, 0xd8, 0xff, 0x00]);
     expect((await POST(requisicao("POST", { ...corpo, ano: 0 }))).status).toBe(400);
@@ -60,7 +60,11 @@ describe("API administrativa de Sobre", () => {
 
   it("atualiza descrição e imagem e valida identificador e payload", async () => {
     expect((await PUT(requisicao("PUT", { ano: 2025, descricao: "Texto atualizado" }))).status).toBe(200);
-    expect(mocks.atualizar).toHaveBeenCalledWith({ where: { ano: 2025 }, data: { descricao: "Texto atualizado" } });
+    expect(mocks.atualizar).toHaveBeenCalledWith({
+      where: { ano: 2025 },
+      data: { descricao: "Texto atualizado" },
+      select: { ano: true },
+    });
     expect((await PUT(requisicao("PUT", { ano: 2025, imageData: jpegBase64, imagemTipo: "image/jpeg" }))).status).toBe(200);
 
     for (const corpo of [

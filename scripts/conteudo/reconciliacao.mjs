@@ -96,7 +96,7 @@ export function prepararBaseline(catalogo) {
     });
     modelos.push(`model ${modelo} {\n${camposPrisma.join('\n')}\n${modelo !== tabela.tabela ? `\n  @@map("${tabela.tabela}")\n` : ''}}\n`);
   }
-  const sql = `${linhas.join('\n')}\n`;
+  const sql = `${linhas.join('\n').trimEnd()}\n`;
   const schema = `${modelos.join('\n')}\n`;
   return { problemas: [], sql, schema, sha256: digest(sql), sequenciasUsadas, foraDoEscopo: catalogo.tabelas.filter((item) => !TABELAS_LEGADAS.includes(item.tabela)).map((item) => item.tabela) };
 }
