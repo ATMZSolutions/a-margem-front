@@ -46,11 +46,13 @@ describe("API administrativa de Sobre", () => {
     expect(mocks.criar).toHaveBeenCalledWith({ data: corpo });
 
     expect((await POST(requisicao("POST", { ...corpo, imageData: jpegBase64, imagemTipo: "image/jpeg" }))).status).toBe(201);
-    expect(mocks.criar).toHaveBeenLastCalledWith({ data: {
+    expect(mocks.criar).toHaveBeenLastCalledWith({ data: expect.objectContaining({
       ...corpo,
-      imagem: Buffer.from([0xff, 0xd8, 0xff, 0x00]),
+      imagem: expect.any(Uint8Array),
       imagemTipo: "image/jpeg",
-    } });
+    }) });
+    const imagemCriada = mocks.criar.mock.calls.at(-1)?.[0].data.imagem as Uint8Array;
+    expect(Array.from(imagemCriada)).toEqual([0xff, 0xd8, 0xff, 0x00]);
     expect((await POST(requisicao("POST", { ...corpo, ano: 0 }))).status).toBe(400);
     expect((await POST(requisicao("POST", { ...corpo, descricao: "" }))).status).toBe(400);
     expect((await POST(requisicao("POST", { ...corpo, imageData: "inválida", imagemTipo: "image/jpeg" }))).status).toBe(400);

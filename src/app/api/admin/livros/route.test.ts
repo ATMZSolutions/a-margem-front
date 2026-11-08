@@ -47,11 +47,13 @@ describe("API administrativa de livros", () => {
     expect(mocks.criar).toHaveBeenCalledWith({ data: corpo });
 
     expect((await POST(requisicao("POST", { ...corpo, imageData: pngBase64, imagemTipo: "image/png" }))).status).toBe(201);
-    expect(mocks.criar).toHaveBeenLastCalledWith({ data: {
+    expect(mocks.criar).toHaveBeenLastCalledWith({ data: expect.objectContaining({
       ...corpo,
-      imagem: Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00]),
+      imagem: expect.any(Uint8Array),
       imagemTipo: "image/png",
-    } });
+    }) });
+    const imagemCriada = mocks.criar.mock.calls.at(-1)?.[0].data.imagem as Uint8Array;
+    expect(Array.from(imagemCriada)).toEqual([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00]);
     expect((await POST(requisicao("POST", { ...corpo, imageData: "inválida", imagemTipo: "image/png" }))).status).toBe(400);
     expect((await POST(requisicao("POST", { ...corpo, titulo: "" }))).status).toBe(400);
   });
