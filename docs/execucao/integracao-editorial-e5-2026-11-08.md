@@ -47,9 +47,11 @@ Em **08/11/2026**, as dez rotas públicas principais (`/`, `/agenda`, `/coletivo
 
 As mesmas 13 rotas foram verificadas em **1280×900**: cada uma apresentou conteúdo, elemento principal e `scrollWidth` igual à largura útil da página. Títulos, descrições e canônicas dos detalhes foram conferidos após a conclusão da geração assíncrona de metadados.
 
-O login e o shell do painel também foram conferidos em 390×844; Sobre e Publicação e SEO carregaram sem overflow. A sidebar desktop foi compactada para itens de 48 px, alinhada ao header e tornada rolável quando a altura da janela não comportar a lista completa. Ela usa a mesma lista de áreas do seletor mobile; a checagem visual final desta correção fica junto da revisão dos editores restantes.
+O login e o shell do painel também foram conferidos em 390×844; Sobre e Publicação e SEO carregaram sem overflow. A sidebar desktop foi compactada para itens de 48 px, alinhada ao header e tornada rolável quando a altura da janela não comportar a lista completa. Com o staging ativado, a captura desktop em **1826×925** mostrou as 12 áreas no menu, todas dentro da viewport.
 
-A revisão dos formulários restantes não terminou: durante a alternância de módulos, o staging acusou saturação do pool (`EMAXCONNSESSION`, limite de 15 clientes), com respostas 500 em algumas consultas GET e 200 em novas tentativas. O servidor Next local encerrou antes da confirmação final de Página de projetos e Configurações. Não houve POST/PUT/DELETE nem gravação no Supabase nesta auditoria.
+Uma captura desktop posterior mostrou apenas as cinco áreas legadas porque `CONTEUDO_EDITORIAL_SUPABASE_ATIVO` estava ausente no processo local. O filtro era intencional: desligado, as APIs editoriais retornam 503. Foi adicionado `yarn dev:staging`, que valida referência, SSL e topologia `bancos-separados` do `.env.staging.local`, mapeia as credenciais de staging e liga o flag somente no processo Next iniciado por esse comando. Ele não executa o importador nem grava dados ao iniciar; os salvamentos feitos no painel apontam para o staging.
+
+A revisão visual dos formulários restantes não terminou: durante a alternância anterior de módulos, o staging acusou saturação do pool (`EMAXCONNSESSION`, limite de 15 clientes), com respostas 500 em algumas consultas GET e 200 em novas tentativas. Com `dev:staging`, a leitura de Página de projetos retornou 200; falta revisar visualmente seus campos e os de Configurações. Não houve POST/PUT/DELETE nem gravação no Supabase nesta auditoria.
 
 ## Pendências para concluir E5
 
