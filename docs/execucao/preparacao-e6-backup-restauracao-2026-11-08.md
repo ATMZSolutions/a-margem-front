@@ -32,9 +32,25 @@ O restore do arquivo custom valida a compatibilidade do dump `public` com Postgr
 
 O manifesto de conteúdo da E0 também foi validado separadamente: ele liga as 58 fontes e 70 mídias ao SHA informado para o deploy (`c05ce1b791569f4c577571f7cef236708b64f3aa`). Esse snapshot é útil para a importação e conferência dos ativos versionados, mas não substitui o dump do banco.
 
+## Comparação somente leitura: origem e staging
+
+Em 08/11/2026, a origem (`ekbgtafcgsjaeahuxojy`) e o staging (`fyhihydxigsrcxfrtmcz`) foram consultados em transações `REPEATABLE READ READ ONLY`. O status do Prisma confirmou quatro migrações e `Database schema is up to date` no staging. Uma comparação inicial pelo Prisma gerado encontrou `Agenda.ordem` ausente na origem; isso é esperado, pois `ordem`, `estado` e `seo` foram adicionados pela E5 apenas no staging. A comparação foi refeita usando as colunas do baseline legado em ambas as bases.
+
+Os hashes abaixo cobrem todas as colunas legadas por linha, ordenadas pela chave primária; os blobs foram normalizados por tamanho e SHA-256. As cinco tabelas conferem, sem delta de dados legado entre origem e staging neste instante:
+
+| Tabela | Linhas | SHA-256 (origem = staging) |
+| --- | ---: | --- |
+| Agenda | 49 | `d47f89707d0035420d23def668a771a63548c25484ee662e445539ca201d90c4` |
+| Noticia | 15 | `c600930e4969e9bd7c48646db1786f93a1b2517ba298f5d47795625ece7cb2d5` |
+| Livro | 2 | `5e06c91307047e30c2e102185da2a5ed44972acbc9eb6f674c6c556ddd3bba6b` |
+| Projeto | 23 | `52f2030e1eff28f6e01ba0044dfbb33c180f839a802cb72fcdc5ee739e9b3294` |
+| Sobre | 4 | `9343a6a977700d14e3103bbcca6ab6b3cd2779b582d5a583d6807716ae94af92` |
+
+Esse resultado confirma os cinco conjuntos legados no momento da leitura; o delta precisa ser repetido imediatamente antes do corte, pois a origem pode receber novas gravações até lá. As colunas novas de E5 foram conferidas no staging pelo status da cadeia e permanecem ausentes na origem até a aplicação autorizada das migrações.
+
 ## Limites e ações restantes
 
-E6 ainda não está concluída. Antes da carga e do corte em produção, falta:
+E6 ainda não está concluída. Antes do corte em produção, falta:
 
 1. Preparar o delta final entre o snapshot confirmado e o estado atual, aplicar somente migrações aditivas revisadas e comparar contagens, campos, hashes, sequências e referências.
 2. Inspecionar e tratar separadamente quaisquer novos objetos de Storage; a observação atual encontrou zero buckets em produção.
