@@ -16,7 +16,8 @@ async function executar() {
   const baseline = prepararBaseline(catalogo);
   if (!baseline.problemas.length) {
     const versionado = await readFile(path.join(raiz, 'prisma/migrations/0_base_legada/migration.sql'), 'utf8');
-    baseline.confereComBaselineVersionado = baseline.sql === versionado;
+    const normalizarFim = (sql) => sql.replace(/(?:\r?\n)+$/, '');
+    baseline.confereComBaselineVersionado = normalizarFim(baseline.sql) === normalizarFim(versionado);
     if (!baseline.confereComBaselineVersionado) baseline.problemas.push('Estado observado diverge do baseline versionado; não registrar como aplicado');
   }
   const saida = path.resolve(raiz, values.saida ?? '.conteudo-migracao/reconciliacao');

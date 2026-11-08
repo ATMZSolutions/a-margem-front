@@ -88,9 +88,9 @@ O orquestrador e os adaptadores PostgreSQL/Prisma e Storage estão ligados ao co
 
 ## Próximas etapas
 
-1. Confirmar se o manifesto representa exatamente a revisão publicada; atualizar o snapshot se a revisão publicada divergir (E0).
+1. E0 foi concluída para o SHA de deployment informado pelo responsável (`c05ce1b`) e a origem configurada. O manifesto local confirmado está em `.conteudo-migracao/inventario-e0-confirmado.json`; ele contém dados e blobs e não deve ser versionado nem compartilhado.
 2. Planejar E6 separadamente: backup e restauração ensaiados, delta final e corte reversível em produção. Não executar gravações em produção sem esse preparo.
 
-Os resultados da projeção e do ensaio com o manifesto local estão em [validação dos DTOs e mídias](../../docs/execucao/projecao-dtos-midias-2026-11-07.md). O staging agora contém schema, conteúdo e objetos verificados para este manifesto. A origem e produção não foram alteradas.
+Os resultados da projeção e do ensaio com o manifesto local estão em [validação dos DTOs e mídias](../../docs/execucao/projecao-dtos-midias-2026-11-07.md), e a reconciliação final está em [validação E0](../../docs/execucao/validacao-e0-publicacao-manifesto-2026-11-08.md). Os registros e blobs do manifesto confirmado são idênticos aos já importados no staging, embora o marcador de execução existente esteja ligado ao manifesto anterior. A origem e produção não foram alteradas.
 
 Testes: `yarn test:run scripts/conteudo/`. Inventário, adaptadores, snapshot e planejamento integram o gate de cobertura do projeto. Os testes do banco usam cliente controlado; a consulta real realizada é registrada no relatório de execução, sem credenciais ou conteúdo sensível.
