@@ -1,9 +1,12 @@
 "use client"
 import { BufferData } from "@/app/admin/AdminClient";
-import Image from "next/image";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button, ConfigProvider, Input, Modal, Pagination } from "antd";
 import LivroCard from "./subcomponents/LivroCard";
+import EstadoLista from "./EstadoLista";
+import CabecalhoSecao from "./CabecalhoSecao";
+import CampoImagemAdmin from "./campo-imagem-admin";
+import { buscarJsonAdministrativo, invalidarDadosCacheados, lerDadosCacheados, obterDadosCacheados } from "@/lib/cache-administrativo";
 
 type LivroItem = {
     id?: number;
@@ -16,7 +19,8 @@ type LivroItem = {
 };
 
 const AdminLivro = () => {
-    const [livros, setLivros] = useState<LivroItem[]>([]);
+    const dadosIniciais = lerDadosCacheados<LivroItem[]>("admin:livros");
+    const [livros, setLivros] = useState<LivroItem[]>(dadosIniciais ?? []);
     const [newLivro, setNewLivro] = useState<LivroItem>({
         titulo: "",
         autor: "",
@@ -32,10 +36,11 @@ const AdminLivro = () => {
     const [filter, setFilter] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const [processingEdit, setProcessingEdit] = useState(false);
-    const pageSize = 2;
+    const pageSize = 3;
     const fileInputRef = useRef<HTMLInputElement>(null);
     const editFileInputRef = useRef<HTMLInputElement>(null);
-    const [dataLoading, setDataLoading] = useState<boolean>(true);
+    const [dataLoading, setDataLoading] = useState<boolean>(dadosIniciais === undefined);
+    const [mostrarFormulario, setMostrarFormulario] = useState(false);
 
     // --- Lógica de Filtro e Paginação ---
     const filteredLivros = useMemo(() => {
@@ -51,25 +56,28 @@ const AdminLivro = () => {
     }, [filteredLivros, currentPage]);
 
     // --- Carregamento de Dados ---
-    async function load() {
+    const load = useCallback(async (forcarAtualizacao = false) => {
+        if (forcarAtualizacao) invalidarDadosCacheados("admin:livros");
         try {
-            const l = await fetch("/api/admin/livros").then((r) => r.json());
-            const livrosWithImageUrls = (l || []).map((livro: LivroItem) => ({
-                ...livro,
-                imagem: livro.imagem ? `/api/image/livro/${livro.id}?${new Date().getTime()}` : undefined
-            }));
-            setLivros(livrosWithImageUrls);
+            const livrosComImagens = await obterDadosCacheados("admin:livros", async () => {
+                const livros = await buscarJsonAdministrativo<LivroItem[]>("/api/admin/livros");
+                return (livros || []).map((livro) => ({
+                    ...livro,
+                    imagem: livro.imagem ? `/api/image/livro/${livro.id}?${Date.now()}` : undefined,
+                }));
+            });
+            setLivros(livrosComImagens || []);
         } catch (error) {
             console.error("Falha ao carregar livros:", error);
             modal.error({ title: "Erro", content: "Falha ao carregar livros." });
         } finally {
             setDataLoading(false)
         }
-    }
+    }, [modal]);
 
     useEffect(() => {
-        load();
-    }, []);
+        void load();
+    }, [load]);
 
     useEffect(() => {
         setCurrentPage(1);
@@ -129,14 +137,15 @@ const AdminLivro = () => {
             if (!res.ok) throw new Error("Falha ao criar livro");
 
             setNewLivro({ titulo: "", autor: "", descricao: "", imagem: "" });
-            await load();
+            setMostrarFormulario(false);
+            await load(true);
             modal.success({ title: "Sucesso", content: "Livro criado com sucesso!" });
 
             // Limpa o input de arquivo usando ref
             if (fileInputRef.current) {
                 fileInputRef.current.value = '';
             }
-        } catch (err) {
+        } catch {
             modal.error({ title: "Erro", content: "Não foi possível criar o livro." });
         } finally {
             setLoading(false);
@@ -158,14 +167,14 @@ const AdminLivro = () => {
                     // Verifica se vai ficar sem itens na página atual após exclusão
                     const willBeEmptyPage = currentLivros.length === 1 && currentPage > 1;
 
-                    await load();
+                    await load(true);
 
                     // Ajusta a página se necessário
                     if (willBeEmptyPage) {
                         setCurrentPage(currentPage - 1);
                     }
                     modal.success({ title: "Sucesso", content: "Livro excluído com sucesso!" });
-                } catch (err) {
+                } catch {
                     modal.error({ title: "Erro", content: "Não foi possível excluir o livro." });
                 }
             }
@@ -191,14 +200,14 @@ const AdminLivro = () => {
             if (!res.ok) throw new Error("Falha ao atualizar livro");
 
             setEditingLivro(null);
-            await load();
+            await load(true);
 
             modal.success({ title: "Sucesso", content: "Livro atualizado com sucesso!" });
             // Limpa o input de arquivo usando ref
             if (editFileInputRef.current) {
                 editFileInputRef.current.value = '';
             }
-        } catch (err) {
+        } catch {
             modal.error({ title: "Erro", content: "Não foi possível atualizar o livro." });
         } finally {
             setProcessingEdit(false);
@@ -211,94 +220,96 @@ const AdminLivro = () => {
     };
 
     return (
-        <section className="mb-8 w-auto gap-20 bg-black/50 p-4 rounded">
+        <section className="space-y-4" aria-labelledby="admin-secao-titulo">
+            <CabecalhoSecao titulo="Livros" descricao="Cadastre obras e referências ligadas ao coletivo." acao="Novo livro" aberto={mostrarFormulario} aoAlternar={() => setMostrarFormulario((visivel) => !visivel)} />
+            <div className="w-full rounded-xl border border-slate-300 bg-white p-4 sm:p-6 2xl:p-5">
             {contextHolder}
             <ConfigProvider
                 theme={{
                     components: {
                         Pagination: {
-                            itemBg: "#ffffff20",
-                            itemActiveBg: "#FF6900",
-                            colorPrimary: "#ffffffff",
-                            colorText: "white",
-                            colorPrimaryHover: "#ffa366",
-                            colorTextDisabled: "rgba(255,255,255,0.3)",
-                            itemLinkBg: "transparent",
+                            itemBg: "#ffffff",
+                            itemActiveBg: "#fff1df",
+                            colorPrimary: "#412551",
+                            colorText: "#334155",
+                            colorPrimaryHover: "#681A01",
+                            colorTextDisabled: "#94a3b8",
+                            itemLinkBg: "#ffffff",
                         },
                         Button: {
-                            defaultBg: "#FF6900",
-                            defaultBorderColor: "#FF6900",
-                            defaultHoverBg: "#e05900",
-                            defaultHoverBorderColor: "#e05900",
-                            defaultHoverColor: "white",
-                            defaultColor: "white",
+                            defaultBg: "#ffffff",
+                            defaultBorderColor: "#cbd5e1",
+                            defaultHoverBg: "#f8fafc",
+                            defaultHoverBorderColor: "#94a3b8",
+                            defaultHoverColor: "#0f172a",
+                            defaultColor: "#334155",
+                            colorPrimary: "#F38901",
+                            colorPrimaryHover: "#FECA55",
+                            colorTextLightSolid: "#241c26",
                         },
                         Input: {
-                            colorText: 'white',
-                            colorTextPlaceholder: 'rgba(255, 255, 255, 0.45)',
+                            colorText: '#0f172a',
+                            colorTextPlaceholder: '#64748b',
                         }
                     },
                 }}
             >
-                <h2 className="text-xl border-l-4 my-4 border-orange-500 pl-2 font-semibold">
-                    Livros
-                </h2>
-
                 {/* Formulário de criação */}
-                <form onSubmit={createLivro} className="space-y-3 my-3">
+                {mostrarFormulario && <form onSubmit={createLivro} className="my-5 space-y-4 rounded-xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-700">Título
                         <input
                             required
-                            placeholder="Título"
                             value={newLivro.titulo}
                             onChange={(e) => setNewLivro({ ...newLivro, titulo: e.target.value })}
-                            className="p-2 text-white rounded border border-white bg-transparent placeholder:text-white/45"
+                            className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 text-base text-slate-900 focus:border-[#412551] focus:outline-none focus:ring-2 focus:ring-[#412551]/20"
                         />
+                        </label>
+                        <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-700">Autor
                         <input
                             required
-                            placeholder="Autor"
                             value={newLivro.autor}
                             onChange={(e) => setNewLivro({ ...newLivro, autor: e.target.value })}
-                            className="p-2 text-white rounded border border-white bg-transparent placeholder:text-white/45"
+                            className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 text-base text-slate-900 focus:border-[#412551] focus:outline-none focus:ring-2 focus:ring-[#412551]/20"
                         />
+                        </label>
                     </div>
+                    <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-700">Descrição
                     <textarea
                         required
-                        placeholder="Descrição"
                         value={newLivro.descricao}
                         onChange={(e) => setNewLivro({ ...newLivro, descricao: e.target.value })}
-                        className="w-full p-2 text-white rounded border border-white bg-transparent placeholder:text-white/45"
-                        rows={3}
+                        className="w-full min-h-28 rounded-lg border border-slate-300 bg-white px-3 py-2 text-base text-slate-900 focus:border-[#412551] focus:outline-none focus:ring-2 focus:ring-[#412551]/20"
+                        rows={4}
                     />
-                    <div className="flex gap-3 items-center">
-                        <input
-                            ref={fileInputRef}
-                            type="file"
-                            accept="image/jpeg,image/png,image/webp"
-                            required
-                            onChange={(e) => handleImageUpload(e, 'new')}
-                            disabled={uploadingImage}
-                            className="w-full p-2 border border-white rounded text-white bg-transparent file:mr-4 file:py-1 file:px-4 file:rounded file:border-0 file:text-sm file:bg-orange-500 file:text-white hover:file:bg-orange-600"
-                        />
-                        {uploadingImage && <span className="text-yellow-400">Enviando...</span>}
-                        {newLivro.imagem && (
-                            <Image src={newLivro.imagem} alt="Preview" width={48} height={48} unoptimized className="w-12 h-12 object-cover rounded" />
-                        )}
-                    </div>
+                    </label>
+                    <CampoImagemAdmin
+                        id="imagem-livro"
+                        titulo="Capa do livro"
+                        ajuda="Escolha uma imagem para identificar a obra."
+                        imagem={newLivro.imagem}
+                        textoAlternativo="Prévia da capa do livro"
+                        aspecto="retrato"
+                        obrigatoria
+                        enviando={uploadingImage}
+                        referencia={fileInputRef}
+                        aoSelecionar={(e) => handleImageUpload(e, "new")}
+                    />
                     <Button
+                        type="primary"
                         style={{ padding: 18, fontSize: '16px', borderRadius: '4px', width: '100%' }}
                         htmlType="submit"
                         loading={loading || uploadingImage}
                     >
-                        Adicionar Livro
+                        Publicar livro
                     </Button>
-                </form>
+                </form>}
 
                 {/* Lista de livros */}
                 {livros.length > 0 && (
                     <div className="my-4">
                         <div className="flex items-center justify-between mb-2">
-                            <h3 className="text-lg font-semibold">Livros cadastrados:</h3>
+                            <h3 className="text-lg font-bold text-[#19121d]">Livros cadastrados</h3>
                             {filter && (
                                 <Button
                                     size="small"
@@ -310,10 +321,11 @@ const AdminLivro = () => {
                             )}
                         </div>
                         <Input.Search
+                            aria-label="Buscar livros por título"
                             placeholder="Filtrar por título..."
                             value={filter}
                             onChange={(e) => setFilter(e.target.value)}
-                            className="[&_.ant-input-search-button_.anticon]:!text-white/60 hover:[&_.ant-input-search-button_.anticon]:!text-white border border-white rounded"
+                            className="[&_.ant-input-search-button_.anticon]:!text-slate-500 hover:[&_.ant-input-search-button_.anticon]:!text-slate-900 border border-slate-300 rounded-lg"
                             variant="borderless"
                             allowClear
                         />
@@ -322,7 +334,7 @@ const AdminLivro = () => {
 
                 {/* Lista de livros */}
                 {currentLivros.length > 0 ? (
-                    <ul className="space-y-4">
+                    <ul className="divide-y divide-slate-300 border-t border-slate-300">
                         {currentLivros.map((l) => (
                             <LivroCard
                                 key={l.id}
@@ -341,19 +353,20 @@ const AdminLivro = () => {
                         ))}
                     </ul>
                 ) : (
-                    <div className="text-center py-8 text-white/60">
-                        {filter
-                            ? "Nenhum livro encontrado para o filtro aplicado."
-                            : dataLoading
-                                ? ("Carregando...")
-                                : "Nenhum livro cadastrado."}
-                    </div>
+                    <EstadoLista
+                        carregando={dataLoading}
+                        buscando={Boolean(filter)}
+                        mensagemVazia="Ainda não há livros. Cadastre o primeiro para começar."
+                        textoAcao="Cadastrar primeiro livro"
+                        aoCriar={() => setMostrarFormulario(true)}
+                    />
                 )}
 
                 {/* Paginação */}
                 {filteredLivros.length > pageSize && (
                     <div className="flex mt-6 mb-4 w-full justify-center">
                         <Pagination
+                            aria-label="Navegação de páginas de livros"
                             current={currentPage}
                             pageSize={pageSize}
                             total={filteredLivros.length}
@@ -361,17 +374,11 @@ const AdminLivro = () => {
                             onChange={(page) => setCurrentPage(page)}
                             showSizeChanger={false}
                             className="custom-pagination"
-                            itemRender={(page, type, originalElement) => {
-                                const el = originalElement as React.ReactElement<{ className?: string; children?: React.ReactNode }>;
-                                const isActive = el.props?.className?.includes("ant-pagination-item-active");
-                                const classes = `text-white hover:text-white ${isActive ? "font-bold" : ""}`;
-                                if (type === "page") return <a className={classes}>{page}</a>;
-                                return <a className={classes}>{el.props?.children}</a>;
-                            }}
                         />
                     </div>
                 )}
             </ConfigProvider>
+            </div>
         </section>
     )
 }

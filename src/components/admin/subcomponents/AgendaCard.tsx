@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
-import { Button, Input } from "antd";
+import { Button } from "antd";
+import { CalendarDays, Pencil, Trash2 } from "lucide-react";
 
 export interface AgendaItem {
     id?: number;
@@ -38,100 +39,99 @@ const AgendaCard: React.FC<AgendaCardProps> = ({
     onDelete,
 }) => {
     return (
-        <li className="bg-black/30 px-4 py-3 rounded-lg flex-1">
+        <li className="py-4 first:pt-4 last:pb-0 2xl:py-3">
             {isEditing ? (
-                <form onSubmit={onEditSubmit} className="space-y-2">
+                <form onSubmit={onEditSubmit} className="space-y-4 rounded-lg bg-slate-50 p-4">
+                    <h3 className="text-sm font-semibold text-slate-900">Editar agenda</h3>
+                    <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-700">Título
                     <input
                         required
-                        placeholder="Título"
                         value={agenda.titulo}
                         onChange={(e) => onEditChange({ titulo: e.target.value })}
-                        className="w-full p-1 border border-white rounded text-white bg-transparent"
+                        className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-base text-slate-900 focus:border-[#412551] focus:outline-none focus:ring-2 focus:ring-[#412551]/20"
                     />
-                    <div className="flex gap-2">
+                    </label>
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-700">Data
                         <input
                             required
                             type="date"
-                            style={{ color: 'white' }}
                             value={new Date(agenda.data).toISOString().split("T")[0]}
                             onChange={(e) => onEditChange({ data: e.target.value })}
-                            className="flex-1 p-1 border border-white rounded text-white bg-transparent"
+                            className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-base text-slate-900 focus:border-[#412551] focus:outline-none focus:ring-2 focus:ring-[#412551]/20"
                         />
+                        </label>
+                        <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-700">Horário
                         <input
                             type="time"
                             value={editingAgendaTime}
                             onChange={(e) => onTimeChange(e.target.value)}
-                            className="flex-1 p-1 border border-white rounded text-white bg-transparent"
+                            className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-base text-slate-900 focus:border-[#412551] focus:outline-none focus:ring-2 focus:ring-[#412551]/20"
                         />
+                        </label>
                     </div>
-
+                    <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-700">Cidade
                     <input
-                        placeholder="Cidade"
                         value={agenda.cidade || ""}
                         onChange={(e) => onEditChange({ cidade: e.target.value })}
-                        className="w-full p-1 border border-white rounded text-white bg-transparent"
+                        className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-base text-slate-900 focus:border-[#412551] focus:outline-none focus:ring-2 focus:ring-[#412551]/20"
                     />
-
+                    </label>
+                    <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-700">Local
                     <input
-                        placeholder="Local"
                         value={agenda.local || ""}
                         onChange={(e) => onEditChange({ local: e.target.value })}
-                        className="w-full p-1 border border-white rounded text-white bg-transparent"
+                        className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-base text-slate-900 focus:border-[#412551] focus:outline-none focus:ring-2 focus:ring-[#412551]/20"
                     />
-
-                    <div className="flex gap-2">
+                    </label>
+                    <div className="flex flex-wrap gap-2">
                         <Button
+                            type="primary"
                             htmlType="submit"
                             loading={loading}
-                            style={{
-                                padding: 10,
-                                fontSize: "16px",
-                                borderRadius: "4px",
-                                backgroundColor: "green",
-                                borderColor: "green",
-                            }}
+                            className="min-h-11 2xl:min-h-10"
                         >
-                            Salvar
+                            Salvar alterações
                         </Button>
-                        <button
-                            type="button"
+                        <Button
                             onClick={onEditCancel}
-                            className="bg-gray-600 px-3 py-1 rounded hover:bg-gray-700"
+                            disabled={processingEdit}
+                            className="min-h-11 2xl:min-h-10"
                         >
                             Cancelar
-                        </button>
+                        </Button>
                     </div>
                 </form>
             ) : (
-                <div className="flex justify-between items-center gap-2">
-                    <div>
-                        <div className="font-semibold text-sm">{agenda.titulo}</div>
-                        <div className="text-gray-300 text-xs">
+                <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+                    <div className="flex min-w-0 flex-1 items-center gap-3">
+                        <span aria-hidden="true" className="grid size-11 shrink-0 place-items-center rounded-lg bg-[#f2f0f3] text-[#412551] 2xl:size-10">
+                            <CalendarDays className="size-5 2xl:size-[18px]" />
+                        </span>
+                        <span aria-hidden="true" className="hidden w-px self-stretch bg-slate-300 sm:block" />
+                        <div className="min-w-0 flex-1">
+                        <h3 className="text-sm font-bold text-[#19121d]">{agenda.titulo}</h3>
+                        <div className="mt-1 text-sm text-slate-600">
                             {new Date(agenda.data).toLocaleString("pt-BR")} —{" "}
                             {agenda.local || "Sem local"} — {agenda.cidade || "Sem cidade"}
                         </div>
+                        </div>
                     </div>
-                    <div className="flex flex-col gap-2">
+                    <div className="flex shrink-0 gap-2 sm:pl-4">
                         <Button
                             onClick={() => onEditStart(agenda)}
                             loading={processingEdit}
-                            style={{
-                                fontSize: "14px",
-                                borderRadius: "4px",
-                                backgroundColor: "blue",
-                                borderColor: "blue",
-                            }}
+                            icon={<Pencil size={15} aria-hidden="true" />}
+                            className="min-h-11 2xl:min-h-10"
                         >
                             Editar
                         </Button>
                         <Button
+                            danger
                             onClick={() => onDelete(agenda.id)}
-                            style={{
-                                fontSize: "14px",
-                                borderRadius: "4px",
-                                backgroundColor: "red",
-                                borderColor: "red",
-                            }}            >
+                            icon={<Trash2 size={15} aria-hidden="true" />}
+                            className="min-h-11 2xl:min-h-10"
+                        >
                             Excluir
                         </Button>
                     </div>

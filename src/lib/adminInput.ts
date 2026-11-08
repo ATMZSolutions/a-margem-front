@@ -47,7 +47,7 @@ export function isPositiveInteger(value: unknown): value is number {
 
 export function decodeImageData(value: unknown, mimeType: unknown): Buffer | null {
   if (typeof value !== "string" || value.length > Math.ceil(MAX_IMAGE_BYTES * 4 / 3) + 4) return null;
-  if (!/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(value)) return null;
+  if (value.length % 4 !== 0 || !/^[A-Za-z0-9+/]*={0,2}$/.test(value)) return null;
   const buffer = Buffer.from(value, "base64");
   if (buffer.length === 0 || buffer.length > MAX_IMAGE_BYTES) return null;
 

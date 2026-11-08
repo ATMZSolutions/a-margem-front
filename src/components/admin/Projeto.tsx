@@ -1,6 +1,9 @@
-import { useEffect, useState, useMemo } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 import { Button, ConfigProvider, Input, Modal, Pagination } from "antd";
 import ProjetoCard from "./subcomponents/ProjetoCard";
+import EstadoLista from "./EstadoLista";
+import CabecalhoSecao from "./CabecalhoSecao";
+import { buscarJsonAdministrativo, invalidarDadosCacheados, lerDadosCacheados, obterDadosCacheados } from "@/lib/cache-administrativo";
 
 type ProjetoItem = {
     id?: number;
@@ -9,7 +12,8 @@ type ProjetoItem = {
 };
 
 const AdminProjeto = () => {
-    const [projetos, setProjetos] = useState<ProjetoItem[]>([]);
+    const dadosIniciais = lerDadosCacheados<ProjetoItem[]>("admin:projetos");
+    const [projetos, setProjetos] = useState<ProjetoItem[]>(dadosIniciais ?? []);
     const [newProjeto, setNewProjeto] = useState<ProjetoItem>({
         data: "",
         descricao: "",
@@ -18,11 +22,12 @@ const AdminProjeto = () => {
 
     // --- Novos Estados ---
     const [loading, setLoading] = useState(false);
-    const [dataLoading, setDataLoading] = useState<boolean>(true)
+    const [dataLoading, setDataLoading] = useState<boolean>(dadosIniciais === undefined)
     const [modal, contextHolder] = Modal.useModal();
     const [filter, setFilter] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const [processingEdit, setProcessingEdit] = useState(false);
+    const [mostrarFormulario, setMostrarFormulario] = useState(false);
     const pageSize = 3;
 
     // --- Lógica de Filtro e Paginação ---
@@ -38,9 +43,12 @@ const AdminProjeto = () => {
         return filteredProjetos.slice(startIndex, startIndex + pageSize);
     }, [filteredProjetos, currentPage]);
 
-    async function load() {
+    const load = useCallback(async (forcarAtualizacao = false) => {
+        if (forcarAtualizacao) invalidarDadosCacheados("admin:projetos");
         try {
-            const p = await fetch("/api/admin/projeto").then((r) => r.json());
+            const p = await obterDadosCacheados("admin:projetos", () =>
+                buscarJsonAdministrativo<ProjetoItem[]>("/api/admin/projeto")
+            );
             setProjetos(p || []);
         } catch (error) {
             console.error("Falha ao carregar projetos:", error);
@@ -48,11 +56,11 @@ const AdminProjeto = () => {
         } finally {
             setDataLoading(false)
         }
-    }
+    }, [modal]);
 
     useEffect(() => {
-        load();
-    }, []);
+        void load();
+    }, [load]);
 
     useEffect(() => {
         setCurrentPage(1);
@@ -81,9 +89,10 @@ const AdminProjeto = () => {
             if (!res.ok) throw new Error("Falha ao criar projeto");
 
             setNewProjeto({ data: "", descricao: "" });
-            await load();
+            setMostrarFormulario(false);
+            await load(true);
             modal.success({ title: "Sucesso", content: "Projeto criado com sucesso!" });
-        } catch (err) {
+        } catch {
             modal.error({ title: "Erro", content: "Não foi possível criar o projeto." });
         } finally {
             setLoading(false);
@@ -106,26 +115,18 @@ const AdminProjeto = () => {
                     // Verifica se vai ficar sem itens na página atual após exclusão
                     const willBeEmptyPage = currentProjetos.length === 1 && currentPage > 1;
 
-                    await load();
+                    await load(true);
 
                     // Ajusta a página se necessário
                     if (willBeEmptyPage) {
                         setCurrentPage(currentPage - 1);
                     }
                     modal.success({ title: "Sucesso", content: "Projeto excluído com sucesso!" });
-                } catch (err) {
+                } catch {
                     modal.error({ title: "Erro", content: "Não foi possível excluir o projeto." });
                 }
             }
         });
-    }
-
-    function startEditProjeto(projeto: ProjetoItem) {
-        setEditingProjeto(projeto);
-    }
-
-    function cancelEditProjeto() {
-        setEditingProjeto(null);
     }
 
     async function updateProjeto(e: React.FormEvent) {
@@ -152,9 +153,9 @@ const AdminProjeto = () => {
             if (!res.ok) throw new Error("Falha ao atualizar projeto");
 
             setEditingProjeto(null);
-            await load();
+            await load(true);
             modal.success({ title: "Sucesso", content: "Projeto atualizado com sucesso!" });
-        } catch (err) {
+        } catch {
             modal.error({ title: "Erro", content: "Não foi possível atualizar o projeto." });
         } finally {
             setProcessingEdit(false);
@@ -167,75 +168,79 @@ const AdminProjeto = () => {
     };
 
     return (
-        <section className="mb-8 w-auto gap-20 bg-black/50 p-4 rounded">
+        <section className="space-y-4" aria-labelledby="admin-secao-titulo">
+            <CabecalhoSecao titulo="Projetos" descricao="Registre ações e iniciativas do coletivo." acao="Novo projeto" aberto={mostrarFormulario} aoAlternar={() => setMostrarFormulario((visivel) => !visivel)} />
+            <div className="w-full rounded-xl border border-slate-300 bg-white p-4 sm:p-6 2xl:p-5">
             {contextHolder}
             <ConfigProvider
                 theme={{
                     components: {
                         Pagination: {
-                            itemBg: "#ffffff20",
-                            itemActiveBg: "#FF6900",
-                            colorPrimary: "#ffffffff",
-                            colorText: "white",
-                            colorPrimaryHover: "#ffa366",
-                            colorTextDisabled: "rgba(255,255,255,0.3)",
-                            itemLinkBg: "transparent",
+                            itemBg: "#ffffff",
+                            itemActiveBg: "#fff1df",
+                            colorPrimary: "#412551",
+                            colorText: "#334155",
+                            colorPrimaryHover: "#681A01",
+                            colorTextDisabled: "#94a3b8",
+                            itemLinkBg: "#ffffff",
                         },
                         Button: {
-                            defaultBg: "#FF6900",
-                            defaultBorderColor: "#FF6900",
-                            defaultHoverBg: "#e05900",
-                            defaultHoverBorderColor: "#e05900",
-                            defaultHoverColor: "white",
-                            defaultColor: "white",
+                            defaultBg: "#ffffff",
+                            defaultBorderColor: "#cbd5e1",
+                            defaultHoverBg: "#f8fafc",
+                            defaultHoverBorderColor: "#94a3b8",
+                            defaultHoverColor: "#0f172a",
+                            defaultColor: "#334155",
+                            colorPrimary: "#F38901",
+                            colorPrimaryHover: "#FECA55",
+                            colorTextLightSolid: "#241c26",
                         },
                         Input: {
-                            colorText: 'white',
-                            colorTextPlaceholder: 'rgba(255, 255, 255, 0.45)',
+                            colorText: '#0f172a',
+                            colorTextPlaceholder: '#64748b',
                         }
                     },
                 }}
             >
-                <h2 className="text-xl border-l-4 my-4 border-orange-500 pl-2 font-semibold">
-                    Projetos
-                </h2>
-
                 {/* Formulário de criação */}
-                <form onSubmit={createProjeto} className="space-y-3 my-3">
+                {mostrarFormulario && <form onSubmit={createProjeto} className="my-5 space-y-4 rounded-xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
+                    <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-700">Data
                     <input
                         required
                         type="date"
-                        placeholder="Data"
                         value={newProjeto.data}
                         onChange={(e) =>
                             setNewProjeto({ ...newProjeto, data: e.target.value })
                         }
-                        className="w-full p-2 text-white rounded border border-white bg-transparent"
+                        className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-base text-slate-900 focus:border-[#412551] focus:outline-none focus:ring-2 focus:ring-[#412551]/20"
                     />
+                    </label>
+                    <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-700">Descrição
                     <textarea
                         required
-                        placeholder="Descrição"
                         value={newProjeto.descricao}
                         onChange={(e) =>
                             setNewProjeto({ ...newProjeto, descricao: e.target.value })
                         }
-                        className="w-full p-2 text-white rounded border border-white bg-transparent"
-                        rows={3}
+                        className="min-h-28 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-base text-slate-900 focus:border-[#412551] focus:outline-none focus:ring-2 focus:ring-[#412551]/20"
+                        rows={4}
                     />
+                    </label>
                     <Button
+                        type="primary"
                         style={{ padding: 18, fontSize: '16px', borderRadius: '4px', width: '100%' }}
                         htmlType="submit"
                         loading={loading}
                     >
-                        Adicionar Projeto
+                        Publicar projeto
                     </Button>
-                </form>
+                </form>}
 
                 {/* Filtro e lista de projetos */}
                 {projetos.length > 0 && (
                     <div className="my-4">
                         <div className="flex items-center justify-between mb-2">
-                            <h3 className="text-lg font-semibold">Projetos cadastrados:</h3>
+                            <h3 className="text-lg font-bold text-[#19121d]">Projetos cadastrados</h3>
                             {filter && (
                                 <Button
                                     size="small"
@@ -247,10 +252,11 @@ const AdminProjeto = () => {
                             )}
                         </div>
                         <Input.Search
+                            aria-label="Buscar projetos por descrição"
                             placeholder="Filtrar por descrição..."
                             value={filter}
                             onChange={(e) => setFilter(e.target.value)}
-                            className="[&_.ant-input-search-button_.anticon]:!text-white/60 hover:[&_.ant-input-search-button_.anticon]:!text-white border border-white rounded"
+                            className="[&_.ant-input-search-button_.anticon]:!text-slate-500 hover:[&_.ant-input-search-button_.anticon]:!text-slate-900 border border-slate-300 rounded-lg"
                             variant="borderless"
                             allowClear
                         />
@@ -259,7 +265,7 @@ const AdminProjeto = () => {
 
                 {/* Lista de projetos */}
                 {currentProjetos.length > 0 ? (
-                    <ul className="space-y-4">
+                    <ul className="divide-y divide-slate-300 border-t border-slate-300">
                         {currentProjetos.map((p) => (
                             <ProjetoCard
                                 key={p.id}
@@ -275,19 +281,20 @@ const AdminProjeto = () => {
                         ))}
                     </ul>
                 ) : (
-                    <div className="text-center py-8 text-white/60">
-                        {filter
-                            ? "Nenhum projeto encontrado para o filtro aplicado."
-                            : dataLoading
-                                ? ("Carregando...")
-                                : "Nenhum projeto cadastrado."}
-                    </div>
+                    <EstadoLista
+                        carregando={dataLoading}
+                        buscando={Boolean(filter)}
+                        mensagemVazia="Ainda não há projetos. Crie o primeiro para começar."
+                        textoAcao="Criar primeiro projeto"
+                        aoCriar={() => setMostrarFormulario(true)}
+                    />
                 )}
 
                 {/* Paginação */}
                 {filteredProjetos.length > pageSize && (
                     <div className="flex mt-6 mb-4 w-full justify-center">
                         <Pagination
+                            aria-label="Navegação de páginas de projetos"
                             responsive
                             current={currentPage}
                             pageSize={pageSize}
@@ -295,17 +302,11 @@ const AdminProjeto = () => {
                             onChange={(page) => setCurrentPage(page)}
                             showSizeChanger={false}
                             className="custom-pagination"
-                            itemRender={(page, type, originalElement) => {
-                                const el = originalElement as React.ReactElement<{ className?: string; children?: React.ReactNode }>;
-                                const isActive = el.props?.className?.includes("ant-pagination-item-active");
-                                const classes = `text-white hover:text-white ${isActive ? "font-bold" : ""}`;
-                                if (type === "page") return <a className={classes}>{page}</a>;
-                                return <a className={classes}>{el.props?.children}</a>;
-                            }}
                         />
                     </div>
                 )}
             </ConfigProvider>
+            </div>
         </section>
     )
 }
