@@ -52,13 +52,15 @@ Esse resultado confirma os cinco conjuntos legados no momento da leitura; o delt
 
 E6 ainda não está concluída. Antes do corte em produção, falta:
 
-1. Preparar o delta final entre o snapshot confirmado e o estado atual, aplicar somente migrações aditivas revisadas e comparar contagens, campos, hashes, sequências e referências.
-2. Inspecionar e tratar separadamente quaisquer novos objetos de Storage; a observação atual encontrou zero buckets em produção.
-3. Promover a versão revisada de `dev` para `main`, identificar o deploy e fazer uma janela de corte com plano de reversão.
-4. Antes de qualquer escrita de schema, carga, criação de bucket ou habilitação do novo leitor em produção, apresentar o plano concreto e obter autorização explícita. Nenhuma dessas escritas foi feita nesta preparação.
+1. Repetir o delta imediatamente antes do corte e comparar contagens, campos, hashes, sequências e referências.
+2. Preparar um executor específico de produção. O importador e wrapper de migrações atuais recusam `producao` e operam somente em staging.
+3. Configurar localmente uma conexão de migração com escrita e uma chave de serviço do projeto; `ORIGEM_DATABASE_URL` é somente leitura e não deve ser reutilizada para gravar.
+4. Inspecionar novamente Storage; a observação atual encontrou zero buckets em produção. O corte exigirá criar o bucket público configurado e importar mídia.
+5. Publicar a `main` local e identificar o deploy. O merge local já está feito; o remoto ainda não foi atualizado.
+6. Antes de qualquer escrita de schema, carga, criação de bucket ou habilitação do novo leitor em produção, apresentar a sequência concreta e obter autorização explícita. Nenhuma dessas escritas foi feita nesta preparação.
 
 O Supabase descreve que backups do banco não incluem bytes de objetos Storage; veja [backups de banco](https://supabase.com/docs/guides/platform/backups), [backup e restore pela CLI](https://supabase.com/docs/guides/platform/migrating-within-supabase/backup-restore) e [download de objetos](https://supabase.com/docs/guides/storage/management/download-objects). O plano Free não disponibilizou backup gerenciado na interface examinada; nenhuma alteração de plano foi feita.
 
 ## Git
 
-Esta atualização permanece na `dev`. `main` e `origin/main` continuam em `c05ce1b791569f4c577571f7cef236708b64f3aa`. Não houve merge, push nem deploy.
+O conteúdo de `dev` foi integrado localmente em `main` pelo merge `66dc909833fed3a62cbbb211f8228eaf4e1fcefc`, preservando `c05ce1b791569f4c577571f7cef236708b64f3aa` como ancestral. `origin/main` permanece em `c05ce1b791569f4c577571f7cef236708b64f3aa`; não houve push nem deploy.
