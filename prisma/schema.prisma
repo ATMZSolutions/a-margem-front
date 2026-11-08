@@ -8,45 +8,69 @@ datasource db {
 }
 
 model Agenda {
-  id        Int      @id @default(autoincrement())
+  id        Int              @id @default(autoincrement())
   titulo    String
-  data      DateTime @db.Timestamptz(6)
+  data      DateTime         @db.Timestamptz(6)
   local     String
-  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  createdAt DateTime         @default(now()) @db.Timestamptz(6)
   cidade    String
+  ordem     Int              @default(0)
+  estado    EstadoPublicacao @default(PUBLICADO)
+  seo       Json?
+
+  @@index([estado, ordem])
 }
 
 model Noticia {
-  id        Int      @id @default(autoincrement())
+  id        Int              @id @default(autoincrement())
   titulo    String
   conteudo  String
   link      String
-  createdAt DateTime @default(now()) @db.Timestamp(3)
+  createdAt DateTime         @default(now()) @db.Timestamp(3)
+  ordem     Int              @default(0)
+  estado    EstadoPublicacao @default(PUBLICADO)
+  seo       Json?
+
+  @@index([estado, ordem])
 }
 
 model Book {
-  id         Int      @id @default(autoincrement())
+  id         Int              @id @default(autoincrement())
   titulo     String
   autor      String
   descricao  String
   imagem     Bytes?
   imagemTipo String?
-  createdAt  DateTime @default(now()) @db.Timestamp(3)
+  createdAt  DateTime         @default(now()) @db.Timestamp(3)
+  ordem      Int              @default(0)
+  estado     EstadoPublicacao @default(PUBLICADO)
+  seo        Json?
 
+  @@index([estado, ordem])
   @@map("Livro")
 }
 
 model Projeto {
-  id        Int      @id @default(autoincrement())
-  data      DateTime @db.Timestamp(3)
+  id        Int              @id @default(autoincrement())
+  data      DateTime         @db.Timestamp(3)
   descricao String
+  ordem     Int              @default(0)
+  estado    EstadoPublicacao @default(PUBLICADO)
+  seo       Json?
+
+  @@index([estado, ordem])
 }
 
 model Sobre {
-  ano        Int     @id
+  ano        Int              @id
   imagem     Bytes?
   imagemTipo String?
   descricao  String
+  ordem      Int              @default(0)
+  estado     EstadoPublicacao @default(PUBLICADO)
+  seo        Json?
+
+  @@index([estado, ordem])
 }
 
 // Estruturas aditivas da migração editorial. Não aplicar sem reconciliação da origem.
