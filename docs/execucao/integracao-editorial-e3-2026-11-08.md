@@ -1,7 +1,7 @@
 # E3 — módulos editoriais e leitores públicos
 
 - **Data:** 08/11/2026
-- **Branch de implementação:** `main`; transferência atual para `dev`.
+- **Branch:** `dev` (commit `a216344`; implementação transferida da `main`).
 - **Escopo:** integrantes, espetáculos, prêmios e mídia usada por esses módulos.
 
 ## Implementado
@@ -16,11 +16,12 @@
 
 - `yarn tsc --noEmit` — aprovado.
 - `yarn eslint` nos arquivos alterados — aprovado.
-- O smoke de staging confirmou localmente a separação entre o destino e a conexão regular, mas Prisma retornou `P1001` ao abrir a conexão do banco. A falha ocorreu antes de qualquer gravação; nenhum registro ou objeto foi alterado. Repetir o smoke quando o endpoint de staging estiver acessível.
+- Smoke manual em staging isolado aprovado: leitura dos 6 integrantes, 2 espetáculos e 1 prêmio publicados; login; GET/POST/PUT/arquivamento; páginas de lista/detalhe; metadados e sitemap.
+- A API de mídia reconheceu uma imagem já importada pelo mesmo SHA-256/ID. Não criou objeto nem registro duplicado. Os registros temporários foram removidos e uma consulta posterior confirmou zero resíduos nos três domínios.
 - Origem e produção não foram acessadas ou alteradas nesta etapa.
 
 ## Próxima validação
 
-No staging isolado, configurar as variáveis de runtime correspondentes ao destino de staging e `CONTEUDO_EDITORIAL_SUPABASE_ATIVO=true`; então conferir login, leitura das três listas, abrir detalhes publicados, criar/editar/arquivar registros de validação, ordenar/publicar, editar seções/galeria e carregar uma imagem no bucket existente. Conferir URLs, alt text, metadados, sitemap e `/_next/image`. Registrar os resultados antes de marcar E3 concluída.
+O smoke cobriu CRUD, publicação, detalhes, metadados, sitemap e mídia preexistente. Validar visualmente `/_next/image` e um upload de objeto novo permanece junto da revisão visual E5; o smoke não criou mídia nova.
 
-E0 ainda exige confirmação de que o manifesto corresponde à revisão publicada. E4 e E5 continuam pendentes; não habilitar a chave em produção antes do plano de corte E6.
+E3 está concluída para os critérios de integração e CRUD em staging. O smoke funcional E4 também passou em staging e as páginas foram conferidas no preview 858×900; um viewport mobile estreito segue sem medição. E0 ainda exige confirmação de que o manifesto corresponde à revisão publicada, e E5 segue pendente. Não habilitar a chave em produção antes do plano de corte E6.

@@ -16,7 +16,7 @@ Entrega em **07/11/2026**, na `main`, após o ensaio da cadeia Prisma. Este pass
 O inventário foi regenerado com `--ler-banco --usar-banco-atual`. O relatório confirmou a leitura `REPEATABLE READ READ ONLY` com `ROLLBACK`; a origem respondeu PostgreSQL 17.6 e continua sem `public._prisma_migrations`. O `dry-run` integral concluiu com:
 
 - **70 mídias únicas** e **19.030.280 bytes**, somando arquivos referenciados/favicon e seis blobs do banco.
-- **234 registros projetados** nos modelos novos: 70 mídias, 19 usos, 39 configurações, 4 contatos, 10 itens de menu, 10 aliases, 6 integrantes, 2 espetáculos, 7 seções, 1 prêmio, 3 galerias, 41 fotos, 13 páginas, 4 seções da home e 4 marcos históricos.
+- **233 registros projetados** nos modelos novos: 70 mídias, 19 usos, 39 configurações, 4 contatos, 10 itens de menu, 10 aliases, 6 integrantes, 2 espetáculos, 7 seções, 1 prêmio, 3 galerias, 41 fotos, 13 páginas, 4 seções da home e 4 marcos históricos.
 - **93 registros legados mapeados**: Agenda 49, Noticia 15, Livro 2, Projeto 23 e Sobre 4.
 - Uma fonte global CSS excluída da configuração editável para conversão posterior em opções seguras.
 

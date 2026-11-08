@@ -1,6 +1,6 @@
 # Plano de execução: site administrável e migração automática para Supabase
 
-Plano criado em **07/11/2026**, na `main`, a partir do código em `c05ce1b` e do [catálogo C01–C15](catalogo-conteudo-administravel.md). Inventário local, snapshot somente leitura, projeção de DTOs, validação de mídias, adaptador Storage, orquestrador, adaptador Prisma e comando protegido de staging foram preparados e ensaiados; detalhes no [inventário](../execucao/inventario-conteudo-2026-11-07.md), [ensaio do Storage](../execucao/adaptador-storage-local-2026-11-07.md), [orquestrador](../execucao/orquestrador-importacao-local-2026-11-08.md) e [adaptador Prisma](../execucao/adaptador-prisma-local-2026-11-08.md). O adaptador foi ensaiado em PGlite/PostgreSQL 18.6 e PostgreSQL 17.11 efêmeros com Prisma 6.17. Baseline, migração editorial e importação integral foram aplicados ao staging isolado; o [relatório de execução](../execucao/importacao-staging-conteudo-2026-11-08.md) registra hashes, contagens, repetição idempotente e limites restantes.
+Plano criado em **07/11/2026**, na `main`, a partir do código em `c05ce1b` e do [catálogo C01–C15](catalogo-conteudo-administravel.md). Inventário local, snapshot somente leitura, projeção de DTOs, validação de mídias, adaptador Storage, orquestrador, adaptador Prisma e comando protegido de staging foram preparados e ensaiados; detalhes no [inventário](../execucao/inventario-conteudo-2026-11-07.md), [ensaio do Storage](../execucao/adaptador-storage-local-2026-11-07.md), [orquestrador](../execucao/orquestrador-importacao-local-2026-11-08.md) e [adaptador Prisma](../execucao/adaptador-prisma-local-2026-11-08.md). O adaptador foi ensaiado em PGlite/PostgreSQL 18.6 e PostgreSQL 17.11 efêmeros com Prisma 6.17. Baseline, migração editorial, importação integral e a migração aditiva E5 para os cinco modelos legados foram aplicados ao staging isolado; os [relatórios de execução](../execucao/importacao-staging-conteudo-2026-11-08.md) e [E5](../execucao/integracao-editorial-e5-2026-11-08.md) registram hashes, contagens, repetição idempotente e limites restantes.
 
 Schema e histórico foram [reconciliados por consulta ao catálogo](../execucao/reconciliacao-baseline-2026-11-07.md): baseline `0_base_legada` preparado e quatro scripts antigos arquivados, sem alterar seus bytes. A cadeia SQL e os fluxos reais da CLI foram validados em PostgreSQL 17.11 isolado, para a origem observada em 17.6. RLS legado foi preservado e previsto para as tabelas novas. O baseline foi registrado no staging vazio pelo `migrate deploy`; a origem e produção não foram alteradas.
 
@@ -9,9 +9,11 @@ Schema e histórico foram [reconciliados por consulta ao catálogo](../execucao/
 - **E0 — Parcial:** inventário, snapshot somente leitura e projeção local estão prontos; a identidade do projeto staging e a topologia `bancos-separados` foram confirmadas. Falta confirmar se o snapshot de origem corresponde à revisão publicada.
 - **E1 — Concluída em staging:** as duas migrações foram aplicadas ao banco vazio, preflight aprovado nas 22 tabelas e o bucket público foi criado/verificado com os limites esperados.
 - **E2 — Concluída para o manifesto confirmado:** 326 itens verificados, 70 objetos conferidos, cinco tabelas legadas conciliadas e uma segunda execução integral produziu 326 ignorados, sem novas linhas.
-- **E3 — Implementada na `main`, validação pendente:** leitores, sitemap, APIs e áreas administrativas de integrantes, espetáculos e prêmios consultam as mesmas entidades quando `CONTEUDO_EDITORIAL_SUPABASE_ATIVO=true`. A chave fica desligada por padrão; o smoke de CRUD/upload em staging ainda precisa ser registrado no [relatório E3](../execucao/integracao-editorial-e3-2026-11-08.md).
+- **E3 — Concluída em staging:** leitores, sitemap, APIs e áreas administrativas de integrantes, espetáculos e prêmios consultam as mesmas entidades quando `CONTEUDO_EDITORIAL_SUPABASE_ATIVO=true`. Smoke de CRUD, publicação, detalhes e sitemap aprovado; a limpeza confirmou zero registros temporários. A mídia de referência já existia e não foi duplicada. Evidências no [relatório E3](../execucao/integracao-editorial-e3-2026-11-08.md).
+- **E4 — Smoke funcional e preview visual concluídos em staging/local em 08/11/2026:** home, agenda em destaque, contatos, menu, identidade/SEO global, projetos e história tiveram leitura, gravação temporária, leitura pública e restauração aprovadas. Uma mídia migrada respondeu HTTP 200; páginas públicas foram conferidas em 858×900 sem quebra evidente. Um viewport mobile estreito não foi medido. Evidências e limites no [relatório E4](../execucao/integracao-editorial-e4-2026-11-08.md).
+- **E5 — Em andamento:** primeira entrega na `dev` acrescentou publicação/ordem/SEO aos cinco modelos legados, criou o módulo de publicação e SEO e ligou opções gerais de aparência/textos aos leitores públicos. A migração `20261108030000_publicacao_ordem_seo_legado` foi aplicada ao staging; as 93 linhas legadas permaneceram publicadas com ordem inicial sequencial. Schema, TypeScript, ESLint focado, cadeia SQL isolada e smoke reversível de API administrativa/páginas públicas/sitemap passaram. Ainda faltam revisão visual responsiva, auditoria de textos fixos e conclusão de C15; consulte o [relatório E5](../execucao/integracao-editorial-e5-2026-11-08.md).
 
-E0 continua pendente até confirmar que o snapshot corresponde à revisão publicada. O próximo trabalho é validar E3 no staging e seguir para E4–E5. A implementação está atrás de uma chave reversível, e a carga deste manifesto não fez corte de leitores nem alterou a origem ou produção.
+E0 continua pendente até confirmar que o snapshot corresponde à revisão publicada. E5 está em execução; o próximo trabalho é a auditoria visual responsiva, strings fixas remanescentes e C15. A implementação pública está atrás de uma chave reversível; nenhum corte em produção nem alteração da origem foi feito.
 
 ## Resultado esperado e decisões de arquitetura
 
@@ -38,7 +40,7 @@ Para arquivos já públicos do site, o staging usa um bucket de leitura pública
 | E6 | Ensaio de corte e migração de produção | E5 | Relatório sem divergências bloqueantes e versão nova validada |
 | E7 | Encerramento e limpeza | E6 + período de observação | Fontes antigas retiradas somente após aceite e prazo de retenção |
 
-Executar na `main`, conforme preferência do responsável. Usar commits pequenos por entrega para permitir reversão e identificar a versão de cada importação. Branch de staging/ambiente de teste não é requisito de fluxo Git; um banco/bucket isolado para ensaio é.
+O plano começou na `main`; por orientação posterior do responsável, a continuação das implementações ocorre na `dev`. Usar commits pequenos por entrega para permitir reversão e identificar a versão de cada importação. Branch de staging/ambiente de teste não é requisito de fluxo Git; um banco/bucket isolado para ensaio é.
 
 ## E0 — Inventário e origem dos dados
 
@@ -186,9 +188,9 @@ Somente após observação e aceite: remover arrays e cópias de conteúdo do c�
 - [ ] E0: confirmar revisão publicada e bancos, gerar inventário/manifesto e conferir histórico Prisma.
 - [x] E1: implementar schema aditivo, camada de mídia, provisionamento e CLI com simulação; concluída em staging em 08/11/2026.
 - [x] E2: importar fontes estáticas e banco em staging; verificar arquivos, textos e repetição; concluída para o manifesto registrado em 08/11/2026.
-- [ ] E3: implementação na `main`; concluir smoke de CRUD, imagens, SEO e publicação em staging.
-- [ ] E4: entregar home, contatos, menu, identidade, projetos e história completos.
-- [ ] E5: completar aparência, textos, publicação, ordem, SEO e cache em todas as áreas.
+- [x] E3: integrantes, espetáculos e prêmios integrados ao painel e leitores; smoke de CRUD/SEO/publicação aprovado em staging.
+- [x] E4: entregar home, contatos, menu, identidade, projetos e história; smoke funcional aprovado e preview 858×900 conferido. Viewport mobile estreito não medido.
+- [ ] E5: concluir aparência, textos, publicação, ordem, SEO, cache e C15 em todas as áreas (primeira entrega em andamento; ver relatório E5).
 - [ ] E6: ensaiar backup/reversão, importar delta final e efetuar corte verificado.
 - [ ] E7: registrar aceite de C01–C15, observar e remover estruturas antigas após retenção.
 

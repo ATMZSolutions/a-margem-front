@@ -2,11 +2,11 @@
 
 Levantamento em **07/11/2026**, na `main`, commit de referência `c05ce1b`. Objetivo: permitir que todo o conteúdo editorial e a apresentação configurável do site sejam mantidos pelo painel, sem editar código.
 
-Este é um inventário do código local: foram comparadas as rotas públicas, seus componentes e dados com os formulários administrativos, APIs e schema Prisma. Não houve validação de dados ou comportamento no deploy. Os itens abaixo são trabalho pendente, não funcionalidades implementadas.
+Este é um inventário do código local no commit de referência: foram comparadas as rotas públicas, seus componentes e dados com os formulários administrativos, APIs e schema Prisma. A tabela de cobertura e as descrições originais registram esse baseline, não o estado atual do branch. O avanço posterior fica registrado abaixo e nos relatórios E3/E4; nenhuma implementação local é considerada validada em produção por este catálogo.
 
 Execução detalhada no [plano de implementação e migração automática para Supabase](plano-execucao-conteudo-supabase.md).
 
-## Cobertura atual
+## Cobertura no baseline de 07/11/2026
 
 O painel (`src/app/admin/AdminClient.tsx`) oferece somente **Agenda, Notícias, Livros, Projetos e Sobre**. Seus cinco modelos estão em [`prisma/schema.prisma`](../../prisma/schema.prisma), com CRUD em `src/app/api/admin/`.
 
@@ -18,7 +18,23 @@ O painel (`src/app/admin/AdminClient.tsx`) oferece somente **Agenda, Notícias, 
 | Projetos | Data e descrição dos registros da trajetória | Introdução e galeria são independentes do cadastro administrativo. |
 | Sobre | Ano, descrição e imagem da trajetória | O texto e as imagens de “Sobre nós” na home são independentes deste cadastro. Ano é a chave primária: apenas um registro por ano; a API de edição não troca essa chave. |
 
-Nenhuma página pública tem controle completo de conteúdo e apresentação. As lacunas transversais também se aplicam às cinco áreas acima.
+No baseline, nenhuma página pública tinha controle completo de conteúdo e apresentação. As lacunas transversais também se aplicavam às cinco áreas acima.
+
+## Andamento atual em `dev` (08/11/2026)
+
+| Itens | Estado | Evidência / pendência |
+| --- | --- | --- |
+| C01–C04 | Smoke funcional aprovado em staging em E4 | Leitores e controles de home, apresentação, contatos e destaques da agenda. Preview 858×900 conferido; viewport mobile estreito não medido. |
+| C05–C07 | Concluídos em staging em E3 | CRUD/leitores/sitemap de integrantes, espetáculos e prêmios; ver [relatório E3](../execucao/integracao-editorial-e3-2026-11-08.md). |
+| C08 | Smoke funcional aprovado em staging em E4 | Página/galeria de projetos e história por marcos com múltiplos registros por ano; preview 858×900 conferido. |
+| C09–C10 | Smoke funcional aprovado em staging em E4 | Menu, logo, identidade, metadados globais e rodapé configuráveis; preview 858×900 conferido. |
+| C11–C12 | Parcial em E5 | Aparência geral, paletas, padrões, tipografia e textos comuns já têm configuração persistida e são consumidos em componentes públicos; falta revisar strings fixas restantes e validar visualmente desktop/mobile. |
+| C13–C14 | Smoke funcional aprovado em staging/local em E5 | SEO de `/agenda` e configurações gerais apareceram nas páginas; publicação removeu a página do sitemap e passou a responder 404. Estado e ordem de Agenda afetaram a API pública. Os valores temporários foram restaurados e o registro de teste removido; revisão visual responsiva ainda pendente. |
+| C15 | Parcial em E3/E4 | Seleção, upload e reuso de mídia nas áreas integradas; a biblioteca transversal e limpeza explícita de objetos órfãos continuam pendentes. |
+
+E5 ainda não está concluída. O [relatório da primeira entrega E5](../execucao/integracao-editorial-e5-2026-11-08.md) registra migração, dados preservados, validações locais e os critérios funcionais/visuais que faltam.
+
+E4 teve o smoke funcional validado no Supabase staging e um preview visual em 858×900; um viewport mobile estreito ainda não foi medido. Ver [relatório de execução E4](../execucao/integracao-editorial-e4-2026-11-08.md).
 
 ## Mapa de todas as páginas públicas
 
@@ -77,7 +93,7 @@ Nenhuma página pública tem controle completo de conteúdo e apresentação. As
 - **Fixo:** seis integrantes, identificador de URL, nome, foto, ficha técnica e biografia. A lista possui um array próprio e os detalhes usam outro, criando duas fontes para nome/foto/identificador.
 - **Disponibilizar:** CRUD de integrantes com slug estável, nome, foto/alt, ficha técnica, biografia, ordem e publicação; lista e detalhe devem consultar a mesma entidade.
 - **Conclusão:** criar, editar, reordenar e retirar um integrante atualiza lista, perfil, metadados e sitemap. Mudança de slug deve preservar ou redirecionar a URL anterior.
-- **Situação E3 (08/11/2026):** CRUD e leitores compartilhados foram implementados atrás da chave `CONTEUDO_EDITORIAL_SUPABASE_ATIVO`; validação de comportamento em staging ainda pendente.
+- **Situação E3 (08/11/2026):** CRUD e leitores compartilhados foram implementados atrás da chave `CONTEUDO_EDITORIAL_SUPABASE_ATIVO`; smoke em staging aprovou leitura, publicação, edição, arquivamento, metadados e sitemap.
 
 ### C06 — Espetáculos: catálogo e detalhes
 
@@ -86,7 +102,7 @@ Nenhuma página pública tem controle completo de conteúdo e apresentação. As
 - **Duplicação:** `espetaculosData` alimenta cards/sitemap e `shows` alimenta detalhes. O slug deriva do título.
 - **Disponibilizar:** CRUD único com slug, título, lançamento, capa, tema, galeria ordenada (foto, alt, legenda, crédito e data), seções textuais ordenadas e publicação.
 - **Conclusão:** um novo espetáculo completo aparece no catálogo e tem detalhe/SEO/sitemap sem edição dos arrays; renomear não quebra links existentes.
-- **Situação E3 (08/11/2026):** editor do espetáculo, seções e galeria, mais leitores/sitemap por slug, foram implementados atrás da chave editorial; smoke em staging ainda pendente.
+- **Situação E3 (08/11/2026):** editor do espetáculo, seções e galeria, mais leitores/sitemap por slug, foram implementados atrás da chave editorial; smoke de CRUD e publicação passou em staging.
 
 ### C07 — Prêmios: lista e detalhes
 
@@ -94,7 +110,7 @@ Nenhuma página pública tem controle completo de conteúdo e apresentação. As
 - **Fixo:** prêmio cadastrado em arquivo, título, evento, ano, descrição, imagem e ordem de exibição. URL combina título convertido em slug e ano.
 - **Disponibilizar:** CRUD com título, slug, evento, ano, descrição, imagem/alt, ordem e publicação.
 - **Conclusão:** novos prêmios entram na lista, detalhe, metadados e sitemap pelo painel; mudanças em título/ano têm tratamento para links antigos.
-- **Situação E3 (08/11/2026):** CRUD e leitores de lista/detalhe/SEO/sitemap foram implementados atrás da chave editorial; smoke em staging ainda pendente.
+- **Situação E3 (08/11/2026):** CRUD e leitores de lista/detalhe/SEO/sitemap foram implementados atrás da chave editorial; smoke de CRUD e publicação passou em staging.
 
 ### C08 — Projetos e história: completar módulos existentes
 

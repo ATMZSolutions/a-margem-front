@@ -1,0 +1,35 @@
+# Integração editorial E5 — primeira entrega
+
+Implementação na branch `dev`, em **08/11/2026**. Esta entrega liga publicação, ordem, SEO, aparência e textos comuns do painel às consultas públicas. E5 continua em andamento; este relatório registra apenas o que foi implementado e conferido nesta etapa.
+
+## O que entrou
+
+- Os modelos legados Agenda, Notícia, Livro, Projeto e Sobre receberam `estado`, `ordem` e `seo`. A nova migração preserva todos como `PUBLICADO` e atribui uma ordem inicial compatível com as listagens atuais.
+- O painel ganhou **Publicação e SEO** para estados e ordem dos registros, publicação de páginas, overrides de título/descrição/imagem social e configurações gerais de aparência/textos. Páginas sem override usam os padrões existentes.
+- As listas públicas de Agenda, Notícias, Indicações, Projetos, História, Integrantes, Espetáculos e Prêmios filtram rascunhos/arquivados e respeitam ordem editorial. As páginas `PaginaSite` ocultas respondem como 404, saem do menu e do sitemap. Detalhes publicados também respeitam o estado do registro.
+- Metadados por página e por integrante, espetáculo e prêmio são gerados com o domínio da identidade global; o sitemap usa o mesmo domínio e inclui só páginas/conteúdos publicáveis. A URL canônica continua derivada da rota, sem um campo livre que possa divergir do domínio.
+- Aparência geral oferece paletas seguras, padrões já existentes e tipografias existentes. Textos comuns de navegação, chamadas, estados vazios, painéis e 404 passaram a vir de configuração persistida, com padrões quando não há configuração.
+
+## Migração e verificação
+
+A migração `20261108030000_publicacao_ordem_seo_legado` foi aplicada ao staging isolado após conferir que era a única pendente. O checksum registrado em `_prisma_migrations` é `bf4c5a4ab8cb66f7f5e01a4f478615efa05615e58d60e7142b173764efb6a270`; `prisma migrate status` confirmou schema atualizado.
+
+| Tabela | Total | Publicados | Faixa inicial de ordem |
+| --- | ---: | ---: | ---: |
+| Agenda | 49 | 49 | 0–48 |
+| Noticia | 15 | 15 | 0–14 |
+| Livro | 2 | 2 | 0–1 |
+| Projeto | 23 | 23 | 0–22 |
+| Sobre | 4 | 4 | 0–3 |
+
+Os cinco modelos mantiveram os **93 registros** importados; SEO permaneceu nulo até edição. A cadeia baseline + migração editorial + E5 também foi executada em PGlite isolado com uma linha de amostra por tabela: nenhuma linha foi perdida, o estado inicial foi `PUBLICADO` e a ordem começou em zero.
+
+`prisma validate`, TypeScript, ESLint focado nos arquivos alterados e `git diff --check` passaram. Não houve gravação de conteúdo de teste no staging. Produção e a origem não foram alteradas.
+
+O smoke funcional reversível foi concluído em **08/11/2026**, usando o painel pela API administrativa e as rotas públicas servidas localmente com o staging isolado como banco. A configuração geral persistida apareceu na home; o override de SEO apareceu nos metadados de `/agenda`; a página publicada entrou no sitemap e, ao mudar para rascunho, respondeu 404 e saiu do sitemap. Uma Agenda temporária confirmou estado publicado inicial, ordenação manual, ocultação como rascunho e arquivado. O registro, a publicação/SEO de `/agenda` e a configuração global foram restaurados; a Agenda temporária foi removida. Nenhum registro temporário permaneceu.
+
+## Pendências para concluir E5
+
+- Concluir a auditoria visual responsiva e revisar strings de interface que ainda são conteúdo fixo em componentes; o viewport mobile estreito continua pendente.
+- Concluir C15: biblioteca transversal com uso/referências, remoção explícita de vínculo e tratamento seguro de mídia órfã. Seleção e upload/reuso continuam parciais.
+- Confirmar em E0 que o manifesto representa a revisão publicada. E6 (backup, delta e corte de produção) continua sem execução.
