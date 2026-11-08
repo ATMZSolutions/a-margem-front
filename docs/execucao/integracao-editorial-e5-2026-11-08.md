@@ -1,6 +1,6 @@
 # Integração editorial E5 — conclusão
 
-Implementação na branch `dev`, em **08/11/2026**. Esta entrega liga publicação, ordem, SEO, aparência e textos comuns do painel às consultas públicas. E5 continua em andamento; este relatório registra apenas o que foi implementado e conferido nesta etapa.
+Implementação na branch `dev`, em **08/11/2026**. Esta entrega liga publicação, ordem, SEO, aparência e textos comuns do painel às consultas públicas. E5 está concluída no código e em staging; este relatório registra o escopo implementado e as evidências conferidas.
 
 ## O que entrou
 
@@ -9,7 +9,7 @@ Implementação na branch `dev`, em **08/11/2026**. Esta entrega liga publicaç�
 - As listas públicas de Agenda, Notícias, Indicações, Projetos, História, Integrantes, Espetáculos e Prêmios filtram rascunhos/arquivados e respeitam ordem editorial. As páginas `PaginaSite` ocultas respondem como 404, saem do menu e do sitemap. Detalhes publicados também respeitam o estado do registro.
 - Metadados por página e por integrante, espetáculo e prêmio são gerados com o domínio da identidade global; o sitemap usa o mesmo domínio e inclui só páginas/conteúdos publicáveis. A URL canônica continua derivada da rota, sem um campo livre que possa divergir do domínio.
 - Aparência geral oferece paletas seguras, padrões já existentes e tipografias existentes. Textos comuns de navegação, chamadas, estados vazios, painéis e 404 passaram a vir de configuração persistida, com padrões quando não há configuração.
-- A auditoria de strings ampliou os textos administráveis para estados vazios de integrantes, espetáculos, prêmios e projetos por ano; subtítulo/complemento de Indicações; carregamento; rótulos acessíveis do menu, topo, carrossel e navegação entre anos; e o título de detalhes/integrante. Os campos ficam no JSON site:transversal; dados antigos usam os padrões e não precisam de migração SQL. A revisão de outros textos fixos ainda está pendente.
+- A auditoria de strings ampliou os textos administráveis para estados vazios de integrantes, espetáculos, prêmios e projetos por ano; subtítulo/complemento de Indicações; carregamento; rótulos acessíveis do menu, topo, carrossel e navegação entre anos; e o título de detalhes/integrante. Os campos ficam no JSON site:transversal; dados antigos usam os padrões e não precisam de migração SQL. A varredura final confirmou que os textos restantes são defaults administráveis, metadados, conteúdo dinâmico ou texto alternativo derivado.
 
 ## Migração e verificação
 
@@ -65,4 +65,4 @@ A galeria pública de Projetos agora trata a lista do Supabase como fonte autori
 
 A varredura final dos componentes públicos não encontrou texto editorial fora dos campos persistidos: o que aparece como literal restante é valor padrão coberto pelo painel, metadado já editável, conteúdo dinâmico ou texto alternativo derivado da entidade. A reconciliação C15 foi executada no staging em **08/11/2026**: 2 novas retenções, 0 mantidas, 0 corrigidas, 2 objetos conferidos, 0 ausentes e 0 divergentes. A nova migração aditiva foi aplicada e `prisma migrate status` confirmou a cadeia atualizada. Os detalhes estão no [relatório C15 de retenção](./reconciliacao-retencao-midia-c15-2026-11-08.md).
 
-E5 está concluída no código da branch `dev` e no staging. Não há rotina de remoção física de mídia. E0 ainda precisa confirmar que o manifesto corresponde à revisão efetivamente publicada; E6 (backup, delta e corte de produção) e E7 continuam sem execução.
+E5 está concluída no código da branch `dev` e no staging. Não há rotina de remoção física de mídia. E0 foi atualizada pela [validação do manifesto e da origem](./validacao-e0-publicacao-manifesto-2026-11-08.md); E6 (backup integral, exportação do Storage, delta e corte de produção) e E7 continuam sem execução.

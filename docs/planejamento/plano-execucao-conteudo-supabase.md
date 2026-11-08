@@ -6,14 +6,14 @@ Schema e histórico foram [reconciliados por consulta ao catálogo](../execucao/
 
 ## Status atual das etapas (08/11/2026)
 
-- **E0 — Parcial:** inventário, snapshot somente leitura e projeção local estão prontos; a identidade do projeto staging e a topologia `bancos-separados` foram confirmadas. Falta confirmar se o snapshot de origem corresponde à revisão publicada.
-- **E1 — Concluída em staging:** as duas migrações foram aplicadas ao banco vazio, preflight aprovado nas 22 tabelas e o bucket público foi criado/verificado com os limites esperados.
-- **E2 — Concluída para o manifesto confirmado:** 326 itens verificados, 70 objetos conferidos, cinco tabelas legadas conciliadas e uma segunda execução integral produziu 326 ignorados, sem novas linhas.
+- **E0 — Concluída para o SHA informado pelo responsável:** `c05ce1b791569f4c577571f7cef236708b64f3aa`. As 58 fontes e 70 mídias conferem com esse commit; o snapshot atual da origem foi atualizado e validado em modo somente leitura. A correspondência do deploy foi informada pelo responsável, sem consulta independente ao painel Vercel. Evidências em [validação E0](../execucao/validacao-e0-publicacao-manifesto-2026-11-08.md).
+- **E1 — Concluída em staging:** baseline e migrações editoriais foram aplicados ao banco isolado, preflight aprovado nas 22 tabelas e o bucket público foi criado/verificado com os limites esperados.
+- **E2 — Concluída em staging:** 326 itens verificados, 70 objetos conferidos, cinco tabelas legadas conciliadas e uma segunda execução integral produziu 326 ignorados, sem novas linhas. Os registros e blobs do snapshot da origem recém-confirmada coincidem com o payload já carregado.
 - **E3 — Concluída em staging:** leitores, sitemap, APIs e áreas administrativas de integrantes, espetáculos e prêmios consultam as mesmas entidades quando `CONTEUDO_EDITORIAL_SUPABASE_ATIVO=true`. Smoke de CRUD, publicação, detalhes e sitemap aprovado; a limpeza confirmou zero registros temporários. A mídia de referência já existia e não foi duplicada. Evidências no [relatório E3](../execucao/integracao-editorial-e3-2026-11-08.md).
 - **E4 — Smoke funcional e preview visual concluídos em staging/local em 08/11/2026:** home, agenda em destaque, contatos, menu, identidade/SEO global, projetos e história tiveram leitura, gravação temporária, leitura pública e restauração aprovadas. Uma mídia migrada respondeu HTTP 200; páginas públicas foram conferidas em 858×900 sem quebra evidente. Um viewport mobile estreito não foi medido. Evidências e limites no [relatório E4](../execucao/integracao-editorial-e4-2026-11-08.md).
-- **E5 — Em andamento:** a `dev` acrescentou publicação/ordem/SEO aos cinco modelos legados, o módulo transversal de SEO e aparência/textos e uma primeira biblioteca de mídia com referências e candidatos a órfãos. A migração `20261108030000_publicacao_ordem_seo_legado` foi aplicada ao staging; as 93 linhas legadas permaneceram publicadas com ordem inicial sequencial. Schema, TypeScript, ESLint focado, cadeia SQL isolada, smoke reversível de API/páginas/sitemap e smoke visual/funcional da biblioteca passaram. Treze rotas públicas passaram pela revisão mobile em 390×844 e desktop em 1280×900. Os editores Página de projetos e Configurações também foram conferidos nos dois tamanhos, sem overflow horizontal; os novos rótulos da Agenda e da ficha de integrante agora são configuráveis. A galeria de Projetos no modo editorial ativo respeita a lista administrada mesmo quando vazia. Ainda falta a varredura final de textos públicos e a retenção/reconciliação com Storage para C15; veja o [relatório E5](../execucao/integracao-editorial-e5-2026-11-08.md).
+- **E5 — Concluída em `dev` e staging:** publicação, ordem, SEO, aparência/textos, biblioteca de mídia e C15 foram integrados e conferidos. Os dois objetos sem vínculo permanecem sob retenção; nenhum objeto foi apagado. Veja o [relatório E5](../execucao/integracao-editorial-e5-2026-11-08.md).
 
-E0 continua pendente até confirmar que o snapshot corresponde à revisão publicada. E5 está em execução; a revisão visual dos editores restantes terminou e a auditoria textual cobriu mais rótulos públicos. O próximo trabalho é a varredura final de texto e a retenção/reconciliação de órfãos. A implementação pública está atrás de uma chave reversível; nenhum corte em produção nem alteração da origem foi feito.
+E0–E5 estão concluídas conforme as evidências acima. **E6 está em preparação:** o replay do snapshot de conteúdo passou em PostgreSQL isolado, mas backup/restauração integral do projeto Supabase, exportação separada do Storage, delta final e corte de produção ainda não foram executados. A implementação pública segue atrás de uma chave reversível; a origem e produção não foram alteradas.
 
 ## Resultado esperado e decisões de arquitetura
 
@@ -166,6 +166,14 @@ Não depender de uma dupla escrita incompleta. Antes da carga final, a versão d
 - Se houver necessidade de desfazer itens de uma execução, considerar somente registros criados por ela, ainda não editados e sem referências posteriores. Objetos compartilhados não podem ser apagados com base apenas no ID da execução.
 - Falhas entre Storage e banco são tratadas por reconciliação. A rotina de órfãos oferece primeiro relatório e só exclui após retenção e verificação de ausência de referências/execuções em andamento.
 
+### Estado da preparação E6 — 08/11/2026
+
+O snapshot lógico confirmado da origem foi reconstituído em uma instância PGlite isolada a partir do baseline e do manifesto local. As 5 tabelas restauraram 93 registros; os campos, incluindo timestamps textuais, foram comparados e os 6 blobs (2.049.158 bytes) tiveram tamanho e SHA-256 conferidos. Isso valida a recuperabilidade do conteúdo abrangido pelo importador, não é um dump integral de PostgreSQL/Supabase. Detalhes e próximos passos estão no [relatório de preparação E6](../execucao/preparacao-e6-backup-restauracao-2026-11-08.md).
+
+O ambiente de trabalho não tem `pg_dump`, `pg_restore`, `psql`, Docker ou Supabase CLI. Também não havia sessão autenticada do painel Supabase para inspecionar backup gerenciado ou criar um clone. O arquivo `.conteudo-migracao/inventario-e0-confirmado.json` contém dados e blobs de conteúdo e está ignorado/protegido localmente; não contém backup dos schemas gerenciados `auth`/`storage`, de roles, nem uma cópia integral dos objetos armazenados em buckets.
+
+O backup de banco do Supabase não inclui os bytes dos objetos enviados pela Storage API; a documentação exige tratar banco e arquivos separadamente ([backups de banco](https://supabase.com/docs/guides/platform/backups), [backup/restore pela CLI](https://supabase.com/docs/guides/platform/migrating-within-supabase/backup-restore), [download de objetos](https://supabase.com/docs/guides/storage/management/download-objects)). Antes de E6, preparar dump/backup de banco e exportação verificável dos objetos de Storage; restaurá-los em um projeto novo e isolado ou ambiente compatível, nunca por cima do staging preenchido. Em seguida, comparar schema, histórico, contagens, hashes e referências antes do delta final.
+
 ## E7 — Validação e encerramento
 
 | Verificação | Evidência exigida |
@@ -185,13 +193,13 @@ Somente após observação e aceite: remover arrays e cópias de conteúdo do c�
 
 ## Checklist executável
 
-- [ ] E0: manifesto gerado e hashes das 58 fontes/70 mídias conferem com `main` em `c05ce1b`; falta confirmar o SHA do deploy ativo e que a conexão usada na extração aponta para o banco atualmente publicado. Ver [validação E0](../execucao/validacao-e0-publicacao-manifesto-2026-11-08.md).
+- [x] E0: hashes das 58 fontes/70 mídias conferem com `c05ce1b`; SHA ativo foi informado pelo responsável e a origem foi lida somente para snapshot/reconciliação. Ver [validação E0](../execucao/validacao-e0-publicacao-manifesto-2026-11-08.md).
 - [x] E1: implementar schema aditivo, camada de mídia, provisionamento e CLI com simulação; concluída em staging em 08/11/2026.
 - [x] E2: importar fontes estáticas e banco em staging; verificar arquivos, textos e repetição; concluída para o manifesto registrado em 08/11/2026.
 - [x] E3: integrantes, espetáculos e prêmios integrados ao painel e leitores; smoke de CRUD/SEO/publicação aprovado em staging.
 - [x] E4: entregar home, contatos, menu, identidade, projetos e história; smoke funcional aprovado e preview 858×900 conferido. Viewport mobile estreito não medido.
 - [x] E5: aparência, textos, publicação, ordem, SEO, cache e C15 concluídos no código e staging em 08/11/2026; ver [relatório E5](../execucao/integracao-editorial-e5-2026-11-08.md). A reconciliação iniciou retenção de 30 dias para dois objetos conferidos, sem exclusão.
-- [ ] E6: ensaiar backup/reversão, importar delta final e efetuar corte verificado.
+- [ ] E6: obter backup integral de banco e objetos, restaurar em ambiente isolado, importar delta final e efetuar corte verificado. O replay do snapshot lógico de conteúdo passou, mas não substitui o backup/restore Supabase.
 - [ ] E7: registrar aceite de C01–C15, observar e remover estruturas antigas após retenção.
 
-A operação depende apenas de acesso configurado ao projeto Supabase e às fontes reais. O trabalho de transferência, deduplicação, associação e conferência deve ser automatizado; decisões sobre conteúdo conflitante ou irrecuperável aparecem em relatório de exceções, sem exigir recadastrar todo o site.
+A transferência, deduplicação, associação e conferência do conteúdo estão automatizadas. E6 ainda depende de backup/restore do projeto e Storage, acesso ao ambiente isolado para esse ensaio, delta final e corte; decisões sobre conflitos aparecem em relatório de exceções, sem exigir recadastrar todo o site.
