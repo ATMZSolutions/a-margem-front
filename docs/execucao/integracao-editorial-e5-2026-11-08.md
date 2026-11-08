@@ -39,10 +39,18 @@ Uma consulta somente leitura ao staging encontrou **70 mídias**, **68 com refer
 
 O smoke visual/funcional da biblioteca foi concluído em **08/11/2026**, no painel local autenticado com o banco de staging isolado, sem gravar no Supabase. Busca por arquivo, filtro “Sem vínculo detectado” (2 resultados) e os atalhos “Abrir editor” foram conferidos; uma referência da História abriu a área Sobre e uma referência de configuração abriu Configurações. As referências dos marcos passaram a exibir o ano em vez do identificador técnico, e a linha correspondente à tabela legada está marcada como “legado”.
 
-A biblioteca foi conferida em **1280×900** e **390×844**. O layout desktop mostra cards em duas colunas; no viewport móvel o formulário e os cards ficam em uma coluna e `scrollWidth` não ultrapassa a largura do viewport. Uma revisão móvel anterior também cobriu Home, Projetos e Contato, sem overflow horizontal. A revisão visual das demais páginas e dos outros editores ainda está pendente.
+A biblioteca foi conferida em **1280×900** e **390×844**. O layout desktop mostra cards em duas colunas; no viewport móvel o formulário e os cards ficam em uma coluna e `scrollWidth` não ultrapassa a largura do viewport.
+
+## Revisão responsiva das rotas públicas
+
+Em **08/11/2026**, as dez rotas públicas principais (`/`, `/agenda`, `/coletivo`, `/contato`, `/espetaculos`, `/indicacoes`, `/noticias`, `/premios`, `/projetos` e `/sobre`) e três detalhes existentes (`/coletivo/integrante/bento`, `/espetaculos/brechas-da-muximba` e `/premios/trofeu-construtores-da-cultura-de-paz/2024`) foram conferidos localmente em **390×844**. As telas carregaram conteúdo e imagens observadas; não houve rolagem horizontal. O card da ficha de integrante estava com largura zero por falta de largura no item flex. O contêiner recebeu `w-full max-w-xs shrink-0`; a imagem passou a ocupar 320 px no viewport móvel.
+
+As mesmas 13 rotas foram verificadas em **1280×900**: cada uma apresentou conteúdo, elemento principal e `scrollWidth` igual à largura útil da página. Títulos, descrições e canônicas dos detalhes foram conferidos após a conclusão da geração assíncrona de metadados.
+
+O login e o shell do painel também foram conferidos em 390×844; Sobre e Publicação e SEO carregaram sem overflow. A revisão dos formulários restantes não terminou: durante a alternância de módulos, o staging acusou saturação do pool (`EMAXCONNSESSION`, limite de 15 clientes), com respostas 500 em algumas consultas GET e 200 em novas tentativas. O servidor Next local encerrou antes da confirmação final de Página de projetos e Configurações. Não houve POST/PUT/DELETE nem gravação no Supabase nesta auditoria.
 
 ## Pendências para concluir E5
 
-- Concluir a auditoria visual responsiva das páginas públicas e dos demais editores. Revisar também strings de interface que ainda são conteúdo fixo.
+- Concluir a auditoria visual responsiva dos editores restantes; as 13 rotas públicas listadas acima passaram pela revisão mobile e pela verificação desktop. Revisar também strings de interface que ainda são conteúdo fixo.
 - Concluir o tratamento de órfãos de C15: relatório de candidatos e referências está disponível no painel; a retenção, reconciliação com o Storage e remoção física continuam pendentes.
 - Confirmar em E0 que o manifesto representa a revisão publicada. E6 (backup, delta e corte de produção) continua sem execução.
