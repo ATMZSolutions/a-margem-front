@@ -9,6 +9,7 @@ Implementação na branch `dev`, em **08/11/2026**. Esta entrega liga publicaç�
 - As listas públicas de Agenda, Notícias, Indicações, Projetos, História, Integrantes, Espetáculos e Prêmios filtram rascunhos/arquivados e respeitam ordem editorial. As páginas `PaginaSite` ocultas respondem como 404, saem do menu e do sitemap. Detalhes publicados também respeitam o estado do registro.
 - Metadados por página e por integrante, espetáculo e prêmio são gerados com o domínio da identidade global; o sitemap usa o mesmo domínio e inclui só páginas/conteúdos publicáveis. A URL canônica continua derivada da rota, sem um campo livre que possa divergir do domínio.
 - Aparência geral oferece paletas seguras, padrões já existentes e tipografias existentes. Textos comuns de navegação, chamadas, estados vazios, painéis e 404 passaram a vir de configuração persistida, com padrões quando não há configuração.
+- A auditoria de strings ampliou os textos administráveis para estados vazios de integrantes, espetáculos e prêmios, subtítulo/complemento de Indicações, carregamento, rótulos acessíveis do menu/topo/carrossel e o título de detalhes. Os campos ficam no JSON site:transversal; dados antigos usam os padrões e não precisam de migração SQL. A revisão de outros textos fixos ainda está pendente.
 
 ## Migração e verificação
 
