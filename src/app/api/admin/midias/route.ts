@@ -7,6 +7,12 @@ import { decodeImageData, isText, readJsonObject } from "@/lib/adminInput";
 import { getRuntimeStorage } from "@/lib/storageRuntime";
 import { urlPublicaDaMidia } from "@/lib/publicContent";
 import { supabaseEditorialAtivo } from "@/lib/editorialConfig";
+import {
+  getPublicContactPageSettings,
+  getPublicHomeSettings,
+  getPublicProjectPageSettings,
+  getPublicSiteIdentity,
+} from "@/lib/siteContent";
 
 const EXTENSAO_POR_MIME: Record<string, string> = {
   "image/jpeg": "jpg",
@@ -14,21 +20,160 @@ const EXTENSAO_POR_MIME: Record<string, string> = {
   "image/webp": "webp",
 };
 
+type ReferenciaMidia = {
+  chave: string;
+  area: string;
+  registro: string;
+  campo: string;
+  textoAlternativo: string | null;
+  legenda: string | null;
+  credito: string | null;
+};
+
+function areaDaReferencia(dominio: string, area?: string, registro?: string): string {
+  if (area) return area;
+  if (dominio === "Integrante") return "integrantes";
+  if (dominio === "Espetaculo") return "espetaculos";
+  if (dominio === "Premio") return "premios";
+  if (dominio === "MarcoHistorico") return "sobre";
+  if (dominio === "Galeria") return "paginaProjetos";
+  if (dominio === "ConfiguracaoSite" || dominio === "SecaoHome") return "configuracoes";
+  if (dominio === "PaginaSite") return registro === "/projetos" ? "paginaProjetos" : "editorialTransversal";
+  return "editorialTransversal";
+}
+
+function coletarReferenciasJson(
+  value: unknown,
+  mediaIds: Set<string>,
+  mediaIdsPorOrigem: Map<string, string[]>,
+  adicionar: (midiaId: string, referencia: ReferenciaMidia) => void,
+  dominio: string,
+  registro: string,
+  caminho = "",
+) {
+  if (Array.isArray(value)) {
+    value.forEach((item, index) => coletarReferenciasJson(item, mediaIds, mediaIdsPorOrigem, adicionar, dominio, registro, `${caminho}[${index}]`));
+    return;
+  }
+  if (!value || typeof value !== "object") return;
+  const item = value as Record<string, unknown>;
+  const porId = typeof item.midiaId === "string" && mediaIds.has(item.midiaId) ? [item.midiaId] : [];
+  const porOrigem = !porId.length && typeof item.origem === "string" ? mediaIdsPorOrigem.get(item.origem) ?? [] : [];
+  for (const midiaId of [...porId, ...porOrigem]) {
+    adicionar(midiaId, {
+      chave: `${dominio}:${registro}:${caminho}:${porId.length ? "midiaId" : "origem"}`,
+      area: areaDaReferencia(dominio, undefined, registro),
+      registro,
+      campo: caminho || "mídia",
+      textoAlternativo: typeof item.alt === "string" ? item.alt : null,
+      legenda: null,
+      credito: null,
+    });
+  }
+  for (const [chave, filho] of Object.entries(item)) {
+    if (chave === "midiaId" || chave === "origem") continue;
+    const proximo = caminho ? `${caminho}.${chave}` : chave;
+    coletarReferenciasJson(filho, mediaIds, mediaIdsPorOrigem, adicionar, dominio, registro, proximo);
+  }
+}
+
 export async function GET(request: Request) {
   const denied = await authorizeAdminRequest(request);
   if (denied) return denied;
   if (!supabaseEditorialAtivo()) return NextResponse.json({ error: "Módulo editorial desativado neste ambiente" }, { status: 503 });
-  const items = await prisma.midia.findMany({
-    orderBy: [{ criadoEm: "desc" }, { id: "asc" }],
-    select: { id: true, bucket: true, chave: true, mime: true, bytes: true, nomeOriginal: true, origem: true },
-  });
-  return NextResponse.json(items.map((item) => ({
-    id: item.id,
-    url: urlPublicaDaMidia(item) ?? "/padrao2.webp",
-    mime: item.mime,
-    bytes: item.bytes,
-    nomeOriginal: item.nomeOriginal,
-  })));
+  const [items, configuracoes, paginas, secoesHome, identidade, home, contatoPagina, projetosPagina] = await Promise.all([
+    prisma.midia.findMany({
+      orderBy: [{ criadoEm: "desc" }, { id: "asc" }],
+      select: {
+        id: true, bucket: true, chave: true, mime: true, bytes: true, largura: true, altura: true,
+        nomeOriginal: true, origem: true, criadoEm: true,
+        usos: { select: { id: true, dominio: true, registro: true, campo: true, textoAlternativo: true, legenda: true, credito: true } },
+        integrantes: { select: { slug: true, nome: true } },
+        espetaculos: { select: { slug: true, titulo: true } },
+        premios: { select: { slug: true, titulo: true, ano: true } },
+        fotos: { select: { id: true, ordem: true, textoAlternativo: true, legenda: true, credito: true, galeria: { select: { titulo: true, espetaculoId: true, espetaculo: { select: { titulo: true } } } } } },
+      },
+    }),
+    prisma.configuracaoSite.findMany({ select: { chave: true, dados: true } }),
+    prisma.paginaSite.findMany({ select: { caminho: true, configuracao: true } }),
+    prisma.secaoHome.findMany({ select: { chave: true, configuracao: true } }),
+    getPublicSiteIdentity(),
+    getPublicHomeSettings(),
+    getPublicContactPageSettings(),
+    getPublicProjectPageSettings(),
+  ]);
+
+  const mediaIds = new Set(items.map((item) => item.id));
+  const mediaIdsPorOrigem = new Map<string, string[]>();
+  for (const item of items) {
+    if (!item.origem) continue;
+    const ids = mediaIdsPorOrigem.get(item.origem) ?? [];
+    ids.push(item.id);
+    mediaIdsPorOrigem.set(item.origem, ids);
+  }
+  const referenciasPorMidia = new Map<string, Map<string, ReferenciaMidia>>(
+    items.map((item) => [item.id, new Map<string, ReferenciaMidia>()]),
+  );
+  const adicionar = (midiaId: string, referencia: ReferenciaMidia) => {
+    const referencias = referenciasPorMidia.get(midiaId);
+    if (referencias && !referencias.has(referencia.chave)) referencias.set(referencia.chave, referencia);
+  };
+
+  for (const item of items) {
+    for (const uso of item.usos) {
+      const area = areaDaReferencia(uso.dominio);
+      adicionar(item.id, {
+        chave: `${uso.dominio}:${uso.registro}:${uso.campo}`,
+        area,
+        registro: uso.registro,
+        campo: uso.campo,
+        textoAlternativo: uso.textoAlternativo,
+        legenda: uso.legenda,
+        credito: uso.credito,
+      });
+    }
+    for (const integrante of item.integrantes) adicionar(item.id, {
+      chave: `Integrante:${integrante.slug}:foto`, area: "integrantes", registro: integrante.nome, campo: "foto", textoAlternativo: null, legenda: null, credito: null,
+    });
+    for (const espetaculo of item.espetaculos) adicionar(item.id, {
+      chave: `Espetaculo:${espetaculo.slug}:capa`, area: "espetaculos", registro: espetaculo.titulo, campo: "capa", textoAlternativo: null, legenda: null, credito: null,
+    });
+    for (const premio of item.premios) adicionar(item.id, {
+      chave: `Premio:${premio.slug}/${premio.ano}:foto`, area: "premios", registro: `${premio.titulo} (${premio.ano})`, campo: "foto", textoAlternativo: null, legenda: null, credito: null,
+    });
+    for (const foto of item.fotos) {
+      const registro = foto.galeria.espetaculo?.titulo ?? foto.galeria.titulo ?? "Página de projetos";
+      adicionar(item.id, {
+        chave: `Galeria:${foto.id}`, area: foto.galeria.espetaculoId ? "espetaculos" : "paginaProjetos",
+        registro, campo: `foto ${foto.ordem + 1}`, textoAlternativo: foto.textoAlternativo, legenda: foto.legenda, credito: foto.credito,
+      });
+    }
+  }
+
+  for (const configuracao of configuracoes) coletarReferenciasJson(configuracao.dados, mediaIds, mediaIdsPorOrigem, adicionar, "ConfiguracaoSite", configuracao.chave);
+  for (const pagina of paginas) coletarReferenciasJson(pagina.configuracao, mediaIds, mediaIdsPorOrigem, adicionar, "PaginaSite", pagina.caminho);
+  for (const secao of secoesHome) coletarReferenciasJson(secao.configuracao, mediaIds, mediaIdsPorOrigem, adicionar, "SecaoHome", secao.chave);
+  coletarReferenciasJson(identidade, mediaIds, mediaIdsPorOrigem, adicionar, "ConfiguracaoSite", "Identidade do site");
+  coletarReferenciasJson(home, mediaIds, mediaIdsPorOrigem, adicionar, "ConfiguracaoSite", "Página inicial");
+  coletarReferenciasJson(contatoPagina, mediaIds, mediaIdsPorOrigem, adicionar, "ConfiguracaoSite", "Página de contato");
+  coletarReferenciasJson(projetosPagina, mediaIds, mediaIdsPorOrigem, adicionar, "ConfiguracaoSite", "Página de projetos");
+
+  return NextResponse.json(items.map((item) => {
+    const usos = [...(referenciasPorMidia.get(item.id)?.values() ?? [])];
+    return {
+      id: item.id,
+      url: urlPublicaDaMidia(item) ?? "/padrao2.webp",
+      mime: item.mime,
+      bytes: item.bytes,
+      largura: item.largura,
+      altura: item.altura,
+      nomeOriginal: item.nomeOriginal,
+      criadoEm: item.criadoEm,
+      usos,
+      quantidadeUsos: usos.length,
+      semVinculosDetectados: usos.length === 0,
+    };
+  }));
 }
 
 export async function POST(request: Request) {

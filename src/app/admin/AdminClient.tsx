@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { ComponentType } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Award, BookOpen, CalendarDays, Clapperboard, FolderKanban, History, Info, LogOut, Newspaper, Settings, SlidersHorizontal, Users } from "lucide-react";
+import { Award, BookOpen, CalendarDays, Clapperboard, FolderKanban, History, Images, Info, LogOut, Newspaper, Settings, SlidersHorizontal, Users } from "lucide-react";
 import AdminAgenda from "@/components/admin/Agenda";
 import AdminEspetaculos from "@/components/admin/Espetaculos";
 import AdminIntegrantes from "@/components/admin/Integrantes";
@@ -17,11 +17,12 @@ import AdminConfiguracoes from "@/components/admin/Configuracoes";
 import AdminHistoria from "@/components/admin/Historia";
 import AdminPaginaProjetos from "@/components/admin/PaginaProjetos";
 import AdminEditorialTransversal from "@/components/admin/EditorialTransversal";
+import BibliotecaMidia from "@/components/admin/BibliotecaMidia";
 import { limparCacheAdministrativo } from "@/lib/cache-administrativo";
 
 export type BufferData = string;
 
-type AreaAdministrativa = "agenda" | "noticias" | "livros" | "projetos" | "paginaProjetos" | "sobre" | "integrantes" | "espetaculos" | "premios" | "configuracoes" | "editorialTransversal";
+type AreaAdministrativa = "agenda" | "noticias" | "livros" | "projetos" | "paginaProjetos" | "sobre" | "integrantes" | "espetaculos" | "premios" | "configuracoes" | "midia" | "editorialTransversal";
 
 const areasAdministrativas: {
   id: AreaAdministrativa;
@@ -37,6 +38,7 @@ const areasAdministrativas: {
   { id: "sobre", titulo: "Sobre", descricao: "História e trajetória", Icone: Info, Componente: AdminSobre },
   { id: "paginaProjetos", titulo: "Página de projetos", descricao: "Apresentação e galeria", Icone: FolderKanban, Componente: AdminPaginaProjetos },
   { id: "configuracoes", titulo: "Configurações", descricao: "Home, contatos e navegação", Icone: Settings, Componente: AdminConfiguracoes },
+  { id: "midia", titulo: "Mídia", descricao: "Arquivos e referências de uso", Icone: Images, Componente: BibliotecaMidia },
   { id: "integrantes", titulo: "Integrantes", descricao: "Perfis e biografias", Icone: Users, Componente: AdminIntegrantes },
   { id: "espetaculos", titulo: "Espetáculos", descricao: "Peças, seções e galerias", Icone: Clapperboard, Componente: AdminEspetaculos },
   { id: "premios", titulo: "Prêmios", descricao: "Reconhecimentos e registros", Icone: Award, Componente: AdminPremios },
@@ -45,9 +47,17 @@ const areasAdministrativas: {
 
 export default function AdminClient({ editorialAtivo }: { editorialAtivo: boolean }) {
   const [areaAtiva, setAreaAtiva] = useState<AreaAdministrativa>("noticias");
+  useEffect(() => {
+    function abrirAreaSolicitada(event: Event) {
+      const area = (event as CustomEvent<string>).detail;
+      if (areasAdministrativas.some((item) => item.id === area)) setAreaAtiva(area as AreaAdministrativa);
+    }
+    window.addEventListener("amargem:admin-area", abrirAreaSolicitada);
+    return () => window.removeEventListener("amargem:admin-area", abrirAreaSolicitada);
+  }, []);
   const areasVisiveis = editorialAtivo
     ? areasAdministrativas.map((area) => area.id === "sobre" ? { ...area, Componente: AdminHistoria, descricao: "História, marcos e publicação", Icone: History } : area)
-    : areasAdministrativas.filter((area) => !["integrantes", "espetaculos", "premios", "paginaProjetos", "configuracoes", "editorialTransversal"].includes(area.id));
+    : areasAdministrativas.filter((area) => !["integrantes", "espetaculos", "premios", "paginaProjetos", "configuracoes", "midia", "editorialTransversal"].includes(area.id));
   const areaSelecionada = areasVisiveis.find((area) => area.id === areaAtiva) ?? areasVisiveis[0];
   const ConteudoAtivo = areaSelecionada.Componente;
 
