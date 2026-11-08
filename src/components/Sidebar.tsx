@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import dynamic from "next/dynamic";
@@ -23,6 +24,9 @@ const menuItems = [
 
 export default function Sidebar() {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+
+  if (pathname === "/admin" || pathname.startsWith("/admin/")) return null;
 
   return (
     <div>

@@ -1,7 +1,10 @@
 "use client";
 import { Button, ConfigProvider, Input, Modal, Pagination } from "antd";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import EstadoLista from "./EstadoLista";
+import CabecalhoSecao from "./CabecalhoSecao";
 import AgendaCard from "./subcomponents/AgendaCard";
+import { buscarJsonAdministrativo, invalidarDadosCacheados, lerDadosCacheados, obterDadosCacheados } from "@/lib/cache-administrativo";
 
 type AgendaItem = {
     id?: number;
@@ -12,7 +15,8 @@ type AgendaItem = {
 };
 
 const AdminAgenda = () => {
-    const [agendas, setAgendas] = useState<AgendaItem[]>([]);
+    const dadosIniciais = lerDadosCacheados<AgendaItem[]>("admin:agenda");
+    const [agendas, setAgendas] = useState<AgendaItem[]>(dadosIniciais ?? []);
     const [newAgenda, setNewAgenda] = useState<AgendaItem>({
         titulo: "",
         data: "",
@@ -26,15 +30,19 @@ const AdminAgenda = () => {
     const [processingEdit, setProcessingEdit] = useState<boolean>(false);
     const [filterText, setFilterText] = useState<string>("");
     const [modal, contextHolder] = Modal.useModal();
-    const [dataLoading, setDataLoading] = useState<boolean>(true);
+    const [dataLoading, setDataLoading] = useState<boolean>(dadosIniciais === undefined);
+    const [mostrarFormulario, setMostrarFormulario] = useState(false);
 
     // --- PAGINAÇÃO ---
     const [currentPage, setCurrentPage] = useState<number>(1);
     const pageSize = 3;
 
-    async function load() {
+    const load = useCallback(async (forcarAtualizacao = false) => {
+        if (forcarAtualizacao) invalidarDadosCacheados("admin:agenda");
         try {
-            const a = await fetch("/api/admin/agenda").then((r) => r.json());
+            const a = await obterDadosCacheados("admin:agenda", () =>
+                buscarJsonAdministrativo<AgendaItem[]>("/api/admin/agenda")
+            );
             setAgendas(a || []);
         } catch (error) {
             console.error("Falha ao carregar agenda:", error);
@@ -42,11 +50,11 @@ const AdminAgenda = () => {
         } finally {
             setDataLoading(false)
         }
-    }
+    }, [modal]);
 
     useEffect(() => {
-        load();
-    }, []);
+        void load();
+    }, [load]);
 
     const clearFilter = () => {
         setFilterText("");
@@ -72,7 +80,8 @@ const AdminAgenda = () => {
 
             setNewAgenda({ titulo: "", data: "", local: "", cidade: "" });
             setAgendaTime("19:00");
-            await load();
+            setMostrarFormulario(false);
+            await load(true);
 
             modal.success({
                 title: "Sucesso",
@@ -112,7 +121,7 @@ const AdminAgenda = () => {
             if (!res.ok) throw new Error(await res.text());
 
             const willBeEmptyPage = currentAgendas.length === 1 && currentPage > 1;
-            await load();
+            await load(true);
 
             if (willBeEmptyPage) setCurrentPage(currentPage - 1);
 
@@ -168,7 +177,7 @@ const AdminAgenda = () => {
 
             setEditingAgenda(null);
             setEditingAgendaTime("19:00");
-            await load();
+            await load(true);
 
             modal.success({
                 title: "Agenda atualizada",
@@ -204,53 +213,57 @@ const AdminAgenda = () => {
     const currentAgendas = filteredAgendas.slice(startIndex, endIndex);
 
     return (
-        <section className="mb-8 w-auto gap-20 bg-black/50 p-4 rounded">
+        <section className="space-y-4" aria-labelledby="admin-secao-titulo">
+            <CabecalhoSecao titulo="Agenda" descricao="Organize apresentações e eventos do coletivo." acao="Nova agenda" aberto={mostrarFormulario} aoAlternar={() => setMostrarFormulario((visivel) => !visivel)} />
+            <div className="w-full rounded-xl border border-slate-300 bg-white p-4 sm:p-6 2xl:p-5">
             {contextHolder}
-            <h2 className="text-xl border-l-4 border-orange-500 pl-2 font-semibold">
-                Agendas
-            </h2>
             <ConfigProvider
                 theme={{
                     components: {
                         Pagination: {
-                            itemBg: "#ffffff20",
-                            itemActiveBg: "#FF6900",
-                            colorPrimary: "#ffffffff",
-                            colorText: "white",
-                            colorPrimaryHover: "#ffa366",
-                            colorTextDisabled: "rgba(255,255,255,0.3)",
-                            itemLinkBg: "transparent",
+                            itemBg: "#ffffff",
+                            itemActiveBg: "#fff1df",
+                            colorPrimary: "#412551",
+                            colorText: "#334155",
+                            colorPrimaryHover: "#681A01",
+                            colorTextDisabled: "#94a3b8",
+                            itemLinkBg: "#ffffff",
                         },
                         Button: {
-                            defaultBg: "#FF6900",
-                            defaultBorderColor: "#FF6900",
-                            defaultHoverBg: "#e05900",
-                            defaultHoverBorderColor: "#e05900",
-                            defaultHoverColor: "white",
-                            defaultColor: "white",
+                            defaultBg: "#ffffff",
+                            defaultBorderColor: "#cbd5e1",
+                            defaultHoverBg: "#f8fafc",
+                            defaultHoverBorderColor: "#94a3b8",
+                            defaultHoverColor: "#0f172a",
+                            defaultColor: "#334155",
+                            colorPrimary: "#F38901",
+                            colorPrimaryHover: "#FECA55",
+                            colorTextLightSolid: "#241c26",
                         },
                         Input: {
-                            colorText: "white",
-                            colorTextPlaceholder: "rgba(255, 255, 255, 0.45)",
+                            colorText: "#0f172a",
+                            colorTextPlaceholder: "#64748b",
                         },
                     },
                 }}
             >
                 {/* FORMULÁRIO DE CRIAÇÃO */}
-                <form
+                {mostrarFormulario && <form
                     onSubmit={createAgenda}
-                    className="flex flex-col gap-2 my-3 text-white"
+                    className="my-5 flex flex-col gap-4 rounded-xl border border-slate-200 bg-slate-50 p-4 text-slate-900 sm:p-5"
                 >
+                    <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-700">Título
                     <input
                         required
-                        placeholder="Título"
                         value={newAgenda.titulo}
                         onChange={(e) =>
                             setNewAgenda({ ...newAgenda, titulo: e.target.value })
                         }
-                        className="p-2 border border-white rounded"
+                        className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 text-base text-slate-900 placeholder:text-slate-400 focus:border-[#412551] focus:outline-none focus:ring-2 focus:ring-[#412551]/20"
                     />
-                    <div className="flex gap-2 w-full">
+                    </label>
+                    <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2">
+                        <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-700">Data
                         <input
                             required
                             type="date"
@@ -258,45 +271,52 @@ const AdminAgenda = () => {
                             onChange={(e) =>
                                 setNewAgenda({ ...newAgenda, data: e.target.value })
                             }
-                            className="p-2 border border-white rounded flex-1 min-w-0"
+                            className="min-h-11 min-w-0 rounded-lg border border-slate-300 bg-white px-3 text-base text-slate-900 focus:border-[#412551] focus:outline-none focus:ring-2 focus:ring-[#412551]/20"
                         />
+                        </label>
+                        <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-700">Horário
                         <input
+                            aria-label="Horário"
                             type="time"
                             value={agendaTime}
                             onChange={(e) => setAgendaTime(e.target.value)}
-                            className="p-2 border border-white rounded flex-1 min-w-0"
+                            className="min-h-11 min-w-0 rounded-lg border border-slate-300 bg-white px-3 text-base text-slate-900 focus:border-[#412551] focus:outline-none focus:ring-2 focus:ring-[#412551]/20"
                         />
+                        </label>
                     </div>
+                    <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-700">Cidade
                     <input
-                        placeholder="Cidade"
                         value={newAgenda.cidade}
                         onChange={(e) =>
                             setNewAgenda({ ...newAgenda, cidade: e.target.value })
                         }
-                        className="p-2 border border-white rounded"
+                        className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 text-base text-slate-900 placeholder:text-slate-400 focus:border-[#412551] focus:outline-none focus:ring-2 focus:ring-[#412551]/20"
                     />
+                    </label>
+                    <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-700">Local
                     <input
-                        placeholder="Local"
                         value={newAgenda.local}
                         onChange={(e) =>
                             setNewAgenda({ ...newAgenda, local: e.target.value })
                         }
-                        className="p-2 border border-white rounded"
+                        className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 text-base text-slate-900 placeholder:text-slate-400 focus:border-[#412551] focus:outline-none focus:ring-2 focus:ring-[#412551]/20"
                     />
+                    </label>
                     <Button
+                        type="primary"
                         htmlType="submit"
                         loading={loading}
                         style={{ padding: 18, fontSize: "16px", borderRadius: "4px" }}
                     >
-                        Adicionar Agenda
+                        Publicar agenda
                     </Button>
-                </form>
+                </form>}
 
                 {/* Filtro e lista de projetos */}
                 {agendas.length > 0 ? (
-                    <div className="my-4">
+            <div className="my-4">
                         <div className="flex items-center justify-between mb-2">
-                            <h3 className="text-lg font-semibold">Agendas cadastradas:</h3>
+                            <h3 className="text-lg font-bold text-[#19121d]">Agendas cadastradas</h3>
                             {filterText && (
                                 <Button
                                     size="small"
@@ -308,26 +328,27 @@ const AdminAgenda = () => {
                             )}
                         </div>
                         <Input.Search
+                            aria-label="Buscar na agenda por título, cidade ou local"
                             placeholder="Digite parte do título, cidade ou local..."
                             value={filterText}
                             onChange={(e) => setFilterText(e.target.value)}
-                            className="[&_.ant-input-search-button_.anticon]:!text-white/60 hover:[&_.ant-input-search-button_.anticon]:!text-white border border-white rounded"
+                            className="[&_.ant-input-search-button_.anticon]:!text-slate-500 hover:[&_.ant-input-search-button_.anticon]:!text-slate-900 border border-slate-300 rounded-lg"
                             variant="borderless"
                             allowClear
                         />
                     </div>
                 ) : (
-                    <div className="text-center py-8 text-white/60">
-                        {filterText
-                            ? "Nenhuma agenda encontrada para o filtro aplicado."
-                            : dataLoading
-                                ? ("Carregando...")
-                                : "Nenhuma agenda cadastrado."}
-                    </div>
+                    <EstadoLista
+                        carregando={dataLoading}
+                        buscando={Boolean(filterText)}
+                        mensagemVazia="Ainda não há agendas. Crie a primeira para começar."
+                        textoAcao="Criar primeira agenda"
+                        aoCriar={() => setMostrarFormulario(true)}
+                    />
                 )}
 
                 {/* LISTAGEM */}
-                <ul className="space-y-2">
+                <ul className="divide-y divide-slate-300 border-t border-slate-300">
                     {currentAgendas.map((a) => (
                         <AgendaCard
                             key={a.id}
@@ -347,27 +368,31 @@ const AdminAgenda = () => {
                         />
                     ))}
                 </ul>
+                {filteredAgendas.length === 0 && agendas.length > 0 && (
+                    <EstadoLista
+                        carregando={false}
+                        buscando={Boolean(filterText)}
+                        mensagemVazia="Ainda não há agendas. Crie a primeira para começar."
+                        textoAcao="Criar primeira agenda"
+                        aoCriar={() => setMostrarFormulario(true)}
+                    />
+                )}
 
                 {/* PAGINAÇÃO */}
                 {filteredAgendas.length > pageSize && (
                     <div className="flex mt-4 w-full justify-center">
                         <Pagination
+                            aria-label="Navegação de páginas da agenda"
                             current={currentPage}
                             pageSize={pageSize}
                             total={filteredAgendas.length}
                             responsive
                             onChange={(page) => setCurrentPage(page)}
-                            itemRender={(page, type, originalElement) => {
-                                const el = originalElement as React.ReactElement<{ className?: string; children?: React.ReactNode }>;
-                                const isActive = el.props?.className?.includes("ant-pagination-item-active");
-                                const classes = `text-white hover:text-white ${isActive ? "font-bold" : ""}`;
-                                if (type === "page") return <a className={classes}>{page}</a>;
-                                return <a className={classes}>{el.props?.children}</a>;
-                            }}
                         />
                     </div>
                 )}
             </ConfigProvider>
+            </div>
         </section>
     );
 };
