@@ -14,7 +14,7 @@ Isso confirma que o snapshot de código e mídia usado na importação represent
 
 ## O que ainda falta para encerrar E0
 
-Não foi encontrada evidência autoritativa que ligue o deploy de produção ao commit `c05ce1b`: os status/checks do commit estão vazios e o workflow versionado nesse repositório executa testes, não publica o site. O HTML público ou uma captura visual confirmam conteúdo acessível, mas não provam a revisão construída.
+Não foi encontrada evidência autoritativa que ligue o deploy de produção ao commit `c05ce1b`: os status/checks do commit estão vazios e o workflow versionado nesse repositório executa testes, não publica o site. O HTML público ou uma captura visual confirmam conteúdo acessível, mas não provam a revisão construída. A consulta direta ao dashboard Vercel redirecionou para login; não havia sessão autenticada disponível e nenhuma credencial foi inserida.
 
 A extração somente leitura do banco está registrada no [relatório de adaptadores](./adaptadores-snapshot-schema-2026-11-07.md): ela usou `DATABASE_URL`, encontrou 93 registros e seis blobs, e não encontrou `public._prisma_migrations`. A [reconciliação de schema](./reconciliacao-baseline-2026-11-07.md) documenta o baseline e o estado observado. Os dois relatórios alertam que a conexão configurada não foi confirmada como o banco atualmente ligado ao site publicado. Este passo não abriu uma nova conexão com a origem. O staging permanece confirmado como projeto isolado e recebeu apenas as migrações/conteúdo documentados; produção não foi consultada nem gravada nesta verificação.
 
