@@ -50,14 +50,15 @@ Esse resultado confirma os cinco conjuntos legados no momento da leitura; o delt
 
 ## Limites e ações restantes
 
-E6 ainda não está concluída. Antes do corte em produção, falta:
+E6 ainda não está concluída. O executor dedicado foi preparado e seu [pré-flight de produção](preparacao-e6-executor-producao-2026-11-08.md) confirmou, por leitura somente leitura, o schema correspondente ao baseline, a ausência do histórico Prisma e zero buckets. O status do Prisma listou quatro migrações pendentes. Os dois kill switches de produção permanecem desligados. Antes do corte ainda falta:
 
-1. Repetir o delta imediatamente antes do corte e comparar contagens, campos, hashes, sequências e referências.
-2. Preparar um executor específico de produção. O importador e wrapper de migrações atuais recusam `producao` e operam somente em staging.
-3. Configurar localmente uma conexão de migração com escrita e uma chave de serviço do projeto; `ORIGEM_DATABASE_URL` é somente leitura e não deve ser reutilizada para gravar.
-4. Inspecionar novamente Storage; a observação atual encontrou zero buckets em produção. O corte exigirá criar o bucket público configurado e importar mídia.
-5. Publicar a `main` local e identificar o deploy. O merge local já está feito; o remoto ainda não foi atualizado.
-6. Antes de qualquer escrita de schema, carga, criação de bucket ou habilitação do novo leitor em produção, apresentar a sequência concreta e obter autorização explícita. Nenhuma dessas escritas foi feita nesta preparação.
+1. Repetir o inventário/snapshot e o delta imediatamente antes do corte; comparar contagens, campos, hashes, sequências e referências.
+2. Gerar e ensaiar um novo backup local de `public`; reexaminar Storage para determinar se já há objetos.
+3. Revisar/commitar a preparação e publicar a `main` local com a versão de transição; identificar o deploy ativo.
+4. Obter autorização explícita antes de registrar o baseline, aplicar migrações, criar/configurar bucket, importar conteúdo ou habilitar o novo leitor.
+5. Após o corte, verificar contagens, hashes, relações, URLs, mídias e smoke público/admin; registrar retenção e plano de reversão.
+
+Nenhuma migração, criação de bucket, importação, publicação ou gravação de produção foi feita nesta preparação. `ORIGEM_DATABASE_URL` continua somente leitura e não deve ser reutilizada para gravações.
 
 O Supabase descreve que backups do banco não incluem bytes de objetos Storage; veja [backups de banco](https://supabase.com/docs/guides/platform/backups), [backup e restore pela CLI](https://supabase.com/docs/guides/platform/migrating-within-supabase/backup-restore) e [download de objetos](https://supabase.com/docs/guides/storage/management/download-objects). O plano Free não disponibilizou backup gerenciado na interface examinada; nenhuma alteração de plano foi feita.
 
