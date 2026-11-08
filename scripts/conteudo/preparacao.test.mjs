@@ -18,7 +18,7 @@ function manifestoVazio() {
   return atualizarHash({
     versao: 1,
     fontes: [],
-    conteudo: { integrantes: [], espetaculos: [], premios: [], fotosProjetos: [], contatos: [], configuracoes: [], menus: [], aliasesConfigurados: [], conflitos: [] },
+    conteudo: { integrantes: [], espetaculos: [], premios: [], fotosProjetos: [], contatos: [], configuracoes: [], menus: [], secoesHome: [], aliasesConfigurados: [], conflitos: [] },
     midias: [], ausentes: [], banco: { estado: 'snapshot-somente-leitura', registros: { Livro: [] }, midias: [] },
   });
 }
@@ -30,9 +30,9 @@ describe('preparação local da migração', () => {
 
     expect(preparado.resumo).toMatchObject({
       bucket: 'site-publico',
-      midiasUnicas: 64,
+      midiasUnicas: 55,
       modelos: {
-        configuracoes: 39,
+        configuracoes: 37,
         canaisContato: 4,
         itensMenu: 10,
         aliases: 10,
@@ -54,6 +54,8 @@ describe('preparação local da migração', () => {
     expect(preparado.documentos.secoesHome.map((item) => item.tipo)).toEqual(['Main', 'AgendaHome', 'Sobre', 'Contato']);
     expect(preparado.documentos.configuracoes.some((item) => item.chave.endsWith('.css'))).toBe(false);
     expect(preparado.documentos.paginasSite.find((item) => item.caminho === '/')?.configuracao.fontes.some((item) => item.chave.endsWith('.css'))).toBe(false);
+    expect(preparado.documentos.configuracoes.find((item) => item.chave === 'home:pagina')?.dados.hero.slides).toHaveLength(3);
+    expect(preparado.documentos.configuracoes.find((item) => item.chave === 'site:identidade')?.dados.dominio).toBe('https://www.amargem.com.br');
     expect(preparado.documentos.midias.some((item) => item.id === preparado.documentos.espetaculos[0].capaId)).toBe(true);
     expect(preparado.payloads.some((item) => item.mime === 'image/vnd.microsoft.icon')).toBe(true);
     expect(preparado.resumo).not.toHaveProperty('payload');

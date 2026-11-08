@@ -63,7 +63,20 @@ export function normalizar(fontes) {
   };
   const conflitos = [];
   const perfis = obter('src/data/integrantes.ts', 'integrantes');
-  const lista = obter('src/app/coletivo/page.tsx', 'integrantes');
+  const listaLegada = fontes.find((fonte) => fonte.caminho === 'src/app/coletivo/page.tsx')?.variaveis.find((item) => item.nome === 'integrantes')?.valor;
+  let lista = listaLegada;
+  if (!Array.isArray(lista)) {
+    // A página atual passou a ler listPublishedIntegrantes; sua rota de fallback
+    // usa exatamente o array versionado em src/data/integrantes.ts.
+    const pagina = fontes.find((fonte) => fonte.caminho === 'src/app/coletivo/page.tsx');
+    const leitorPublico = fontes.find((fonte) => fonte.caminho === 'src/lib/publicContent.ts');
+    const paginaUsaLeitorPublico = pagina?.textos?.some((item) => item.valor === '@/lib/publicContent');
+    const leitorUsaPerfisLegados = leitorPublico?.textos?.some((item) => item.valor === '@/data/integrantes');
+    if (!paginaUsaLeitorPublico || !leitorUsaPerfisLegados) {
+      throw new Error('Fonte de integrantes não vinculada: esperado literal legado ou fallback público em src/data/integrantes.ts');
+    }
+    lista = perfis;
+  }
   const integrantes = lista.map((item, ordem) => {
     const encontrados = perfis.filter((perfil) => perfil.id === item.id);
     if (encontrados.length !== 1 || encontrados[0].nome !== item.nome || encontrados[0].image !== item.image) conflitos.push(`Integrante divergente: ${item.id}`);

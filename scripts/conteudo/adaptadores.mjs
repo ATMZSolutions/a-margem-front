@@ -8,8 +8,23 @@ export function adaptarConfiguracoes(arquivos) {
   const contatos = new Map();
   const configuracoes = [];
   const menus = [];
+  const secoesHome = [];
   const aliases = [];
   const conflitos = [];
+  let contatosPadraoPresentes = false;
+  let menuPadraoPresente = false;
+  let secoesHomePadraoPresentes = false;
+  const registrarContato = (tipo, rotulo, link, ordem, caminho) => {
+    if (!Object.hasOwn(TIPOS_CANAIS, tipo) && !['whatsapp', 'email', 'instagram', 'tiktok'].includes(tipo)) throw new Error('Tipo de contato desconhecido');
+    const url = new URL(link);
+    if (!['https:', 'http:', 'mailto:'].includes(url.protocol)) throw new Error('Protocolo de contato inválido');
+    const normalizada = url.toString();
+    const tipoNormalizado = TIPOS_CANAIS[tipo] ?? tipo;
+    const anterior = contatos.get(tipoNormalizado);
+    if (anterior && (anterior.url !== normalizada || anterior.rotulo !== rotulo || anterior.ordem !== ordem)) conflitos.push(`Contato divergente: ${tipoNormalizado} em ${caminho}`);
+    else if (anterior) anterior.fontes.push(caminho);
+    else contatos.set(tipoNormalizado, { chaveOrigem: `contato:${tipoNormalizado}`, tipo: tipoNormalizado, rotulo, url: normalizada, ordem, ativo: true, fontes: [caminho] });
+  };
   for (const { caminho, codigo } of arquivos) {
     const arvore = ts.createSourceFile(caminho, codigo, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
     const constantes = new Map();
@@ -17,17 +32,33 @@ export function adaptarConfiguracoes(arquivos) {
     function coletar(no) { nos.push(no); ts.forEachChild(no, coletar); }
     coletar(arvore);
     for (const no of nos) if (ts.isVariableDeclaration(no) && ts.isIdentifier(no.name) && no.initializer) constantes.set(no.name.text, no.initializer);
-    function valor(no, pilha = new Set()) {
+    function valor(no, pilha = new Set(), vinculacoes = new Map()) {
+      if (ts.isIdentifier(no) && vinculacoes.has(no.text)) return vinculacoes.get(no.text);
       if (ts.isIdentifier(no) && constantes.has(no.text)) {
         if (pilha.has(no.text)) throw new Error('Referência circular');
-        return valor(constantes.get(no.text), new Set([...pilha, no.text]));
+        return valor(constantes.get(no.text), new Set([...pilha, no.text]), vinculacoes);
       }
       if (ts.isObjectLiteralExpression(no)) return Object.fromEntries(no.properties.map((prop) => {
         if (!ts.isPropertyAssignment(prop) || !('text' in prop.name)) throw new Error('Objeto dinâmico');
-        return [prop.name.text, valor(prop.initializer, pilha)];
+        return [prop.name.text, valor(prop.initializer, pilha, vinculacoes)];
       }));
-      if (ts.isArrayLiteralExpression(no)) return no.elements.map((item) => valor(item, pilha));
-      if (ts.isNewExpression(no) && no.expression.getText(arvore) === 'URL' && no.arguments?.length === 1) return valor(no.arguments[0], pilha);
+      if (ts.isArrayLiteralExpression(no)) return no.elements.map((item) => valor(item, pilha, vinculacoes));
+      if (ts.isParenthesizedExpression(no) || ts.isAsExpression(no) || ts.isSatisfiesExpression(no)) return valor(no.expression, pilha, vinculacoes);
+      if (ts.isTemplateExpression(no)) return no.head.text + no.templateSpans.map((span) => {
+        const parte = valor(span.expression, pilha, vinculacoes);
+        if (parte === null || parte === undefined || typeof parte === 'object') throw new Error('Interpolação dinâmica');
+        return `${parte}${span.literal.text}`;
+      }).join('');
+      if (ts.isCallExpression(no) && ts.isPropertyAccessExpression(no.expression) && no.expression.name.text === 'map'
+        && ts.isArrayLiteralExpression(no.expression.expression) && ts.isArrowFunction(no.arguments[0])
+        && no.arguments[0].parameters.length === 1 && ts.isIdentifier(no.arguments[0].parameters[0].name)) {
+        const corpo = ts.isParenthesizedExpression(no.arguments[0].body) ? no.arguments[0].body.expression : no.arguments[0].body;
+        if (!ts.isObjectLiteralExpression(corpo)) throw new Error('Mapeamento não literal');
+        const valores = valor(no.expression.expression, pilha, vinculacoes);
+        const parametro = no.arguments[0].parameters[0].name.text;
+        return valores.map((item) => valor(corpo, pilha, new Map([...vinculacoes, [parametro, item]])));
+      }
+      if (ts.isNewExpression(no) && no.expression.getText(arvore) === 'URL' && no.arguments?.length === 1) return valor(no.arguments[0], pilha, vinculacoes);
       return lerLiteral(no);
     }
     function atributo(abertura, nome) {
@@ -39,6 +70,24 @@ export function adaptarConfiguracoes(arquivos) {
     const avaliar = (funcao) => { try { return funcao(); } catch { return undefined; } };
     const campos = [];
     for (const no of nos) {
+      if (caminho === 'src/lib/siteContent.ts' && ts.isVariableDeclaration(no) && ts.isIdentifier(no.name) && no.name.text === 'CONTATOS_PADRAO') {
+        const itens = valor(no.initializer);
+        if (!Array.isArray(itens)) throw new Error('Contatos padrão não literais');
+        contatosPadraoPresentes = true;
+        itens.forEach((item, ordem) => registrarContato(item.tipo, item.rotulo, item.url, item.ordem ?? ordem, caminho));
+      }
+      if (caminho === 'src/lib/siteContent.ts' && ts.isVariableDeclaration(no) && ts.isIdentifier(no.name) && no.name.text === 'MENU_PADRAO') {
+        const itens = valor(no.initializer);
+        if (!Array.isArray(itens)) throw new Error('Menu padrão não literal');
+        menuPadraoPresente = true;
+        itens.forEach((item, ordem) => menus.push({ chaveOrigem: `menu:${item.destino}`, rotulo: item.rotulo, destino: item.destino, ordem: item.ordem ?? ordem, ativo: item.ativo ?? true }));
+      }
+      if (caminho === 'src/lib/siteContent.ts' && ts.isVariableDeclaration(no) && ts.isIdentifier(no.name) && no.name.text === 'SECOES_PADRAO') {
+        const itens = valor(no.initializer);
+        if (!Array.isArray(itens)) throw new Error('Seções da home padrão não literais');
+        secoesHomePadraoPresentes = true;
+        itens.forEach((item, ordem) => secoesHome.push({ chave: item.chave, titulo: item.titulo, ativa: item.ativa ?? true, ordem: item.ordem ?? ordem }));
+      }
       if (ts.isVariableDeclaration(no) && no.name.getText(arvore) === 'contacts') {
         if (!no.initializer || !ts.isArrayLiteralExpression(no.initializer)) throw new Error(`Contatos não literais: ${caminho}`);
         no.initializer.elements.forEach((item, ordem) => {
@@ -49,22 +98,41 @@ export function adaptarConfiguracoes(arquivos) {
           }));
           const icone = propriedades.icon;
           if (!icone || !ts.isJsxSelfClosingElement(icone)) throw new Error('Ícone de contato não suportado');
-          const tipo = TIPOS_CANAIS[icone.tagName.getText(arvore)];
-          if (!tipo) throw new Error('Tipo de contato desconhecido');
+          const tipo = icone.tagName.getText(arvore);
+          if (!TIPOS_CANAIS[tipo]) throw new Error('Tipo de contato desconhecido');
           const rotulo = valor(propriedades.text);
-          const url = new URL(valor(propriedades.link));
-          if (!['https:', 'http:', 'mailto:'].includes(url.protocol)) throw new Error('Protocolo de contato inválido');
-          const normalizada = url.toString();
-          const anterior = contatos.get(tipo);
-          if (anterior && (anterior.url !== normalizada || anterior.rotulo !== rotulo || anterior.ordem !== ordem)) conflitos.push(`Contato divergente: ${tipo} em ${caminho}`);
-          else if (anterior) anterior.fontes.push(caminho);
-          else contatos.set(tipo, { chaveOrigem: `contato:${tipo}`, tipo, rotulo, url: normalizada, ordem, ativo: true, fontes: [caminho] });
+          registrarContato(tipo, rotulo, valor(propriedades.link), ordem, caminho);
         });
       }
       if (ts.isVariableDeclaration(no) && no.name.getText(arvore) === 'menuItems') {
         valor(no.initializer).forEach((item, ordem) => menus.push({ chaveOrigem: `menu:${item.href}`, rotulo: item.label, destino: item.href, ordem, ativo: true }));
       }
       if (ts.isVariableDeclaration(no) && no.name.getText(arvore) === 'metadata') campos.push({ chave: 'seo', valor: valor(no.initializer) });
+      if (caminho === 'src/lib/siteContent.ts' && ts.isVariableDeclaration(no) && ts.isIdentifier(no.name) && no.name.text === 'DEFAULT_IDENTITY') {
+        campos.push({ chave: 'seo', valor: valor(no.initializer) });
+      }
+      if (caminho === 'src/lib/siteContent.ts' && ts.isVariableDeclaration(no) && ts.isIdentifier(no.name)) {
+        const nome = no.name.text;
+        const chavesPadrao = {
+          DEFAULT_IDENTITY: 'site:identidade',
+          DEFAULT_HOME: 'home:pagina',
+          DEFAULT_CONTACT_PAGE: 'contato:pagina',
+          DEFAULT_PROJECT_PAGE: 'projetos:pagina',
+          DEFAULT_TRANSVERSAL: 'site:transversal',
+        };
+        const chave = chavesPadrao[nome];
+        if (chave) {
+          const padrao = valor(no.initializer);
+          const dados = nome === 'DEFAULT_HOME' ? {
+            hero: { intervaloSlidesMs: padrao.intervaloSlidesMs, opacidadeOverlay: padrao.opacidadeOverlay, slides: padrao.slides, logo: padrao.logoHero },
+            agenda: padrao.agenda,
+            sobre: padrao.sobre,
+            tituloContato: padrao.tituloContato,
+            fundoContato: padrao.fundoContato,
+          } : padrao;
+          configuracoes.push({ chaveOrigem: `configuracao:${chave}`, chave, versao: 1, dados });
+        }
+      }
       if (ts.isJsxElement(no)) {
         const tag = no.openingElement.tagName.getText(arvore);
         if (/^(h[1-6]|p|span|a|button|motion\.h[1-6]|motion\.button|Typography\.(Paragraph|Title))$/.test(tag) || (caminho.endsWith('/Footer.tsx') && tag === 'div')) {
@@ -130,6 +198,9 @@ export function adaptarConfiguracoes(arquivos) {
       }
     }
   }
-  if (contatos.size !== 4 || [...contatos.values()].some((item) => item.fontes.length !== 2)) conflitos.push('Fontes obrigatórias dos quatro contatos incompletas');
-  return { contatos: [...contatos.values()], configuracoes, menus, aliasesConfigurados: aliases, conflitos };
+  const fontesContatosIncompletas = [...contatos.values()].some((item) => item.fontes.length < 1 || (!contatosPadraoPresentes && item.fontes.length !== 2));
+  if (contatos.size !== 4 || fontesContatosIncompletas) conflitos.push('Fontes obrigatórias dos quatro contatos incompletas');
+  if (menuPadraoPresente && menus.some((item) => typeof item.destino !== 'string' || typeof item.rotulo !== 'string')) conflitos.push('Menu padrão incompleto');
+  if (secoesHomePadraoPresentes && (secoesHome.length !== 4 || secoesHome.some((item) => typeof item.chave !== 'string' || typeof item.titulo !== 'string'))) conflitos.push('Seções padrão da home incompletas');
+  return { contatos: [...contatos.values()], configuracoes, menus, secoesHome, aliasesConfigurados: aliases, conflitos };
 }

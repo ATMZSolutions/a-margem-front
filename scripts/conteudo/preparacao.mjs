@@ -190,7 +190,7 @@ function mapearDocumentos(manifesto, midias) {
 
   for (const config of manifesto.conteudo.configuracoes) {
     if (config.chave.endsWith('.css')) continue;
-    documentos.configuracoes.push({ chave: config.chave, versao: config.versao, dados: { campos: config.campos } });
+    documentos.configuracoes.push({ chave: config.chave, versao: config.versao, dados: config.dados ?? { campos: config.campos } });
   }
   for (const canal of manifesto.conteudo.contatos) documentos.canaisContato.push({ id: idEstavel('contato', canal.chaveOrigem), chaveOrigem: canal.chaveOrigem, tipo: canal.tipo, rotulo: canal.rotulo, url: canal.url, ordem: canal.ordem, ativo: canal.ativo });
   for (const item of manifesto.conteudo.menus) documentos.itensMenu.push({ id: idEstavel('menu', item.chaveOrigem), chaveOrigem: item.chaveOrigem, rotulo: item.rotulo, destino: item.destino, ordem: item.ordem, ativo: item.ativo });
@@ -218,14 +218,25 @@ function mapearDocumentos(manifesto, midias) {
 
   const ordemHome = configsPorCaminho.get('src/app/page.tsx')?.campos.find((campo) => campo.chave === 'ordem-secoes')?.valor;
   const fontesSecaoHome = { Main: 'src/components/home/Main.tsx', AgendaHome: 'src/components/home/Agenda.tsx', Sobre: 'src/components/home/Sobre.tsx', Contato: 'src/components/home/Contato.tsx' };
-  if (manifesto.fontes.some((fonte) => fonte.caminho === 'src/app/page.tsx')) {
-    if (!Array.isArray(ordemHome)) throw new Error('Composição da home ausente ou não literal');
-    for (const [ordem, tipo] of ordemHome.entries()) {
-      const fonte = fontesSecaoHome[tipo];
+  const tipoPorChave = { main: 'Main', agenda: 'AgendaHome', sobre: 'Sobre', contato: 'Contato' };
+  const paginaHomePresente = manifesto.fontes.some((fonte) => fonte.caminho === 'src/app/page.tsx');
+  const secoesHome = manifesto.conteudo.secoesHome;
+  if (paginaHomePresente) {
+    let secoes;
+    if (Array.isArray(secoesHome) && secoesHome.length) {
+      secoes = secoesHome.map((item) => ({ tipo: tipoPorChave[item.chave], chave: item.chave, ordem: item.ordem, ativa: item.ativa }));
+      if (secoes.some((item) => !item.tipo)) throw new Error('Tipo de seção da home não suportado');
+    } else if (Array.isArray(ordemHome)) {
+      secoes = ordemHome.map((tipo, ordem) => ({ tipo, chave: tipo.toLowerCase(), ordem, ativa: true }));
+    } else {
+      throw new Error('Composição da home ausente ou não literal');
+    }
+    for (const secao of secoes) {
+      const fonte = fontesSecaoHome[secao.tipo];
       const config = fonte ? configsPorCaminho.get(fonte) : null;
-      if (!config) throw new Error(`Configuração da seção da home ausente: ${tipo}`);
-      const chave = `home:${tipo.toLowerCase()}`;
-      documentos.secoesHome.push({ id: idEstavel('secao-home', chave), chave, tipo, ordem, ativa: true, versao: config.versao, configuracao: { fonte: config.chave, campos: config.campos } });
+      if (!config) throw new Error(`Configuração da seção da home ausente: ${secao.tipo}`);
+      const chave = `home:${secao.chave}`;
+      documentos.secoesHome.push({ id: idEstavel('secao-home', chave), chave, tipo: secao.tipo, ordem: secao.ordem, ativa: secao.ativa, versao: config.versao, configuracao: { fonte: config.chave, campos: config.campos } });
     }
   }
 
