@@ -31,11 +31,15 @@ type Filtro = "todas" | "vinculadas" | "sem-vinculo";
 
 const CAMPO = "min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-base text-slate-900 focus:border-[#412551] focus:outline-none focus:ring-2 focus:ring-[#412551]/20";
 const NOMES_AREAS: Record<string, string> = {
+  agenda: "Agenda",
   configuracoes: "Configurações do site",
   editorialTransversal: "Publicação e SEO",
   integrantes: "Integrantes",
   espetaculos: "Espetáculos",
   premios: "Prêmios",
+  noticias: "Notícias",
+  livros: "Indicações",
+  projetos: "Projetos",
   sobre: "História",
   paginaProjetos: "Página de projetos",
 };

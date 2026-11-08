@@ -36,6 +36,11 @@ function areaDaReferencia(dominio: string, area?: string, registro?: string): st
   if (dominio === "Espetaculo") return "espetaculos";
   if (dominio === "Premio") return "premios";
   if (dominio === "MarcoHistorico") return "sobre";
+  if (dominio === "Agenda") return "agenda";
+  if (dominio === "Noticia") return "noticias";
+  if (dominio === "Livro") return "livros";
+  if (dominio === "Projeto") return "projetos";
+  if (dominio === "Sobre") return "sobre";
   if (dominio === "Galeria") return "paginaProjetos";
   if (dominio === "ConfiguracaoSite" || dominio === "SecaoHome") return "configuracoes";
   if (dominio === "PaginaSite") return registro === "/projetos" ? "paginaProjetos" : "editorialTransversal";
@@ -81,7 +86,7 @@ export async function GET(request: Request) {
   const denied = await authorizeAdminRequest(request);
   if (denied) return denied;
   if (!supabaseEditorialAtivo()) return NextResponse.json({ error: "Módulo editorial desativado neste ambiente" }, { status: 503 });
-  const [items, configuracoes, paginas, secoesHome, identidade, home, contatoPagina, projetosPagina] = await Promise.all([
+  const [items, configuracoes, paginas, secoesHome, identidade, home, contatoPagina, projetosPagina, marcosHistoricos] = await Promise.all([
     prisma.midia.findMany({
       orderBy: [{ criadoEm: "desc" }, { id: "asc" }],
       select: {
@@ -101,8 +106,10 @@ export async function GET(request: Request) {
     getPublicHomeSettings(),
     getPublicContactPageSettings(),
     getPublicProjectPageSettings(),
+    prisma.marcoHistorico.findMany({ select: { id: true, ano: true } }),
   ]);
 
+  const anoPorMarcoId = new Map(marcosHistoricos.map((marco) => [marco.id, marco.ano]));
   const mediaIds = new Set(items.map((item) => item.id));
   const mediaIdsPorOrigem = new Map<string, string[]>();
   for (const item of items) {
@@ -122,10 +129,13 @@ export async function GET(request: Request) {
   for (const item of items) {
     for (const uso of item.usos) {
       const area = areaDaReferencia(uso.dominio);
+      const registro = uso.dominio === "MarcoHistorico"
+        ? String(anoPorMarcoId.get(uso.registro) ?? "Marco histórico")
+        : uso.dominio === "Sobre" ? `${uso.registro} (legado)` : uso.registro;
       adicionar(item.id, {
         chave: `${uso.dominio}:${uso.registro}:${uso.campo}`,
         area,
-        registro: uso.registro,
+        registro,
         campo: uso.campo,
         textoAlternativo: uso.textoAlternativo,
         legenda: uso.legenda,
