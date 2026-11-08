@@ -4,59 +4,46 @@ import React from "react";
 import { Instagram, Mail } from "lucide-react";
 import { TikTokOutlined, WhatsAppOutlined } from "@ant-design/icons"; // ícones Ant Design
 import { motion, Variants } from "framer-motion";
+import type { ContactChannel, HomeSettings } from "@/lib/siteContent";
 
 const contactVariants: Variants = {
   hidden: { opacity: 0, x: 50 },
   visible: { opacity: 1, x: 0, transition: { duration: 0.6, ease: "easeOut" } },
 };
 
-const Contato = () => {
-  const contacts = [
-    {
-      icon: <WhatsAppOutlined style={{ fontSize: 18, color: "#000" }} />,
-      text: "+55 (81) 9 8600-9096",
-      link: "https://wa.me/5581986009096",
-    },
-    {
-      icon: <Mail size={18} />,
-      text: "coletivoamargem1@gmail.com",
-      link: "https://mail.google.com/mail/?view=cm&to=coletivoamargem1@gmail.com",
-    },
-    {
-      icon: <Instagram size={18} />,
-      text: "@amargemcoletivo",
-      link: "https://instagram.com/amargemcoletivo",
-    },
-    {
-      icon: <TikTokOutlined style={{ fontSize: 18, color: "#000" }} />,
-      text: "@coletivoamargem",
-      link: "https://www.tiktok.com/@coletivoamargem",
-    },
-  ];
+function IconeContato({ tipo }: { tipo: string }) {
+  if (tipo === "whatsapp") return <WhatsAppOutlined style={{ fontSize: 18, color: "#000" }} />;
+  if (tipo === "email") return <Mail size={18} />;
+  if (tipo === "instagram") return <Instagram size={18} />;
+  if (tipo === "tiktok") return <TikTokOutlined style={{ fontSize: 18, color: "#000" }} />;
+  return <span aria-hidden="true">↗</span>;
+}
+
+const Contato = ({ contacts, titulo, fundo }: { contacts: ContactChannel[]; titulo: string; fundo: HomeSettings["fundoContato"] }) => {
 
   return (
     <section
-      className="relative py-40 flex flex-col items-center justify-center bg-[#412551] text-black"
+      className="relative py-40 flex flex-col items-center justify-center bg-site-primary text-black"
       style={{
-        backgroundImage: "url('/padrao2.webp')",
+        backgroundImage: `url('${fundo.url ?? "/padrao2.webp"}')`,
         backgroundSize: "cover",
         backgroundPosition: "center",
       }}
     >
-      <div className="absolute inset-0 bg-[#412551]/80 pointer-events-none"></div>
+      <div className="absolute inset-0 bg-site-primary/80 pointer-events-none"></div>
 
       <div className="relative w-[40vh] md:w-[60vh] px-4 text-center z-10">
         <h2 className="text-4xl font-sedgwick uppercase tracking-widest md:text-5xl font-bold text-white mb-8 text-end">
-          Contatos<br />e Redes
+          {titulo}
         </h2>
 
         <div className="flex flex-col items-start space-y-2 font-medium text-white">
           {contacts.map((contact, idx) => (
             <motion.a
-              key={idx}
-              href={contact.link}
-              target="_blank"
-              rel="noopener noreferrer"
+              key={contact.id}
+              href={contact.url}
+              target={contact.url.startsWith("http") ? "_blank" : undefined}
+              rel={contact.url.startsWith("http") ? "noopener noreferrer" : undefined}
               className="flex items-center gap-2 hover:underline"
               variants={contactVariants}
               initial="hidden"
@@ -64,10 +51,10 @@ const Contato = () => {
               viewport={{ once: true }}
               transition={{ delay: idx * 0.2 }}
             >
-              <span className="flex items-center justify-center w-8 h-8 rounded-full bg-white text-[#412551]">
-                {React.cloneElement(contact.icon, { size: 18 })}
+              <span className="flex items-center justify-center w-8 h-8 rounded-full bg-white text-site-primary">
+                <IconeContato tipo={contact.tipo} />
               </span>
-              <span>{contact.text}</span>
+              <span>{contact.rotulo}</span>
             </motion.a>
           ))}
         </div>

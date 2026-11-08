@@ -6,6 +6,7 @@ import AppDrawer from "../../components/AppDrawer";
 import { motion, Variants } from "framer-motion";
 import BackBtn from "@/components/BackBtn";
 import Image from "next/image";
+import { useSiteTexts } from "@/components/SiteTextProvider";
 
 export interface Sobre {
   ano: number;
@@ -24,6 +25,7 @@ const itemVariants: Variants = {
 };
 
 export default function SobreClient({ initialData }: { initialData: Sobre[] }) {
+  const textos = useSiteTexts();
   const [selectedItem, setSelectedItem] = useState<Sobre | null>(null);
   const [isTruncated, setIsTruncated] = useState<Record<number, boolean>>({});
   const labelRefs = useRef<Array<HTMLDivElement | null>>([]);
@@ -64,7 +66,7 @@ export default function SobreClient({ initialData }: { initialData: Sobre[] }) {
   // âœ… RenderizaÃ§Ã£o da timeline
   const timelineItems = data.map((item, index) => ({
     key: index,
-    color: "#f38901",
+    color: "var(--site-accent)",
     label: (
       <motion.div
         ref={(el) => {
@@ -83,7 +85,8 @@ export default function SobreClient({ initialData }: { initialData: Sobre[] }) {
               alt={`Evento de ${item.ano} - Coletivo Ã€ Margem`}
               fill
               sizes="(max-width: 768px) 90vw, 50vw"
-              className="rounded-t-xl border-b-4 border-b-[#F5A623] bg-purple-950/50 object-cover"
+              unoptimized
+              className="rounded-t-xl border-b-4 border-b-site-accent bg-purple-950/50 object-cover"
               onLoad={() =>
                 console.log(`ðŸ–¼ï¸ Imagem carregada: ${item.imageUrl}`)
               }
@@ -102,7 +105,7 @@ export default function SobreClient({ initialData }: { initialData: Sobre[] }) {
         }}
         variants={itemVariants}
       >
-        <div className="bg-[#f38901] flex flex-col text-left max-w-2xl h-[200px] text-roxo p-4 rounded-lg">
+        <div className="bg-site-accent flex flex-col text-left max-w-2xl h-[200px] text-roxo p-4 rounded-lg">
           <Typography.Paragraph
             key={`${index}-${windowWidth}`}
             className="flex-grow"
@@ -120,9 +123,9 @@ export default function SobreClient({ initialData }: { initialData: Sobre[] }) {
           {isTruncated[index] && (
             <button
               onClick={() => showDrawer(item)}
-              className="text-white cursor-pointer w-full bg-[#681A01] rounded-full font-semibold mt-auto"
+              className="text-white cursor-pointer w-full bg-site-primary rounded-full font-semibold mt-auto"
             >
-              Mostrar mais
+              {textos?.mostrarMais ?? "Mostrar mais"}
             </button>
           )}
         </div>
@@ -132,31 +135,31 @@ export default function SobreClient({ initialData }: { initialData: Sobre[] }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen w-full flex justify-center items-center bg-[#681A01] relative overflow-hidden">
+      <div className="min-h-screen w-full flex justify-center items-center bg-site-primary relative overflow-hidden">
         <div className="absolute inset-0 bg-black/30 backdrop-blur-xl"></div>
-        <div className="text-white z-10">Carregando...</div>
+        <div className="text-white z-10">{textos?.carregando ?? "Carregando…"}</div>
       </div>
     );
   }
 
   return (
     <motion.section
-      className="relative bg-[#681A01] min-h-screen flex flex-col items-center text-white px-4 pb-10"
+      className="relative bg-site-primary min-h-screen flex flex-col items-center text-white px-4 pb-10"
       variants={containerVariants}
       initial="hidden"
       animate="show"
       style={{
-        backgroundImage: "url('/padrao2.webp')",
+        backgroundImage: "var(--site-background-image)",
       }}
     >
-      <BackBtn label="Sobre NÃ³s" />
+      <BackBtn label="Sobre nós" textKey="tituloSobre" />
       <div className="max-w-3xl mt-48 mx-2">
         <ConfigProvider
           theme={{
             components: {
               Timeline: {
-                dotBg: "#f38901",
-                tailColor: "#f38901",
+                dotBg: "var(--site-accent)",
+                tailColor: "var(--site-accent)",
                 itemPaddingBottom: 40,
               },
             },

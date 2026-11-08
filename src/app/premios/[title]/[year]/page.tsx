@@ -1,45 +1,44 @@
 import React from "react"
-import { premios } from "@/data/premios";
 import type { Metadata } from "next";
-import { slugify } from "@/utils/helpers";
+import { getPublishedPremio } from "@/lib/publicContent";
 import Premio from "@/components/Premio";
 import BackBtn from "@/components/BackBtn";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Paragraph from "antd/es/typography/Paragraph";
+import { getEntityMetadata, isPublicSitePage } from "@/lib/siteMetadata";
 
 interface PremioDetalhesProps {
     params: Promise<{ title: string, year: string; }>;
 }
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata({ params }: PremioDetalhesProps): Promise<Metadata> {
     const { title, year } = await params;
-    const premio = premios.find((item) => slugify(item.title) === title && item.year === year);
+    if (!await isPublicSitePage(`/premios/${title}/${year}`)) return { title: "Prêmio não encontrado" };
+    const premio = await getPublishedPremio(title, year);
     if (!premio) return { title: "Prêmio não encontrado" };
     const description = premio.description.slice(0, 155);
-    return {
-        title: `${premio.title} (${premio.year})`,
-        description,
-        alternates: { canonical: `/premios/${slugify(premio.title)}/${premio.year}` },
-        openGraph: { title: `${premio.title} | Coletivo À Margem`, description, url: `https://www.amargem.com.br/premios/${slugify(premio.title)}/${premio.year}` },
-    };
+    return getEntityMetadata(`/premios/${premio.slug}/${premio.year}`, `${premio.title} (${premio.year})`, description, premio.seo);
 }
 
 const PremioDetalhes = async ({ params }: PremioDetalhesProps) => {
     const { title, year } = await params;
+    if (!await isPublicSitePage(`/premios/${title}/${year}`)) notFound();
 
-    const premio = premios.find((p) => slugify(p.title) + `/${p.year}` == title + `/${year}`);
+    const premio = await getPublishedPremio(title, year);
 
     if (!premio) return notFound();
 
     return (
         <section
-            className="relative bg-[#A41904] min-h-screen flex flex-col items-center text-white px-4 pb-10 bg-cover bg-center"
+            className="relative bg-site-primary min-h-screen flex flex-col items-center text-white px-4 pb-10 bg-cover bg-center"
             style={{
-                backgroundImage: "url('/padrao2.webp')",
+                backgroundImage: "var(--site-background-image)",
             }}
         >
-            <BackBtn label="Prêmios" />
+            <BackBtn label="Prêmios" textKey="tituloPremios" />
 
             <div className="flex max-w-xl text-white flex-col items-center mt-40 mx-2 justify-center gap-10 ">
                 <Premio
@@ -47,6 +46,7 @@ const PremioDetalhes = async ({ params }: PremioDetalhesProps) => {
                     title={premio.title}
                     evento={premio.evento}
                     year={premio.year}
+                    slug={premio.slug}
                     isSaibaMais={true}
                 />
                 {premio.img && (

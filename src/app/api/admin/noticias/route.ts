@@ -17,7 +17,7 @@ function validLink(value: unknown): value is string {
 export async function GET(request: Request) {
   const denied = await authorizeAdminRequest(request);
   if (denied) return denied;
-  const items = await prisma.noticia.findMany({ orderBy: { createdAt: "desc" } });
+  const items = await prisma.noticia.findMany({ orderBy: { createdAt: "desc" }, select: { id: true, titulo: true, conteudo: true, link: true, createdAt: true } });
   return NextResponse.json(items);
 }
 
@@ -30,6 +30,7 @@ export async function POST(request: Request) {
   }
   const created = await prisma.noticia.create({
     data: { titulo: body.titulo, conteudo: body.conteudo, link: body.link },
+    select: { id: true },
   });
   return NextResponse.json({ id: created.id }, { status: 201 });
 }
@@ -53,7 +54,7 @@ export async function PUT(request: Request) {
     data.link = body.link;
   }
   if (!Object.keys(data).length) return NextResponse.json({ error: "No valid fields to update" }, { status: 400 });
-  const updated = await prisma.noticia.update({ where: { id: body.id }, data });
+  const updated = await prisma.noticia.update({ where: { id: body.id }, data, select: { id: true } });
   return NextResponse.json({ id: updated.id });
 }
 

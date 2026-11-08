@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion, Variants } from "framer-motion"; 
 import { slugify } from "@/utils/helpers";
 import Image from "next/image";
+import { useSiteTexts } from "@/components/SiteTextProvider";
 
 // Definindo as variantes da animação
 const cardVariants: Variants = {
@@ -20,6 +21,7 @@ interface PremioProps {
   title: string;
   evento: string;
   year: string | number;
+  slug?: string;
   isSaibaMais?: boolean;
 }
 
@@ -27,10 +29,12 @@ const Premio: React.FC<PremioProps> = ({
   title,
   evento,
   year,
+  slug,
   isSaibaMais = false,
 }) => {
+  const textos = useSiteTexts();
   const titleUpper = title.toUpperCase();
-  const href = `/premios/${slugify(title)}/${year}`;
+  const href = `/premios/${slug || slugify(title)}/${year}`;
 
   return (
     <motion.div
@@ -54,7 +58,7 @@ const Premio: React.FC<PremioProps> = ({
           />
         </div>
         <h1
-          className={`absolute font-zen-dots text-[#FECA55] font-bold ${
+          className={`absolute font-zen-dots text-site-accent font-bold ${
             isSaibaMais ? "text-xl" : "text-2xl"
           } leading-tight drop-shadow-[1px_1px_2px_rgba(0,0,0,0.6)]`}
         >
@@ -82,7 +86,7 @@ const Premio: React.FC<PremioProps> = ({
             isSaibaMais ? "hidden" : ""
           } w-full text-black p-1 cursor-pointer`}
         >
-          Saiba mais
+          {textos?.saibaMais ?? "Saiba mais"}
         </button>
       </Link>
     </motion.div>

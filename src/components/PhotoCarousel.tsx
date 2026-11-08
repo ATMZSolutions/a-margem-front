@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { LeftOutlined, RightOutlined } from "@ant-design/icons";
+import { useSiteTexts } from "@/components/SiteTextProvider";
 
 interface TopButtonProps {
   show?: boolean;
@@ -13,11 +14,13 @@ interface TopButtonProps {
 
 interface PhotoCarouselProps {
   images?: string[];
+  imageAlts?: string[];
   topButton?: TopButtonProps;
     onIndexChange?: (index: number) => void; // callback opcional
 }
 
-export default function PhotoCarousel({ images = [], topButton, onIndexChange }: PhotoCarouselProps) {
+export default function PhotoCarousel({ images = [], imageAlts = [], topButton, onIndexChange }: PhotoCarouselProps) {
+  const textos = useSiteTexts();
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const prevSlide = () => {
@@ -41,7 +44,7 @@ export default function PhotoCarousel({ images = [], topButton, onIndexChange }:
         <div className="absolute top-4 left-4 z-10">
           <Link
             href={topButton.href || "#"}
-            className="bg-[#F38901]/70 text-black font-semibold text-sm px-2 py-1 rounded hover:bg-opacity-70 transition"
+            className="bg-site-accent/70 text-black font-semibold text-sm px-2 py-1 rounded hover:bg-opacity-70 transition"
           >
             {topButton.label}
           </Link>
@@ -52,18 +55,19 @@ export default function PhotoCarousel({ images = [], topButton, onIndexChange }:
       <button
         onClick={prevSlide}
         className="absolute left-0 sm:-left-10 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center text-white text-2xl sm:text-3xl z-20 focus:outline-none"
-        aria-label="Previous slide"
+        aria-label={textos?.slideAnterior ?? "Slide anterior"}
       >
         <LeftOutlined />
       </button>
 
       {/* Imagem */}
-      <div className="relative overflow-hidden w-full h-full border-b-8 border border-[#F38901]/70">
+      <div className="relative overflow-hidden w-full h-full border-b-8 border border-site-accent/70">
         <Image
           src={images[currentIndex]}
-          alt={`Fotografia do Coletivo À Margem, slide ${currentIndex + 1}`}
+          alt={imageAlts[currentIndex] || `Fotografia do Coletivo À Margem, slide ${currentIndex + 1}`}
           fill
           sizes="(max-width: 640px) 100vw, 60vw"
+          unoptimized
           className="object-cover"
         />
       </div>
@@ -72,7 +76,7 @@ export default function PhotoCarousel({ images = [], topButton, onIndexChange }:
       <button
         onClick={nextSlide}
         className="absolute right-0 sm:-right-10 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center text-white text-2xl sm:text-3xl z-20 focus:outline-none"
-        aria-label="Next slide"
+        aria-label={textos?.proximoSlide ?? "Próximo slide"}
       >
         <RightOutlined />
       </button>

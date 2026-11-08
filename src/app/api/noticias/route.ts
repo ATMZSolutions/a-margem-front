@@ -1,11 +1,9 @@
 import { NextResponse } from "next/server";
-import prisma from "../../../lib/prisma";
+import { listPublicNews } from "@/lib/publicContent";
 
 export async function GET() {
   try {
-    const items = await prisma.noticia.findMany({ 
-      orderBy: { createdAt: 'desc' } 
-    });
+    const items = await listPublicNews();
     return NextResponse.json(items);
   } catch (error) {
     console.error('Erro ao buscar notícias:', error);

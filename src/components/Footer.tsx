@@ -3,15 +3,15 @@
 import React from 'react';
 import { usePathname } from 'next/navigation';
 
-export default function Footer() {
+export default function Footer({ textoCopyright, textoDireitos }: { textoCopyright: string; textoDireitos: string }) {
     const pathname = usePathname();
 
     if (pathname === "/admin" || pathname.startsWith("/admin/")) return null;
 
     return (
         <footer className="bg-black text-white/50 text-center py-5 text-sm">
-            <div>Copyright © 2025 – Coletivo À Margem.</div>
-            <div>Todos os direitos reservados.</div>
+            <div>{textoCopyright}</div>
+            <div>{textoDireitos}</div>
         </footer>
     );
 }

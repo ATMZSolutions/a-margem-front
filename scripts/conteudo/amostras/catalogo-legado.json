@@ -1,0 +1,446 @@
+{
+  "tabelas": [
+    {
+      "tabela": "Agenda",
+      "tipo": "r",
+      "rls": true,
+      "forcar_rls": false
+    },
+    {
+      "tabela": "Livro",
+      "tipo": "r",
+      "rls": true,
+      "forcar_rls": false
+    },
+    {
+      "tabela": "Noticia",
+      "tipo": "r",
+      "rls": true,
+      "forcar_rls": false
+    },
+    {
+      "tabela": "Projeto",
+      "tipo": "r",
+      "rls": true,
+      "forcar_rls": false
+    },
+    {
+      "tabela": "Sobre",
+      "tipo": "r",
+      "rls": true,
+      "forcar_rls": false
+    }
+  ],
+  "colunas": [
+    {
+      "tabela": "Agenda",
+      "coluna": "id",
+      "ordem": 1,
+      "tipo": "integer",
+      "obrigatoria": true,
+      "padrao": "nextval('\"Agenda_id_seq\"'::regclass)",
+      "identidade": "",
+      "gerada": "",
+      "collation": null,
+      "sequencia": "public.\"Agenda_id_seq\""
+    },
+    {
+      "tabela": "Agenda",
+      "coluna": "titulo",
+      "ordem": 2,
+      "tipo": "text",
+      "obrigatoria": true,
+      "padrao": null,
+      "identidade": "",
+      "gerada": "",
+      "collation": "default",
+      "sequencia": null
+    },
+    {
+      "tabela": "Agenda",
+      "coluna": "data",
+      "ordem": 3,
+      "tipo": "timestamp(6) with time zone",
+      "obrigatoria": true,
+      "padrao": null,
+      "identidade": "",
+      "gerada": "",
+      "collation": null,
+      "sequencia": null
+    },
+    {
+      "tabela": "Agenda",
+      "coluna": "local",
+      "ordem": 4,
+      "tipo": "text",
+      "obrigatoria": true,
+      "padrao": null,
+      "identidade": "",
+      "gerada": "",
+      "collation": "default",
+      "sequencia": null
+    },
+    {
+      "tabela": "Agenda",
+      "coluna": "createdAt",
+      "ordem": 5,
+      "tipo": "timestamp(6) with time zone",
+      "obrigatoria": true,
+      "padrao": "CURRENT_TIMESTAMP",
+      "identidade": "",
+      "gerada": "",
+      "collation": null,
+      "sequencia": null
+    },
+    {
+      "tabela": "Agenda",
+      "coluna": "cidade",
+      "ordem": 6,
+      "tipo": "text",
+      "obrigatoria": true,
+      "padrao": null,
+      "identidade": "",
+      "gerada": "",
+      "collation": "default",
+      "sequencia": null
+    },
+    {
+      "tabela": "Livro",
+      "coluna": "id",
+      "ordem": 1,
+      "tipo": "integer",
+      "obrigatoria": true,
+      "padrao": "nextval('\"Livro_id_seq\"'::regclass)",
+      "identidade": "",
+      "gerada": "",
+      "collation": null,
+      "sequencia": "public.\"Livro_id_seq\""
+    },
+    {
+      "tabela": "Livro",
+      "coluna": "titulo",
+      "ordem": 2,
+      "tipo": "text",
+      "obrigatoria": true,
+      "padrao": null,
+      "identidade": "",
+      "gerada": "",
+      "collation": "default",
+      "sequencia": null
+    },
+    {
+      "tabela": "Livro",
+      "coluna": "autor",
+      "ordem": 3,
+      "tipo": "text",
+      "obrigatoria": true,
+      "padrao": null,
+      "identidade": "",
+      "gerada": "",
+      "collation": "default",
+      "sequencia": null
+    },
+    {
+      "tabela": "Livro",
+      "coluna": "descricao",
+      "ordem": 4,
+      "tipo": "text",
+      "obrigatoria": true,
+      "padrao": null,
+      "identidade": "",
+      "gerada": "",
+      "collation": "default",
+      "sequencia": null
+    },
+    {
+      "tabela": "Livro",
+      "coluna": "imagem",
+      "ordem": 5,
+      "tipo": "bytea",
+      "obrigatoria": false,
+      "padrao": null,
+      "identidade": "",
+      "gerada": "",
+      "collation": null,
+      "sequencia": null
+    },
+    {
+      "tabela": "Livro",
+      "coluna": "imagemTipo",
+      "ordem": 6,
+      "tipo": "text",
+      "obrigatoria": false,
+      "padrao": null,
+      "identidade": "",
+      "gerada": "",
+      "collation": "default",
+      "sequencia": null
+    },
+    {
+      "tabela": "Livro",
+      "coluna": "createdAt",
+      "ordem": 7,
+      "tipo": "timestamp(3) without time zone",
+      "obrigatoria": true,
+      "padrao": "CURRENT_TIMESTAMP",
+      "identidade": "",
+      "gerada": "",
+      "collation": null,
+      "sequencia": null
+    },
+    {
+      "tabela": "Noticia",
+      "coluna": "id",
+      "ordem": 1,
+      "tipo": "integer",
+      "obrigatoria": true,
+      "padrao": "nextval('\"Noticia_id_seq\"'::regclass)",
+      "identidade": "",
+      "gerada": "",
+      "collation": null,
+      "sequencia": "public.\"Noticia_id_seq\""
+    },
+    {
+      "tabela": "Noticia",
+      "coluna": "titulo",
+      "ordem": 2,
+      "tipo": "text",
+      "obrigatoria": true,
+      "padrao": null,
+      "identidade": "",
+      "gerada": "",
+      "collation": "default",
+      "sequencia": null
+    },
+    {
+      "tabela": "Noticia",
+      "coluna": "conteudo",
+      "ordem": 3,
+      "tipo": "text",
+      "obrigatoria": true,
+      "padrao": null,
+      "identidade": "",
+      "gerada": "",
+      "collation": "default",
+      "sequencia": null
+    },
+    {
+      "tabela": "Noticia",
+      "coluna": "link",
+      "ordem": 4,
+      "tipo": "text",
+      "obrigatoria": true,
+      "padrao": null,
+      "identidade": "",
+      "gerada": "",
+      "collation": "default",
+      "sequencia": null
+    },
+    {
+      "tabela": "Noticia",
+      "coluna": "createdAt",
+      "ordem": 5,
+      "tipo": "timestamp(3) without time zone",
+      "obrigatoria": true,
+      "padrao": "CURRENT_TIMESTAMP",
+      "identidade": "",
+      "gerada": "",
+      "collation": null,
+      "sequencia": null
+    },
+    {
+      "tabela": "Projeto",
+      "coluna": "id",
+      "ordem": 1,
+      "tipo": "integer",
+      "obrigatoria": true,
+      "padrao": "nextval('\"Projeto_id_seq\"'::regclass)",
+      "identidade": "",
+      "gerada": "",
+      "collation": null,
+      "sequencia": "public.\"Projeto_id_seq\""
+    },
+    {
+      "tabela": "Projeto",
+      "coluna": "data",
+      "ordem": 2,
+      "tipo": "timestamp(3) without time zone",
+      "obrigatoria": true,
+      "padrao": null,
+      "identidade": "",
+      "gerada": "",
+      "collation": null,
+      "sequencia": null
+    },
+    {
+      "tabela": "Projeto",
+      "coluna": "descricao",
+      "ordem": 3,
+      "tipo": "text",
+      "obrigatoria": true,
+      "padrao": null,
+      "identidade": "",
+      "gerada": "",
+      "collation": "default",
+      "sequencia": null
+    },
+    {
+      "tabela": "Sobre",
+      "coluna": "ano",
+      "ordem": 1,
+      "tipo": "integer",
+      "obrigatoria": true,
+      "padrao": null,
+      "identidade": "",
+      "gerada": "",
+      "collation": null,
+      "sequencia": null
+    },
+    {
+      "tabela": "Sobre",
+      "coluna": "imagem",
+      "ordem": 2,
+      "tipo": "bytea",
+      "obrigatoria": false,
+      "padrao": null,
+      "identidade": "",
+      "gerada": "",
+      "collation": null,
+      "sequencia": null
+    },
+    {
+      "tabela": "Sobre",
+      "coluna": "imagemTipo",
+      "ordem": 3,
+      "tipo": "text",
+      "obrigatoria": false,
+      "padrao": null,
+      "identidade": "",
+      "gerada": "",
+      "collation": "default",
+      "sequencia": null
+    },
+    {
+      "tabela": "Sobre",
+      "coluna": "descricao",
+      "ordem": 4,
+      "tipo": "text",
+      "obrigatoria": true,
+      "padrao": null,
+      "identidade": "",
+      "gerada": "",
+      "collation": "default",
+      "sequencia": null
+    }
+  ],
+  "constraints": [
+    {
+      "tabela": "Agenda",
+      "nome": "Agenda_pkey",
+      "tipo": "p",
+      "definicao": "PRIMARY KEY (id)",
+      "validada": true
+    },
+    {
+      "tabela": "Livro",
+      "nome": "Livro_pkey",
+      "tipo": "p",
+      "definicao": "PRIMARY KEY (id)",
+      "validada": true
+    },
+    {
+      "tabela": "Noticia",
+      "nome": "Noticia_pkey",
+      "tipo": "p",
+      "definicao": "PRIMARY KEY (id)",
+      "validada": true
+    },
+    {
+      "tabela": "Projeto",
+      "nome": "Projeto_pkey",
+      "tipo": "p",
+      "definicao": "PRIMARY KEY (id)",
+      "validada": true
+    },
+    {
+      "tabela": "Sobre",
+      "nome": "Sobre_pkey",
+      "tipo": "p",
+      "definicao": "PRIMARY KEY (ano)",
+      "validada": true
+    }
+  ],
+  "indices": [
+    {
+      "tabela": "Agenda",
+      "nome": "Agenda_pkey",
+      "definicao": "CREATE UNIQUE INDEX \"Agenda_pkey\" ON public.\"Agenda\" USING btree (id)"
+    },
+    {
+      "tabela": "Livro",
+      "nome": "Livro_pkey",
+      "definicao": "CREATE UNIQUE INDEX \"Livro_pkey\" ON public.\"Livro\" USING btree (id)"
+    },
+    {
+      "tabela": "Noticia",
+      "nome": "Noticia_pkey",
+      "definicao": "CREATE UNIQUE INDEX \"Noticia_pkey\" ON public.\"Noticia\" USING btree (id)"
+    },
+    {
+      "tabela": "Projeto",
+      "nome": "Projeto_pkey",
+      "definicao": "CREATE UNIQUE INDEX \"Projeto_pkey\" ON public.\"Projeto\" USING btree (id)"
+    },
+    {
+      "tabela": "Sobre",
+      "nome": "Sobre_pkey",
+      "definicao": "CREATE UNIQUE INDEX \"Sobre_pkey\" ON public.\"Sobre\" USING btree (ano)"
+    }
+  ],
+  "sequencias": [
+    {
+      "nome": "Agenda_id_seq",
+      "tipo": "integer",
+      "inicio": "1",
+      "minimo": "1",
+      "maximo": "2147483647",
+      "incremento": "1",
+      "ciclo": false,
+      "cache": "1"
+    },
+    {
+      "nome": "Livro_id_seq",
+      "tipo": "integer",
+      "inicio": "1",
+      "minimo": "1",
+      "maximo": "2147483647",
+      "incremento": "1",
+      "ciclo": false,
+      "cache": "1"
+    },
+    {
+      "nome": "Noticia_id_seq",
+      "tipo": "integer",
+      "inicio": "1",
+      "minimo": "1",
+      "maximo": "2147483647",
+      "incremento": "1",
+      "ciclo": false,
+      "cache": "1"
+    },
+    {
+      "nome": "Projeto_id_seq",
+      "tipo": "integer",
+      "inicio": "1",
+      "minimo": "1",
+      "maximo": "2147483647",
+      "incremento": "1",
+      "ciclo": false,
+      "cache": "1"
+    }
+  ],
+  "politicas": [],
+  "gatilhos": [],
+  "historicoPresente": false,
+  "migracoes": []
+}

@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { listBookListings } from "@/lib/publicContent";
+import { listAdminBookListings } from "@/lib/publicContent";
 import { decodeImageData, isPositiveInteger, isText, readJsonObject } from "@/lib/adminInput";
 import { authorizeAdminRequest } from "@/lib/adminRequest";
 
 export async function GET(request: Request) {
   const denied = await authorizeAdminRequest(request);
   if (denied) return denied;
-  const items = await listBookListings();
+  const items = await listAdminBookListings();
   return NextResponse.json(items.map(({ hasImage, ...item }) => ({ ...item, imagem: hasImage })));
 }
 
@@ -32,7 +32,7 @@ export async function POST(request: Request) {
     autor: body.autor,
     descricao: body.descricao,
     ...(imagem ? { imagem: Uint8Array.from(imagem), imagemTipo } : {}),
-  } });
+  }, select: { id: true } });
   return NextResponse.json({ id: created.id }, { status: 201 });
 }
 
@@ -63,7 +63,7 @@ export async function PUT(request: Request) {
   }
   if (!Object.keys(data).length) return NextResponse.json({ error: "No valid fields to update" }, { status: 400 });
 
-  const updated = await prisma.book.update({ where: { id: body.id }, data });
+  const updated = await prisma.book.update({ where: { id: body.id }, data, select: { id: true } });
   return NextResponse.json({ id: updated.id });
 }
 

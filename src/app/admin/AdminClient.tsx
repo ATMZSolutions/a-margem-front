@@ -1,20 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { ComponentType } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { BookOpen, CalendarDays, FolderKanban, Info, LogOut, Newspaper } from "lucide-react";
+import { Award, BookOpen, CalendarDays, Clapperboard, FolderKanban, History, Images, Info, LogOut, Newspaper, Settings, SlidersHorizontal, Users } from "lucide-react";
 import AdminAgenda from "@/components/admin/Agenda";
+import AdminEspetaculos from "@/components/admin/Espetaculos";
+import AdminIntegrantes from "@/components/admin/Integrantes";
 import AdminLivro from "@/components/admin/Livro";
 import AdminNoticia from "@/components/admin/Noticia";
+import AdminPremios from "@/components/admin/Premios";
 import AdminProjeto from "@/components/admin/Projeto";
 import AdminSobre from "@/components/admin/Sobre";
+import AdminConfiguracoes from "@/components/admin/Configuracoes";
+import AdminHistoria from "@/components/admin/Historia";
+import AdminPaginaProjetos from "@/components/admin/PaginaProjetos";
+import AdminEditorialTransversal from "@/components/admin/EditorialTransversal";
+import BibliotecaMidia from "@/components/admin/BibliotecaMidia";
 import { limparCacheAdministrativo } from "@/lib/cache-administrativo";
 
 export type BufferData = string;
 
-type AreaAdministrativa = "agenda" | "noticias" | "livros" | "projetos" | "sobre";
+type AreaAdministrativa = "agenda" | "noticias" | "livros" | "projetos" | "paginaProjetos" | "sobre" | "integrantes" | "espetaculos" | "premios" | "configuracoes" | "midia" | "editorialTransversal";
 
 const areasAdministrativas: {
   id: AreaAdministrativa;
@@ -28,11 +36,29 @@ const areasAdministrativas: {
   { id: "livros", titulo: "Livros", descricao: "Obras e referências", Icone: BookOpen, Componente: AdminLivro },
   { id: "projetos", titulo: "Projetos", descricao: "Ações do coletivo", Icone: FolderKanban, Componente: AdminProjeto },
   { id: "sobre", titulo: "Sobre", descricao: "História e trajetória", Icone: Info, Componente: AdminSobre },
+  { id: "paginaProjetos", titulo: "Página de projetos", descricao: "Apresentação e galeria", Icone: FolderKanban, Componente: AdminPaginaProjetos },
+  { id: "configuracoes", titulo: "Configurações", descricao: "Home, contatos e navegação", Icone: Settings, Componente: AdminConfiguracoes },
+  { id: "midia", titulo: "Mídia", descricao: "Arquivos e referências de uso", Icone: Images, Componente: BibliotecaMidia },
+  { id: "integrantes", titulo: "Integrantes", descricao: "Perfis e biografias", Icone: Users, Componente: AdminIntegrantes },
+  { id: "espetaculos", titulo: "Espetáculos", descricao: "Peças, seções e galerias", Icone: Clapperboard, Componente: AdminEspetaculos },
+  { id: "premios", titulo: "Prêmios", descricao: "Reconhecimentos e registros", Icone: Award, Componente: AdminPremios },
+  { id: "editorialTransversal", titulo: "Publicação e SEO", descricao: "Visibilidade, ordem e metadados", Icone: SlidersHorizontal, Componente: AdminEditorialTransversal },
 ];
 
-export default function AdminClient() {
+export default function AdminClient({ editorialAtivo }: { editorialAtivo: boolean }) {
   const [areaAtiva, setAreaAtiva] = useState<AreaAdministrativa>("noticias");
-  const areaSelecionada = areasAdministrativas.find((area) => area.id === areaAtiva)!;
+  useEffect(() => {
+    function abrirAreaSolicitada(event: Event) {
+      const area = (event as CustomEvent<string>).detail;
+      if (areasAdministrativas.some((item) => item.id === area)) setAreaAtiva(area as AreaAdministrativa);
+    }
+    window.addEventListener("amargem:admin-area", abrirAreaSolicitada);
+    return () => window.removeEventListener("amargem:admin-area", abrirAreaSolicitada);
+  }, []);
+  const areasVisiveis = editorialAtivo
+    ? areasAdministrativas.map((area) => area.id === "sobre" ? { ...area, Componente: AdminHistoria, descricao: "História, marcos e publicação", Icone: History } : area)
+    : areasAdministrativas.filter((area) => !["integrantes", "espetaculos", "premios", "paginaProjetos", "configuracoes", "midia", "editorialTransversal"].includes(area.id));
+  const areaSelecionada = areasVisiveis.find((area) => area.id === areaAtiva) ?? areasVisiveis[0];
   const ConteudoAtivo = areaSelecionada.Componente;
 
   async function logout() {
@@ -60,10 +86,10 @@ export default function AdminClient() {
       </header>
 
       <div className="mx-auto grid max-w-[1920px] lg:grid-cols-[240px_minmax(0,1fr)] xl:grid-cols-[280px_minmax(0,1fr)] min-[1440px]:grid-cols-[320px_minmax(0,1fr)] 2xl:grid-cols-[300px_minmax(0,1fr)]">
-        <aside className="hidden min-h-[calc(100vh-72px)] bg-[#2e1a37] px-3 py-7 text-white lg:block xl:px-4 min-[1440px]:min-h-[calc(100vh-76px)] min-[1440px]:px-5 2xl:min-h-[calc(100vh-72px)] 2xl:px-4" aria-label="Navegação do painel">
-          <p className="mb-4 px-3 text-sm font-semibold uppercase tracking-[0.08em] text-white/70 xl:px-4 min-[1440px]:text-base 2xl:text-sm">Conteúdo</p>
-          <nav className="space-y-1.5">
-            {areasAdministrativas.map(({ id, titulo, descricao, Icone }) => {
+        <aside className="hidden self-start bg-[#2e1a37] px-3 py-4 text-white lg:sticky lg:top-16 lg:block lg:h-[calc(100dvh-4rem)] lg:overflow-y-auto lg:overscroll-contain xl:top-[72px] xl:h-[calc(100dvh-72px)] xl:px-4 min-[1440px]:top-[76px] min-[1440px]:h-[calc(100dvh-76px)] min-[1440px]:px-5 2xl:top-[72px] 2xl:h-[calc(100dvh-72px)] 2xl:px-4" aria-label="Navegação do painel">
+          <p className="mb-3 px-3 text-sm font-semibold uppercase tracking-[0.08em] text-white/70 xl:px-4 min-[1440px]:text-base 2xl:text-sm">Conteúdo</p>
+          <nav className="space-y-1">
+            {areasVisiveis.map(({ id, titulo, descricao, Icone }) => {
               const ativo = areaAtiva === id;
               return (
                 <button
@@ -71,7 +97,7 @@ export default function AdminClient() {
                   type="button"
                   aria-current={ativo ? "page" : undefined}
                   onClick={() => setAreaAtiva(id)}
-                  className={`flex min-h-14 w-full items-center gap-3 rounded-xl border-l-4 px-3 text-left transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#F38901] xl:min-h-[64px] xl:gap-3 xl:px-3 min-[1440px]:min-h-[70px] min-[1440px]:gap-4 min-[1440px]:px-4 2xl:min-h-[64px] 2xl:px-3 ${ativo ? "border-[#F38901] bg-[#563765] text-white" : "border-transparent text-white/85 hover:bg-white/10"}`}
+                  className={`flex min-h-12 w-full items-center gap-3 rounded-xl border-l-4 px-3 text-left transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#F38901] xl:gap-3 xl:px-3 min-[1440px]:gap-4 min-[1440px]:px-4 2xl:px-3 ${ativo ? "border-[#F38901] bg-[#563765] text-white" : "border-transparent text-white/85 hover:bg-white/10"}`}
                 >
                   <Icone aria-hidden="true" className={`size-5 shrink-0 xl:size-5 min-[1440px]:size-6 2xl:size-5 ${ativo ? "text-[#F38901]" : "text-white/90"}`} />
                   <span className="min-w-0">
@@ -92,7 +118,7 @@ export default function AdminClient() {
                 onChange={(evento) => setAreaAtiva(evento.target.value as AreaAdministrativa)}
                 className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#412551]"
               >
-                {areasAdministrativas.map((area) => <option key={area.id} value={area.id}>{area.titulo}</option>)}
+                {areasVisiveis.map((area) => <option key={area.id} value={area.id}>{area.titulo}</option>)}
               </select>
           </label>
           <ConteudoAtivo />

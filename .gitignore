@@ -40,3 +40,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Inventários/exportações locais de migração (podem conter conteúdo do banco)
+/.conteudo-migracao/

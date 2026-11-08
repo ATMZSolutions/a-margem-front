@@ -1,5 +1,6 @@
 import React from 'react';
 import { Drawer as AntDrawer } from 'antd';
+import { useSiteTexts } from "@/components/SiteTextProvider";
 
 interface AppDrawerProps {
   open: boolean;
@@ -10,14 +11,15 @@ interface AppDrawerProps {
 }
 
 const AppDrawer: React.FC<AppDrawerProps> = ({ open, onClose, title, contents, bgColor }) => {
+  const textos = useSiteTexts();
   
   return (
     <AntDrawer
       title={title}
-      closable={{ 'aria-label': 'Close Button' }}
+      closable={{ 'aria-label': textos?.fecharPainel ?? 'Fechar painel' }}
       onClose={onClose}
       open={open}
-      style={{ whiteSpace: 'pre-wrap', textAlign: 'justify', backgroundColor: bgColor ?? '#fd9917', fontSize: '16px'}}
+      style={{ whiteSpace: 'pre-wrap', textAlign: 'justify', backgroundColor: bgColor ?? 'var(--site-accent)', fontSize: '16px'}}
 >
       {contents.map((paragraph, index) => (
         <p key={index}>{paragraph}</p>

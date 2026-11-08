@@ -6,25 +6,15 @@ import Link from "next/link";
 import Image from "next/image";
 import dynamic from "next/dynamic";
 import { Menu, X } from "lucide-react";
+import type { NavigationItem } from "@/lib/siteContent";
+import { useSiteTexts } from "@/components/SiteTextProvider";
 
 const Drawer = dynamic(() => import("antd").then((module) => module.Drawer), { ssr: false });
 
-const menuItems = [
-  { label: "Home", href: "/" },
-  { label: "Agenda", href: "/agenda" },
-  { label: "Sobre", href: "/sobre" },
-  { label: "Integrantes", href: "/coletivo" },
-  { label: "Prêmios", href: "/premios" },
-  { label: "Espetáculos", href: "/espetaculos" },
-  { label: "Projetos", href: "/projetos" },
-  { label: "Notícias", href: "/noticias" },
-  { label: "Indicações", href: "/indicacoes" },
-  { label: "Contato", href: "/contato" },
-];
-
-export default function Sidebar() {
+export default function Sidebar({ items, logoUrl, logoAlt, logoHref, nomePublico }: { items: NavigationItem[]; logoUrl: string; logoAlt: string; logoHref: string; nomePublico: string }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const textos = useSiteTexts();
 
   if (pathname === "/admin" || pathname.startsWith("/admin/")) return null;
 
@@ -33,13 +23,14 @@ export default function Sidebar() {
       {/* Barra superior com logo à esquerda e hamburguer à direita */}
       <div className="w-full flex justify-between items-center px-4 py-1 fixed top-0 left-0 z-50 bg-black/60 backdrop-blur-[5px]">
         {/* Logo com animação */}
-        <Link href="/" aria-label="À Margem, página inicial">
+        <Link href={logoHref} aria-label={`${nomePublico}, página inicial`}>
           <Image
-            src="/logo-branca.png"
-            alt="Logo À Margem"
+            src={logoUrl}
+            alt={logoAlt}
             height={40}
             width={160}
             style={{ height: "2.5rem", width: "auto" }}
+            unoptimized
             priority
           />
         </Link>
@@ -47,7 +38,7 @@ export default function Sidebar() {
         <button
           onClick={() => setOpen(true)}
           className="text-white text-2xl p-2"
-          aria-label="Abrir menu"
+          aria-label={textos?.abrirMenu ?? "Abrir menu"}
         >
           <Menu aria-hidden="true" />
         </button>
@@ -73,22 +64,22 @@ export default function Sidebar() {
         <div className="w-full flex flex-col gap-8 items-end">
           <button
             onClick={() => setOpen(false)}
-            className="text-[#F38901] text-3xl"
-            aria-label="Fechar menu"
+            className="text-site-accent text-3xl"
+            aria-label={textos?.fecharMenu ?? "Fechar menu"}
           >
             <X aria-hidden="true" />
           </button>
 
           <nav className="flex flex-col gap-4 text-2xl font-semibold text-right">
-            {menuItems.map((item) => (
+            {items.map((item) => (
               <Link
-                key={item.href}
-                href={item.href}
+                key={item.id}
+                href={item.destino}
                 style={{ color: "white" }}
-                className="text-[#F38901]! font-sedgwick uppercase tracking-widest transition-colors"
+                className="text-site-accent! font-sedgwick uppercase tracking-widest transition-colors"
                 onClick={() => setOpen(false)}
               >
-                {item.label}
+                {item.rotulo}
               </Link>
             ))}
           </nav>

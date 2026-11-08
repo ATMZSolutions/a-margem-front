@@ -4,33 +4,32 @@ import { notFound } from 'next/navigation';
 import Title from 'antd/es/typography/Title';
 import Paragraph from 'antd/es/typography/Paragraph';
 import BackBtn from '@/components/BackBtn';
-import { formatDescription, slugify } from '@/utils/helpers';
+import { formatDescription } from '@/utils/helpers';
 import CarouselWithInfo from '@/components/CarouselWithInfo';
-import { shows } from '@/data/espetaculos';
+import { getPublishedEspetaculo } from '@/lib/publicContent';
+import { getEntityMetadata, isPublicSitePage } from '@/lib/siteMetadata';
 
 type EspetaculosDetalhesProps = {
     params: Promise<{ title: string }>;
 };
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata({ params }: EspetaculosDetalhesProps): Promise<Metadata> {
     const { title } = await params;
-    const show = shows.find((item) => slugify(item.title) === title);
+    if (!await isPublicSitePage(`/espetaculos/${title}`)) return { title: 'Espetáculo não encontrado' };
+    const show = await getPublishedEspetaculo(title);
     if (!show) return { title: 'Espetáculo não encontrado' };
-    const description = show.sections[0]?.description.slice(0, 155) || `Conheça ${show.title}, espetáculo do Coletivo À Margem.`;
-    return {
-        title: show.title,
-        description,
-        alternates: { canonical: `/espetaculos/${slugify(show.title)}` },
-        openGraph: { title: `${show.title} | Coletivo À Margem`, description, url: `https://www.amargem.com.br/espetaculos/${slugify(show.title)}` },
-    };
+    const description = show.sections[0]?.texto.slice(0, 155) || `Conheça ${show.title}, espetáculo do Coletivo À Margem.`;
+    return getEntityMetadata(`/espetaculos/${show.slug}`, show.title, description, show.seo);
 }
 
 
 export default async function EspetaculosDetalhes({ params }: EspetaculosDetalhesProps) {
     const { title } = await params;
+    if (!await isPublicSitePage(`/espetaculos/${title}`)) notFound();
 
-    // Encontra o espetáculo correto no array
-    const showData = shows.find((show) => slugify(show.title) == title);
+    const showData = await getPublishedEspetaculo(title);
 
     if (!showData) notFound();
 
@@ -38,8 +37,8 @@ export default async function EspetaculosDetalhes({ params }: EspetaculosDetalhe
         <section
             className={`relative min-h-screen flex flex-col items-center text-white px-4 pb-10 bg-cover bg-center`}
             style={{
-                backgroundImage: "url('/padrao1.webp')",
-                backgroundColor: showData.bgColor,
+                backgroundImage: "var(--site-background-image)",
+                backgroundColor: showData.bgColor ?? "var(--site-primary)",
             }}
         >
             <BackBtn label={showData.title} />
@@ -54,15 +53,15 @@ export default async function EspetaculosDetalhes({ params }: EspetaculosDetalhe
                 </div>
                 <section className="flex flex-col mt-12 max-w-xl">
                     {showData.sections.map((section) => (
-                        <React.Fragment key={section.subtitle}>
-                            <Title className='font-sedgwick border-l-4 border-[#F38901] pl-2' level={3} style={{ color: 'white', width: '70%', fontWeight: 'normal' }}>
-                                {section.subtitle}
+                        <React.Fragment key={section.id}>
+                            <Title className='font-sedgwick border-l-4 border-site-accent pl-2' level={3} style={{ color: 'white', width: '70%', fontWeight: 'normal' }}>
+                                {section.titulo}
                             </Title>
                             <Paragraph style={{ whiteSpace: 'pre-wrap', textAlign: 'justify', color: 'white' }}>
                                 {   // Adiciona bold apenas às descrições das seções de Ficha Técnica e Trajetória
-                                    section.subtitle.includes('Trajetória') || section.subtitle.includes("Ficha")
-                                        ? formatDescription(section.description)
-                                        : section.description
+                                    section.titulo.includes('Trajetória') || section.titulo.includes("Ficha")
+                                        ? formatDescription(section.texto)
+                                        : section.texto
                                 }
                             </Paragraph>
                         </React.Fragment>

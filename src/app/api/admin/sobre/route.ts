@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { listSobreListings } from "@/lib/publicContent";
+import { listAdminSobreListings } from "@/lib/publicContent";
 import { decodeImageData, isPositiveInteger, isText, readJsonObject } from "@/lib/adminInput";
 import { authorizeAdminRequest } from "@/lib/adminRequest";
 
 export async function GET(request: Request) {
   const denied = await authorizeAdminRequest(request);
   if (denied) return denied;
-  const items = await listSobreListings();
+  const items = await listAdminSobreListings();
   return NextResponse.json(items.map(({ hasImage, ...item }) => ({ ...item, imagem: hasImage })));
 }
 
@@ -30,7 +30,7 @@ export async function POST(request: Request) {
     ano: body.ano,
     descricao: body.descricao,
     ...(imagem ? { imagem: Uint8Array.from(imagem), imagemTipo } : {}),
-  } });
+  }, select: { ano: true } });
   return NextResponse.json({ ano: created.ano }, { status: 201 });
 }
 
@@ -51,7 +51,7 @@ export async function PUT(request: Request) {
     data.imagemTipo = body.imagemTipo as string;
   }
   if (!Object.keys(data).length) return NextResponse.json({ error: "No valid fields to update" }, { status: 400 });
-  const updated = await prisma.sobre.update({ where: { ano: body.ano }, data });
+  const updated = await prisma.sobre.update({ where: { ano: body.ano }, data, select: { ano: true } });
   return NextResponse.json({ ano: updated.ano });
 }
 

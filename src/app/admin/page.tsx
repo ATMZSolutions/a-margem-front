@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { validateSession } from '../../lib/adminSession';
+import { supabaseEditorialAtivo } from '@/lib/editorialConfig';
 
 import AdminClient from './AdminClient';
 
@@ -12,5 +13,5 @@ export default async function AdminPage() {
     redirect('/admin/login');
   }
 
-  return <AdminClient />;
+  return <AdminClient editorialAtivo={supabaseEditorialAtivo()} />;
 }
