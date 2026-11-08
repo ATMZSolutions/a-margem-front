@@ -29,7 +29,7 @@ export async function POST(request: Request) {
   const created = await prisma.sobre.create({ data: {
     ano: body.ano,
     descricao: body.descricao,
-    ...(imagem ? { imagem, imagemTipo } : {}),
+    ...(imagem ? { imagem: Uint8Array.from(imagem), imagemTipo } : {}),
   } });
   return NextResponse.json({ ano: created.ano }, { status: 201 });
 }
@@ -39,7 +39,7 @@ export async function PUT(request: Request) {
   if (denied) return denied;
   const body = await readJsonObject(request);
   if (!body || !isPositiveInteger(body.ano)) return NextResponse.json({ error: "Invalid year" }, { status: 400 });
-  const data: { descricao?: string; imagem?: Buffer; imagemTipo?: string } = {};
+  const data: { descricao?: string; imagem?: Uint8Array<ArrayBuffer>; imagemTipo?: string } = {};
   if (body.descricao !== undefined) {
     if (!isText(body.descricao, 10000)) return NextResponse.json({ error: "Invalid description" }, { status: 400 });
     data.descricao = body.descricao;
@@ -47,7 +47,7 @@ export async function PUT(request: Request) {
   if (body.imageData !== undefined) {
     const image = decodeImageData(body.imageData, body.imagemTipo);
     if (!image) return NextResponse.json({ error: "Invalid image data" }, { status: 400 });
-    data.imagem = image;
+    data.imagem = Uint8Array.from(image);
     data.imagemTipo = body.imagemTipo as string;
   }
   if (!Object.keys(data).length) return NextResponse.json({ error: "No valid fields to update" }, { status: 400 });

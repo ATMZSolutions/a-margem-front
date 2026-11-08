@@ -31,7 +31,7 @@ export async function POST(request: Request) {
     titulo: body.titulo,
     autor: body.autor,
     descricao: body.descricao,
-    ...(imagem ? { imagem, imagemTipo } : {}),
+    ...(imagem ? { imagem: Uint8Array.from(imagem), imagemTipo } : {}),
   } });
   return NextResponse.json({ id: created.id }, { status: 201 });
 }
@@ -42,7 +42,7 @@ export async function PUT(request: Request) {
   const body = await readJsonObject(request);
   if (!body || !isPositiveInteger(body.id)) return NextResponse.json({ error: "Invalid book id" }, { status: 400 });
 
-  const data: { titulo?: string; autor?: string; descricao?: string; imagem?: Buffer; imagemTipo?: string } = {};
+  const data: { titulo?: string; autor?: string; descricao?: string; imagem?: Uint8Array<ArrayBuffer>; imagemTipo?: string } = {};
   if (body.titulo !== undefined) {
     if (!isText(body.titulo, 300)) return NextResponse.json({ error: "Invalid title" }, { status: 400 });
     data.titulo = body.titulo;
@@ -58,7 +58,7 @@ export async function PUT(request: Request) {
   if (body.imageData !== undefined) {
     const image = decodeImageData(body.imageData, body.imagemTipo);
     if (!image) return NextResponse.json({ error: "Invalid image data" }, { status: 400 });
-    data.imagem = image;
+    data.imagem = Uint8Array.from(image);
     data.imagemTipo = body.imagemTipo as string;
   }
   if (!Object.keys(data).length) return NextResponse.json({ error: "No valid fields to update" }, { status: 400 });
