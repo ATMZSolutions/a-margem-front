@@ -86,9 +86,9 @@ export default function AdminClient({ editorialAtivo }: { editorialAtivo: boolea
       </header>
 
       <div className="mx-auto grid max-w-[1920px] lg:grid-cols-[240px_minmax(0,1fr)] xl:grid-cols-[280px_minmax(0,1fr)] min-[1440px]:grid-cols-[320px_minmax(0,1fr)] 2xl:grid-cols-[300px_minmax(0,1fr)]">
-        <aside className="hidden min-h-[calc(100vh-72px)] bg-[#2e1a37] px-3 py-7 text-white lg:block xl:px-4 min-[1440px]:min-h-[calc(100vh-76px)] min-[1440px]:px-5 2xl:min-h-[calc(100vh-72px)] 2xl:px-4" aria-label="Navegação do painel">
-          <p className="mb-4 px-3 text-sm font-semibold uppercase tracking-[0.08em] text-white/70 xl:px-4 min-[1440px]:text-base 2xl:text-sm">Conteúdo</p>
-          <nav className="space-y-1.5">
+        <aside className="hidden self-start bg-[#2e1a37] px-3 py-4 text-white lg:sticky lg:top-16 lg:block lg:h-[calc(100dvh-4rem)] lg:overflow-y-auto lg:overscroll-contain xl:top-[72px] xl:h-[calc(100dvh-72px)] xl:px-4 min-[1440px]:top-[76px] min-[1440px]:h-[calc(100dvh-76px)] min-[1440px]:px-5 2xl:top-[72px] 2xl:h-[calc(100dvh-72px)] 2xl:px-4" aria-label="Navegação do painel">
+          <p className="mb-3 px-3 text-sm font-semibold uppercase tracking-[0.08em] text-white/70 xl:px-4 min-[1440px]:text-base 2xl:text-sm">Conteúdo</p>
+          <nav className="space-y-1">
             {areasVisiveis.map(({ id, titulo, descricao, Icone }) => {
               const ativo = areaAtiva === id;
               return (
@@ -97,7 +97,7 @@ export default function AdminClient({ editorialAtivo }: { editorialAtivo: boolea
                   type="button"
                   aria-current={ativo ? "page" : undefined}
                   onClick={() => setAreaAtiva(id)}
-                  className={`flex min-h-14 w-full items-center gap-3 rounded-xl border-l-4 px-3 text-left transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#F38901] xl:min-h-[64px] xl:gap-3 xl:px-3 min-[1440px]:min-h-[70px] min-[1440px]:gap-4 min-[1440px]:px-4 2xl:min-h-[64px] 2xl:px-3 ${ativo ? "border-[#F38901] bg-[#563765] text-white" : "border-transparent text-white/85 hover:bg-white/10"}`}
+                  className={`flex min-h-12 w-full items-center gap-3 rounded-xl border-l-4 px-3 text-left transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#F38901] xl:gap-3 xl:px-3 min-[1440px]:gap-4 min-[1440px]:px-4 2xl:px-3 ${ativo ? "border-[#F38901] bg-[#563765] text-white" : "border-transparent text-white/85 hover:bg-white/10"}`}
                 >
                   <Icone aria-hidden="true" className={`size-5 shrink-0 xl:size-5 min-[1440px]:size-6 2xl:size-5 ${ativo ? "text-[#F38901]" : "text-white/90"}`} />
                   <span className="min-w-0">
