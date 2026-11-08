@@ -20,6 +20,7 @@ interface PremioProps {
   title: string;
   evento: string;
   year: string | number;
+  slug?: string;
   isSaibaMais?: boolean;
 }
 
@@ -27,10 +28,11 @@ const Premio: React.FC<PremioProps> = ({
   title,
   evento,
   year,
+  slug,
   isSaibaMais = false,
 }) => {
   const titleUpper = title.toUpperCase();
-  const href = `/premios/${slugify(title)}/${year}`;
+  const href = `/premios/${slug || slugify(title)}/${year}`;
 
   return (
     <motion.div

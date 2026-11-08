@@ -1,7 +1,6 @@
 import React from "react"
-import { premios } from "@/data/premios";
 import type { Metadata } from "next";
-import { slugify } from "@/utils/helpers";
+import { getPublishedPremio } from "@/lib/publicContent";
 import Premio from "@/components/Premio";
 import BackBtn from "@/components/BackBtn";
 import { notFound } from "next/navigation";
@@ -12,23 +11,25 @@ interface PremioDetalhesProps {
     params: Promise<{ title: string, year: string; }>;
 }
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata({ params }: PremioDetalhesProps): Promise<Metadata> {
     const { title, year } = await params;
-    const premio = premios.find((item) => slugify(item.title) === title && item.year === year);
+    const premio = await getPublishedPremio(title, year);
     if (!premio) return { title: "Prêmio não encontrado" };
     const description = premio.description.slice(0, 155);
     return {
         title: `${premio.title} (${premio.year})`,
         description,
-        alternates: { canonical: `/premios/${slugify(premio.title)}/${premio.year}` },
-        openGraph: { title: `${premio.title} | Coletivo À Margem`, description, url: `https://www.amargem.com.br/premios/${slugify(premio.title)}/${premio.year}` },
+        alternates: { canonical: `/premios/${premio.slug}/${premio.year}` },
+        openGraph: { title: `${premio.title} | Coletivo À Margem`, description, url: `https://www.amargem.com.br/premios/${premio.slug}/${premio.year}` },
     };
 }
 
 const PremioDetalhes = async ({ params }: PremioDetalhesProps) => {
     const { title, year } = await params;
 
-    const premio = premios.find((p) => slugify(p.title) + `/${p.year}` == title + `/${year}`);
+    const premio = await getPublishedPremio(title, year);
 
     if (!premio) return notFound();
 
@@ -47,6 +48,7 @@ const PremioDetalhes = async ({ params }: PremioDetalhesProps) => {
                     title={premio.title}
                     evento={premio.evento}
                     year={premio.year}
+                    slug={premio.slug}
                     isSaibaMais={true}
                 />
                 {premio.img && (

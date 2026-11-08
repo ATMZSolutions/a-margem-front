@@ -6,6 +6,7 @@ export interface ImageInfo {
   descricao: string;
   data: string;
   img: string;
+  textoAlternativo?: string;
 }
 
 interface CarouselWithInfoProps {
@@ -20,6 +21,7 @@ export default function CarouselWithInfo({ imagesInfo }: CarouselWithInfoProps) 
       {/* Passa o callback para o PhotoCarousel */}
       <PhotoCarousel
         images={imagesInfo.map((i) => i.img)}
+        imageAlts={imagesInfo.map((i) => i.textoAlternativo || i.descricao)}
         onIndexChange={(index) => setCurrentIndex(index)}
       />
 

@@ -3,15 +3,15 @@
 import BackBtn from "@/components/BackBtn";
 import IntegranteCard from "@/components/IntegranteCard";
 import { useState } from "react";
-import type { Integrante } from "@/data/integrantes";
+import type { IntegrantePublico } from "@/lib/publicContent";
 
-export default function IntegranteClient({ integrante }: { integrante: Integrante }) {
+export default function IntegranteClient({ integrante }: { integrante: IntegrantePublico }) {
   const [expanded, setExpanded] = useState(false);
 
   const MAX_LENGTH = 450; // limite antes de cortar texto
 
   const shortBio =
-    integrante.biografia.length > MAX_LENGTH && !expanded
+      integrante.biografia.length > MAX_LENGTH && !expanded
       ? integrante.biografia.slice(0, MAX_LENGTH) + "..."
       : integrante.biografia;
 
@@ -27,7 +27,7 @@ export default function IntegranteClient({ integrante }: { integrante: Integrant
 
       <div className="pt-28 flex flex-col md:flex-row md:items-start items-center">
         <IntegranteCard
-          key={integrante.nome}
+          key={integrante.id}
           nome={integrante.nome}
           image={integrante.image}
           onClick={() => {}}

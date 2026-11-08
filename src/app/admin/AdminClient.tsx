@@ -4,17 +4,20 @@ import { useState } from "react";
 import type { ComponentType } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { BookOpen, CalendarDays, FolderKanban, Info, LogOut, Newspaper } from "lucide-react";
+import { Award, BookOpen, CalendarDays, Clapperboard, FolderKanban, Info, LogOut, Newspaper, Users } from "lucide-react";
 import AdminAgenda from "@/components/admin/Agenda";
+import AdminEspetaculos from "@/components/admin/Espetaculos";
+import AdminIntegrantes from "@/components/admin/Integrantes";
 import AdminLivro from "@/components/admin/Livro";
 import AdminNoticia from "@/components/admin/Noticia";
+import AdminPremios from "@/components/admin/Premios";
 import AdminProjeto from "@/components/admin/Projeto";
 import AdminSobre from "@/components/admin/Sobre";
 import { limparCacheAdministrativo } from "@/lib/cache-administrativo";
 
 export type BufferData = string;
 
-type AreaAdministrativa = "agenda" | "noticias" | "livros" | "projetos" | "sobre";
+type AreaAdministrativa = "agenda" | "noticias" | "livros" | "projetos" | "sobre" | "integrantes" | "espetaculos" | "premios";
 
 const areasAdministrativas: {
   id: AreaAdministrativa;
@@ -28,11 +31,17 @@ const areasAdministrativas: {
   { id: "livros", titulo: "Livros", descricao: "Obras e referências", Icone: BookOpen, Componente: AdminLivro },
   { id: "projetos", titulo: "Projetos", descricao: "Ações do coletivo", Icone: FolderKanban, Componente: AdminProjeto },
   { id: "sobre", titulo: "Sobre", descricao: "História e trajetória", Icone: Info, Componente: AdminSobre },
+  { id: "integrantes", titulo: "Integrantes", descricao: "Perfis e biografias", Icone: Users, Componente: AdminIntegrantes },
+  { id: "espetaculos", titulo: "Espetáculos", descricao: "Peças, seções e galerias", Icone: Clapperboard, Componente: AdminEspetaculos },
+  { id: "premios", titulo: "Prêmios", descricao: "Reconhecimentos e registros", Icone: Award, Componente: AdminPremios },
 ];
 
-export default function AdminClient() {
+export default function AdminClient({ editorialAtivo }: { editorialAtivo: boolean }) {
   const [areaAtiva, setAreaAtiva] = useState<AreaAdministrativa>("noticias");
-  const areaSelecionada = areasAdministrativas.find((area) => area.id === areaAtiva)!;
+  const areasVisiveis = editorialAtivo
+    ? areasAdministrativas
+    : areasAdministrativas.filter((area) => !["integrantes", "espetaculos", "premios"].includes(area.id));
+  const areaSelecionada = areasVisiveis.find((area) => area.id === areaAtiva) ?? areasVisiveis[0];
   const ConteudoAtivo = areaSelecionada.Componente;
 
   async function logout() {
@@ -63,7 +72,7 @@ export default function AdminClient() {
         <aside className="hidden min-h-[calc(100vh-72px)] bg-[#2e1a37] px-3 py-7 text-white lg:block xl:px-4 min-[1440px]:min-h-[calc(100vh-76px)] min-[1440px]:px-5 2xl:min-h-[calc(100vh-72px)] 2xl:px-4" aria-label="Navegação do painel">
           <p className="mb-4 px-3 text-sm font-semibold uppercase tracking-[0.08em] text-white/70 xl:px-4 min-[1440px]:text-base 2xl:text-sm">Conteúdo</p>
           <nav className="space-y-1.5">
-            {areasAdministrativas.map(({ id, titulo, descricao, Icone }) => {
+            {areasVisiveis.map(({ id, titulo, descricao, Icone }) => {
               const ativo = areaAtiva === id;
               return (
                 <button
@@ -92,7 +101,7 @@ export default function AdminClient() {
                 onChange={(evento) => setAreaAtiva(evento.target.value as AreaAdministrativa)}
                 className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#412551]"
               >
-                {areasAdministrativas.map((area) => <option key={area.id} value={area.id}>{area.titulo}</option>)}
+                {areasVisiveis.map((area) => <option key={area.id} value={area.id}>{area.titulo}</option>)}
               </select>
           </label>
           <ConteudoAtivo />

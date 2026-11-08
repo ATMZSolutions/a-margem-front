@@ -1,7 +1,4 @@
-import { espetaculosData } from "@/data/espetaculos";
-import { integrantes } from "@/data/integrantes";
-import { premios } from "@/data/premios";
-import { slugify } from "@/utils/helpers";
+import { listPublishedEspetaculos, listPublishedIntegrantes, listPublishedPremios } from "@/lib/publicContent";
 
 const BASE_URL = "https://www.amargem.com.br";
 
@@ -14,12 +11,19 @@ function xmlEscape(value: string) {
   return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-export function GET(): Response {
+export const dynamic = "force-dynamic";
+
+export async function GET(): Promise<Response> {
+  const [espetaculos, premios, integrantes] = await Promise.all([
+    listPublishedEspetaculos(),
+    listPublishedPremios(),
+    listPublishedIntegrantes(),
+  ]);
   const urls = [
     ...staticUrls,
-    ...espetaculosData.map((show) => `/espetaculos/${slugify(show.title)}`),
-    ...premios.map((premio) => `/premios/${slugify(premio.title)}/${premio.year}`),
-    ...integrantes.map((person) => `/coletivo/integrante/${person.id}`),
+    ...espetaculos.map((show) => `/espetaculos/${show.slug}`),
+    ...premios.map((premio) => `/premios/${premio.slug}/${premio.year}`),
+    ...integrantes.map((person) => `/coletivo/integrante/${person.slug}`),
   ];
   const uniqueUrls = [...new Set(urls)];
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -28,6 +32,6 @@ ${uniqueUrls.map((path) => `  <url><loc>${xmlEscape(`${BASE_URL}${path}`)}</loc>
 </urlset>`;
 
   return new Response(xml, {
-    headers: { "Content-Type": "application/xml; charset=utf-8", "Cache-Control": "public, max-age=3600" },
+    headers: { "Content-Type": "application/xml; charset=utf-8", "Cache-Control": "public, max-age=60, s-maxage=60" },
   });
 }

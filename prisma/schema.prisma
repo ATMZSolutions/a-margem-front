@@ -21,7 +21,7 @@ model Noticia {
   titulo    String
   conteudo  String
   link      String
-  createdAt DateTime @default(now())
+  createdAt DateTime @default(now()) @db.Timestamp(3)
 }
 
 model Book {
@@ -31,14 +31,14 @@ model Book {
   descricao  String
   imagem     Bytes?
   imagemTipo String?
-  createdAt  DateTime @default(now())
+  createdAt  DateTime @default(now()) @db.Timestamp(3)
 
   @@map("Livro")
 }
 
 model Projeto {
   id        Int      @id @default(autoincrement())
-  data      DateTime
+  data      DateTime @db.Timestamp(3)
   descricao String
 }
 
@@ -47,4 +47,239 @@ model Sobre {
   imagem     Bytes?
   imagemTipo String?
   descricao  String
+}
+
+// Estruturas aditivas da migração editorial. Não aplicar sem reconciliação da origem.
+enum EstadoPublicacao {
+  RASCUNHO
+  PUBLICADO
+  ARQUIVADO
+}
+
+enum EstadoImportacao {
+  PENDENTE
+  ENVIADO
+  VINCULADO
+  VERIFICADO
+  ERRO
+  CONFLITO
+}
+
+model Midia {
+  id           String        @id @default(cuid())
+  bucket       String
+  chave        String
+  sha256       String
+  mime         String
+  bytes        Int
+  largura      Int?
+  altura       Int?
+  nomeOriginal String?
+  origem       String?
+  criadoEm     DateTime      @default(now()) @db.Timestamptz(6)
+  atualizadoEm DateTime      @updatedAt @db.Timestamptz(6)
+  usos         UsoMidia[]
+  integrantes  Integrante[]
+  espetaculos  Espetaculo[]
+  premios      Premio[]
+  fotos        FotoGaleria[]
+
+  @@unique([bucket, chave])
+  @@index([sha256])
+}
+
+// Contexto editorial é separado dos bytes para permitir reuso do mesmo arquivo.
+model UsoMidia {
+  id               String  @id @default(cuid())
+  chaveOrigem      String  @unique
+  midiaId          String
+  midia            Midia   @relation(fields: [midiaId], references: [id], onDelete: Restrict)
+  dominio          String
+  registro         String
+  campo            String
+  ordem            Int     @default(0)
+  textoAlternativo String  @default("")
+  legenda          String?
+  credito          String?
+  dataEditorial    String?
+
+  @@index([dominio, registro])
+}
+
+model ConfiguracaoSite {
+  chave        String   @id
+  versao       Int      @default(1)
+  dados        Json
+  atualizadoEm DateTime @updatedAt @db.Timestamptz(6)
+}
+
+model CanalContato {
+  id          String  @id @default(cuid())
+  chaveOrigem String  @unique
+  tipo        String
+  rotulo      String
+  url         String
+  ordem       Int     @default(0)
+  ativo       Boolean @default(true)
+}
+
+model ItemMenu {
+  id          String  @id @default(cuid())
+  chaveOrigem String  @unique
+  rotulo      String
+  destino     String
+  ordem       Int     @default(0)
+  ativo       Boolean @default(true)
+}
+
+model Integrante {
+  id           String           @id @default(cuid())
+  chaveOrigem  String?          @unique
+  slug         String           @unique
+  nome         String
+  fichaTecnica String
+  biografia    String
+  fotoId       String?
+  foto         Midia?           @relation(fields: [fotoId], references: [id], onDelete: Restrict)
+  ordem        Int              @default(0)
+  estado       EstadoPublicacao @default(RASCUNHO)
+  seo          Json?
+}
+
+model Espetaculo {
+  id           String            @id @default(cuid())
+  chaveOrigem  String?           @unique
+  slug         String            @unique
+  titulo       String
+  lancamento   String
+  estreia      String?
+  localEstreia String?
+  corFundo     String?
+  capaId       String?
+  capa         Midia?            @relation(fields: [capaId], references: [id], onDelete: Restrict)
+  ordem        Int               @default(0)
+  estado       EstadoPublicacao  @default(RASCUNHO)
+  seo          Json?
+  secoes       SecaoEspetaculo[]
+  galerias     Galeria[]
+}
+
+model SecaoEspetaculo {
+  id           String     @id @default(cuid())
+  espetaculoId String
+  espetaculo   Espetaculo @relation(fields: [espetaculoId], references: [id], onDelete: Cascade)
+  titulo       String
+  texto        String
+  ordem        Int
+
+  @@unique([espetaculoId, ordem])
+}
+
+model Premio {
+  id          String           @id @default(cuid())
+  chaveOrigem String?          @unique
+  slug        String
+  titulo      String
+  ano         String
+  evento      String
+  descricao   String
+  fotoId      String?
+  foto        Midia?           @relation(fields: [fotoId], references: [id], onDelete: Restrict)
+  ordem       Int              @default(0)
+  estado      EstadoPublicacao @default(RASCUNHO)
+  seo         Json?
+
+  @@unique([slug, ano])
+}
+
+model Galeria {
+  id           String        @id @default(cuid())
+  chaveOrigem  String        @unique
+  titulo       String?
+  espetaculoId String?
+  espetaculo   Espetaculo?   @relation(fields: [espetaculoId], references: [id], onDelete: Restrict)
+  fotos        FotoGaleria[]
+}
+
+model FotoGaleria {
+  id               String  @id @default(cuid())
+  chaveOrigem      String  @unique
+  galeriaId        String
+  galeria          Galeria @relation(fields: [galeriaId], references: [id], onDelete: Cascade)
+  midiaId          String
+  midia            Midia   @relation(fields: [midiaId], references: [id], onDelete: Restrict)
+  ordem            Int
+  textoAlternativo String  @default("")
+  legenda          String  @default("")
+  credito          String?
+  dataEditorial    String?
+
+  @@unique([galeriaId, ordem])
+}
+
+model PaginaSite {
+  id           String           @id @default(cuid())
+  caminho      String           @unique
+  versao       Int              @default(1)
+  configuracao Json
+  estado       EstadoPublicacao @default(RASCUNHO)
+  seo          Json?
+}
+
+model SecaoHome {
+  id           String  @id @default(cuid())
+  chave        String  @unique
+  tipo         String
+  ordem        Int
+  ativa        Boolean @default(true)
+  versao       Int     @default(1)
+  configuracao Json
+}
+
+// Permite múltiplos marcos por ano sem alterar a PK da tabela Sobre em uso.
+model MarcoHistorico {
+  id          String           @id @default(cuid())
+  chaveOrigem String?          @unique
+  ano         Int
+  descricao   String
+  anoLegado   Int?             @unique
+  ordem       Int              @default(0)
+  estado      EstadoPublicacao @default(RASCUNHO)
+}
+
+model AliasURL {
+  origem     String  @id
+  destino    String
+  permanente Boolean @default(true)
+}
+
+model ExecucaoImportacao {
+  id               String           @id @default(cuid())
+  ambiente         String
+  origemSha256     String
+  destinoSha256    String
+  manifestoSha256  String
+  versaoImportador Int
+  commitOrigem     String
+  estado           EstadoImportacao @default(PENDENTE)
+  iniciadoEm       DateTime         @default(now()) @db.Timestamptz(6)
+  concluidoEm      DateTime?        @db.Timestamptz(6)
+  itens            ItemImportacao[]
+}
+
+model ItemImportacao {
+  id                   String             @id @default(cuid())
+  execucaoId           String
+  execucao             ExecucaoImportacao @relation(fields: [execucaoId], references: [id], onDelete: Restrict)
+  chaveOrigem          String
+  dominio              String
+  destinoId            String?
+  hashFonte            String
+  hashDestinoImportado String?
+  estado               EstadoImportacao   @default(PENDENTE)
+  erroCodigo           String?
+  atualizadoEm         DateTime           @updatedAt @db.Timestamptz(6)
+
+  @@unique([execucaoId, chaveOrigem])
+  @@index([chaveOrigem, atualizadoEm])
 }

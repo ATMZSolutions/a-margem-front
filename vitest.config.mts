@@ -12,13 +12,18 @@ export default defineConfig({
   test: {
     environment: "node",
     setupFiles: ["./src/configuracao-testes.ts"],
-    include: ["src/**/*.test.{ts,tsx}"],
+    include: ["src/**/*.test.{ts,tsx}", "scripts/conteudo/**/*.test.mjs"],
     clearMocks: true,
     restoreMocks: true,
     coverage: {
       provider: "v8",
       reporter: ["text", "lcov"],
       include: [
+        "scripts/conteudo/inventario.mjs",
+        "scripts/conteudo/adaptadores.mjs",
+        "scripts/conteudo/banco.mjs",
+        "scripts/conteudo/reconciliacao.mjs",
+        "scripts/conteudo/migracao.mjs",
         "src/lib/adminConfig.ts",
         "src/lib/adminInput.ts",
         "src/lib/adminRequest.ts",

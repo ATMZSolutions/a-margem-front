@@ -1,7 +1,23 @@
 import type { NextConfig } from "next";
 
+const supabaseImageHost = (() => {
+  try {
+    const url = new URL(process.env.SUPABASE_URL ?? "");
+    if (url.protocol !== "https:" && url.protocol !== "http:") return null;
+    return {
+      protocol: url.protocol.slice(0, -1) as "http" | "https",
+      hostname: url.hostname,
+      ...(url.port ? { port: url.port } : {}),
+      pathname: "/storage/v1/object/public/**",
+    };
+  } catch {
+    return null;
+  }
+})();
+
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  images: { remotePatterns: supabaseImageHost ? [supabaseImageHost] : [] },
   async redirects() {
     return [
       ...Array.from({ length: 9 }, (_, index) => ({

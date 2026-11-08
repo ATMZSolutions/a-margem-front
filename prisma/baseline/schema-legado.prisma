@@ -1,0 +1,50 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Agenda {
+  id        Int      @id @default(autoincrement())
+  titulo    String
+  data      DateTime @db.Timestamptz(6)
+  local     String
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  cidade    String
+}
+
+model Book {
+  id         Int      @id @default(autoincrement())
+  titulo     String
+  autor      String
+  descricao  String
+  imagem     Bytes?
+  imagemTipo String?
+  createdAt  DateTime @default(now()) @db.Timestamp(3)
+
+  @@map("Livro")
+}
+
+model Noticia {
+  id        Int      @id @default(autoincrement())
+  titulo    String
+  conteudo  String
+  link      String
+  createdAt DateTime @default(now()) @db.Timestamp(3)
+}
+
+model Projeto {
+  id        Int      @id @default(autoincrement())
+  data      DateTime @db.Timestamp(3)
+  descricao String
+}
+
+model Sobre {
+  ano        Int     @id
+  imagem     Bytes?
+  imagemTipo String?
+  descricao  String
+}

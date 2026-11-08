@@ -11,7 +11,11 @@
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
     "migrate": "prisma migrate dev",
-    "generate": "prisma generate"
+    "generate": "prisma generate",
+    "conteudo:inventariar": "node scripts/conteudo/cli.mjs inventariar",
+    "conteudo:migrar": "node scripts/conteudo/cli.mjs migrar",
+    "conteudo:migrar:staging": "node scripts/conteudo/cli-staging.mjs",
+    "conteudo:reconciliar": "node scripts/conteudo/cli-reconciliar.mjs"
   },
   "dependencies": {
     "@ant-design/icons": "^6.1.0",

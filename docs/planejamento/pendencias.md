@@ -21,6 +21,10 @@ Este backlog foi consolidado em 07/11/2026 a partir da auditoria e da revisão c
 
 ## Conteúdo, SEO e desempenho
 
+- [ ] **P2 — Concluir a migração automatizada do conteúdo e imagens para Supabase.** E1 (schema/infraestrutura) e E2 (carga integral em staging) foram concluídas em 08/11/2026 para o manifesto registrado no [relatório de importação](../execucao/importacao-staging-conteudo-2026-11-08.md): 326/326 itens verificados, 93 registros legados conferidos, 70 mídias conferidas e a repetição integral não criou nem atualizou linhas. A implementação E3 dos leitores/módulos editoriais está na `main`, atrás de `CONTEUDO_EDITORIAL_SUPABASE_ATIVO`; seu smoke em staging ainda está pendente. E0 precisa confirmar a revisão publicada, E4–E5 precisam integrar as demais áreas, e E6 ainda requer backup, delta e corte controlado de produção. O schema foi ensaiado em PostgreSQL 17.11 e PGlite 18.6; o staging passou em grants/RLS, sequences e checksums. Origem e produção não foram alteradas.
+
+- [ ] **P2 — Tornar o conteúdo público administrável pelo painel.** Seguir o [catálogo de conteúdo ainda fora do admin](catalogo-conteudo-administravel.md), levantado na `main` (`c05ce1b`) em 07/11/2026. O inventário cobre todas as rotas públicas e as lacunas compartilhadas, com itens C01–C15 e critérios de aceite. E3 está implementada na `main` e aguarda smoke em staging; E4–E5 continuam pendentes.
+
 - [x] **P2 — Reduzir o tempo de cache das imagens do banco.** Em 07/11/2026, `src/app/api/image/[type]/[id]/route.ts` reduziu o cache público de uma hora para 60 segundos e exige revalidação; uma imagem ainda pode ficar desatualizada por até um minuto.
 - [x] **P2 — Corrigir o ano inicial de projetos.** Em 07/11/2026, `src/app/projetos/ProjetosClient.tsx` inicia no ano mais recente disponível e usa o ano atual somente quando não há projetos.
 - [ ] **P2 — Fazer revisão visual dos ativos convertidos.** Conferir home, logotipo e redirecionamentos em telas móveis e desktop depois de integrar as imagens WebP.

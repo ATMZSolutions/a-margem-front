@@ -13,11 +13,12 @@ interface TopButtonProps {
 
 interface PhotoCarouselProps {
   images?: string[];
+  imageAlts?: string[];
   topButton?: TopButtonProps;
     onIndexChange?: (index: number) => void; // callback opcional
 }
 
-export default function PhotoCarousel({ images = [], topButton, onIndexChange }: PhotoCarouselProps) {
+export default function PhotoCarousel({ images = [], imageAlts = [], topButton, onIndexChange }: PhotoCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const prevSlide = () => {
@@ -61,7 +62,7 @@ export default function PhotoCarousel({ images = [], topButton, onIndexChange }:
       <div className="relative overflow-hidden w-full h-full border-b-8 border border-[#F38901]/70">
         <Image
           src={images[currentIndex]}
-          alt={`Fotografia do Coletivo À Margem, slide ${currentIndex + 1}`}
+          alt={imageAlts[currentIndex] || `Fotografia do Coletivo À Margem, slide ${currentIndex + 1}`}
           fill
           sizes="(max-width: 640px) 100vw, 60vw"
           className="object-cover"

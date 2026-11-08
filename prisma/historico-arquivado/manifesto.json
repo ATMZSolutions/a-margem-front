@@ -1,0 +1,18 @@
+[
+  {
+    "nome": "20251009191524_init",
+    "sha256": "398e255a57c31cd6e614cd03cc2392090db7a5db67368f016d9d19c97b703bb1"
+  },
+  {
+    "nome": "20251011230029_projeto_sobre",
+    "sha256": "9e9d3ecff55587e76c1e9e49db5ae8a6e624c05d96684f2ad23440643c745e49"
+  },
+  {
+    "nome": "20251012131110_add_cidade_to_agenda",
+    "sha256": "5f848cba285a6da431b0d1fff1357d2af675069cecd898346c27cdd2b7433e1b"
+  },
+  {
+    "nome": "20251013173351_add_image_blobs",
+    "sha256": "c8e8bf09640006eb66145583f4412b6c4dc308208c9d192bc753e9d9844b6467"
+  }
+]
