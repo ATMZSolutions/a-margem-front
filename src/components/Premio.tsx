@@ -56,7 +56,7 @@ const Premio: React.FC<PremioProps> = ({
           />
         </div>
         <h1
-          className={`absolute font-zen-dots text-[#FECA55] font-bold ${
+          className={`absolute font-zen-dots text-site-accent font-bold ${
             isSaibaMais ? "text-xl" : "text-2xl"
           } leading-tight drop-shadow-[1px_1px_2px_rgba(0,0,0,0.6)]`}
         >

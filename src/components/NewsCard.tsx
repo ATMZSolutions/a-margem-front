@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useSiteTexts } from "@/components/SiteTextProvider";
 
 export interface NewsItem {
   id: number;
@@ -15,6 +16,7 @@ interface NewsCardProps {
 }
 
 export default function NewsCard({ item, index }: NewsCardProps) {
+  const textos = useSiteTexts();
   const fadeIn = {
     hidden: { opacity: 0 },
     visible: {
@@ -33,7 +35,7 @@ export default function NewsCard({ item, index }: NewsCardProps) {
     >
       {/* Conteúdo */}
       <div className="flex flex-col items-start text-start w-full justify-start z-10">
-        <h2 className="text-[#F5A623] font-semibold text-base sm:text-lg mb-2">
+        <h2 className="text-site-accent font-semibold text-base sm:text-lg mb-2">
           {item.title}
         </h2>
         <p className="text-sm text-gray-200 line-clamp-3">{item.description}</p>
@@ -44,9 +46,9 @@ export default function NewsCard({ item, index }: NewsCardProps) {
           href={item.link}
           target="_blank"
           rel="noopener noreferrer"
-          className="px-3 py-1 bg-[#F38901]/70 text-black/70 text-xs sm:text-sm font-semibold rounded-lg z-20 hover:scale-105 transition-transform duration-200"
+          className="px-3 py-1 bg-site-accent/70 text-black/70 text-xs sm:text-sm font-semibold rounded-lg z-20 hover:scale-105 transition-transform duration-200"
         >
-          SAIBA MAIS
+          {(textos?.saibaMais ?? "Saiba mais").toLocaleUpperCase("pt-BR")}
         </a>
       </div>
     </motion.article>

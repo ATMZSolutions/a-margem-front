@@ -1,6 +1,6 @@
 import { listPublishedEspetaculos, listPublishedIntegrantes, listPublishedPremios } from "@/lib/publicContent";
-
-const BASE_URL = "https://www.amargem.com.br";
+import { getPublicSiteIdentity } from "@/lib/siteContent";
+import { isPublicSitePage } from "@/lib/siteMetadata";
 
 const staticUrls = [
   "/", "/agenda", "/sobre", "/coletivo", "/premios", "/espetaculos",
@@ -14,21 +14,25 @@ function xmlEscape(value: string) {
 export const dynamic = "force-dynamic";
 
 export async function GET(): Promise<Response> {
-  const [espetaculos, premios, integrantes] = await Promise.all([
+  const [espetaculos, premios, integrantes, identity, publicStaticUrls] = await Promise.all([
     listPublishedEspetaculos(),
     listPublishedPremios(),
     listPublishedIntegrantes(),
+    getPublicSiteIdentity(),
+    Promise.all(staticUrls.map(async (path) => await isPublicSitePage(path) ? path : null)),
   ]);
   const urls = [
-    ...staticUrls,
+    ...publicStaticUrls.filter((path): path is string => path !== null),
     ...espetaculos.map((show) => `/espetaculos/${show.slug}`),
     ...premios.map((premio) => `/premios/${premio.slug}/${premio.year}`),
     ...integrantes.map((person) => `/coletivo/integrante/${person.slug}`),
   ];
-  const uniqueUrls = [...new Set(urls)];
+  const pageStatusUrls = await Promise.all(urls.map(async (path) => await isPublicSitePage(path) ? path : null));
+  const uniqueUrls = [...new Set(pageStatusUrls.filter((path): path is string => path !== null))];
+  const baseUrl = identity.dominio.replace(/\/+$/, "");
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${uniqueUrls.map((path) => `  <url><loc>${xmlEscape(`${BASE_URL}${path}`)}</loc></url>`).join("\n")}
+${uniqueUrls.map((path) => `  <url><loc>${xmlEscape(`${baseUrl}${path === "/" ? "" : path}`)}</loc></url>`).join("\n")}
 </urlset>`;
 
   return new Response(xml, {

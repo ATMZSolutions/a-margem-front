@@ -12,7 +12,7 @@ function parseDate(value: unknown): Date | null {
 export async function GET(request: Request) {
   const denied = await authorizeAdminRequest(request);
   if (denied) return denied;
-  const items = await prisma.projeto.findMany({ orderBy: { data: "desc" } });
+  const items = await prisma.projeto.findMany({ orderBy: { data: "desc" }, select: { id: true, data: true, descricao: true } });
   return NextResponse.json(items);
 }
 
@@ -24,7 +24,7 @@ export async function POST(request: Request) {
   if (!body || !date || !isText(body.descricao, 10000)) {
     return NextResponse.json({ error: "Invalid project data" }, { status: 400 });
   }
-  const created = await prisma.projeto.create({ data: { data: date, descricao: body.descricao } });
+  const created = await prisma.projeto.create({ data: { data: date, descricao: body.descricao }, select: { id: true } });
   return NextResponse.json({ id: created.id }, { status: 201 });
 }
 
@@ -44,7 +44,7 @@ export async function PUT(request: Request) {
     data.descricao = body.descricao;
   }
   if (!Object.keys(data).length) return NextResponse.json({ error: "No valid fields to update" }, { status: 400 });
-  const updated = await prisma.projeto.update({ where: { id: body.id }, data });
+  const updated = await prisma.projeto.update({ where: { id: body.id }, data, select: { id: true } });
   return NextResponse.json({ id: updated.id });
 }
 

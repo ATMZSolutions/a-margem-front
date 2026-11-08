@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { ComponentType } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Award, BookOpen, CalendarDays, Clapperboard, FolderKanban, Info, LogOut, Newspaper, Users } from "lucide-react";
+import { Award, BookOpen, CalendarDays, Clapperboard, FolderKanban, History, Info, LogOut, Newspaper, Settings, SlidersHorizontal, Users } from "lucide-react";
 import AdminAgenda from "@/components/admin/Agenda";
 import AdminEspetaculos from "@/components/admin/Espetaculos";
 import AdminIntegrantes from "@/components/admin/Integrantes";
@@ -13,11 +13,15 @@ import AdminNoticia from "@/components/admin/Noticia";
 import AdminPremios from "@/components/admin/Premios";
 import AdminProjeto from "@/components/admin/Projeto";
 import AdminSobre from "@/components/admin/Sobre";
+import AdminConfiguracoes from "@/components/admin/Configuracoes";
+import AdminHistoria from "@/components/admin/Historia";
+import AdminPaginaProjetos from "@/components/admin/PaginaProjetos";
+import AdminEditorialTransversal from "@/components/admin/EditorialTransversal";
 import { limparCacheAdministrativo } from "@/lib/cache-administrativo";
 
 export type BufferData = string;
 
-type AreaAdministrativa = "agenda" | "noticias" | "livros" | "projetos" | "sobre" | "integrantes" | "espetaculos" | "premios";
+type AreaAdministrativa = "agenda" | "noticias" | "livros" | "projetos" | "paginaProjetos" | "sobre" | "integrantes" | "espetaculos" | "premios" | "configuracoes" | "editorialTransversal";
 
 const areasAdministrativas: {
   id: AreaAdministrativa;
@@ -31,16 +35,19 @@ const areasAdministrativas: {
   { id: "livros", titulo: "Livros", descricao: "Obras e referências", Icone: BookOpen, Componente: AdminLivro },
   { id: "projetos", titulo: "Projetos", descricao: "Ações do coletivo", Icone: FolderKanban, Componente: AdminProjeto },
   { id: "sobre", titulo: "Sobre", descricao: "História e trajetória", Icone: Info, Componente: AdminSobre },
+  { id: "paginaProjetos", titulo: "Página de projetos", descricao: "Apresentação e galeria", Icone: FolderKanban, Componente: AdminPaginaProjetos },
+  { id: "configuracoes", titulo: "Configurações", descricao: "Home, contatos e navegação", Icone: Settings, Componente: AdminConfiguracoes },
   { id: "integrantes", titulo: "Integrantes", descricao: "Perfis e biografias", Icone: Users, Componente: AdminIntegrantes },
   { id: "espetaculos", titulo: "Espetáculos", descricao: "Peças, seções e galerias", Icone: Clapperboard, Componente: AdminEspetaculos },
   { id: "premios", titulo: "Prêmios", descricao: "Reconhecimentos e registros", Icone: Award, Componente: AdminPremios },
+  { id: "editorialTransversal", titulo: "Publicação e SEO", descricao: "Visibilidade, ordem e metadados", Icone: SlidersHorizontal, Componente: AdminEditorialTransversal },
 ];
 
 export default function AdminClient({ editorialAtivo }: { editorialAtivo: boolean }) {
   const [areaAtiva, setAreaAtiva] = useState<AreaAdministrativa>("noticias");
   const areasVisiveis = editorialAtivo
-    ? areasAdministrativas
-    : areasAdministrativas.filter((area) => !["integrantes", "espetaculos", "premios"].includes(area.id));
+    ? areasAdministrativas.map((area) => area.id === "sobre" ? { ...area, Componente: AdminHistoria, descricao: "História, marcos e publicação", Icone: History } : area)
+    : areasAdministrativas.filter((area) => !["integrantes", "espetaculos", "premios", "paginaProjetos", "configuracoes", "editorialTransversal"].includes(area.id));
   const areaSelecionada = areasVisiveis.find((area) => area.id === areaAtiva) ?? areasVisiveis[0];
   const ConteudoAtivo = areaSelecionada.Componente;
 

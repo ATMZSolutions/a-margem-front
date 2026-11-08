@@ -1,18 +1,21 @@
 import BackBtn from "@/components/BackBtn";
 import Premio from "@/components/Premio";
 import { listPublishedPremios } from "@/lib/publicContent";
+import { isPublicSitePage } from "@/lib/siteMetadata";
+import { notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
 export default async function PremiosPage() {
+  if (!await isPublicSitePage("/premios")) notFound();
   const premios = await listPublishedPremios();
 
   return (
     <section
-      className="relative bg-[#412551] min-h-screen flex flex-col items-center text-white px-4 pb-10 bg-cover bg-center"
-      style={{ backgroundImage: "url('/padrao2.webp')" }}
+      className="relative bg-site-primary min-h-screen flex flex-col items-center text-white px-4 pb-10 bg-cover bg-center"
+      style={{ backgroundImage: "var(--site-background-image)" }}
     >
-      <BackBtn label="Prêmios" />
+      <BackBtn label="Prêmios" textKey="tituloPremios" />
       {premios.length === 0 ? (
         <p className="mt-40 text-center">Nenhum prêmio publicado no momento.</p>
       ) : (

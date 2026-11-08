@@ -1,11 +1,9 @@
 import { NextResponse } from "next/server";
-import prisma from "../../../lib/prisma";
+import { listPublicAgenda } from "@/lib/publicContent";
 
 export async function GET() {
   try {
-    const items = await prisma.agenda.findMany({ 
-      orderBy: { data: 'asc' } 
-    });
+    const items = await listPublicAgenda();
     return NextResponse.json(items);
   } catch (error) {
     console.error('Erro ao buscar agenda:', error);

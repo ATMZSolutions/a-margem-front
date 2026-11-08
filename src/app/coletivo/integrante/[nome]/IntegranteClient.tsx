@@ -4,8 +4,10 @@ import BackBtn from "@/components/BackBtn";
 import IntegranteCard from "@/components/IntegranteCard";
 import { useState } from "react";
 import type { IntegrantePublico } from "@/lib/publicContent";
+import { useSiteTexts } from "@/components/SiteTextProvider";
 
 export default function IntegranteClient({ integrante }: { integrante: IntegrantePublico }) {
+  const textos = useSiteTexts();
   const [expanded, setExpanded] = useState(false);
 
   const MAX_LENGTH = 450; // limite antes de cortar texto
@@ -19,8 +21,8 @@ export default function IntegranteClient({ integrante }: { integrante: Integrant
     <section
       className="min-h-screen flex flex-col items-center justify-center text-white px-4 py-10 bg-cover bg-center"
       style={{
-        backgroundColor: "#412551",
-        backgroundImage: "url('/padrao2.webp')",
+        backgroundColor: "var(--site-primary)",
+        backgroundImage: "var(--site-background-image)",
       }}
     >
       <BackBtn label="Integrante" />
@@ -36,7 +38,7 @@ export default function IntegranteClient({ integrante }: { integrante: Integrant
         <div className="flex flex-col md:ml-10 items-center md:items-start max-w-4xl">
           {/* Ficha Técnica */}
           <div className="w-full max-w-2xl mt-8 md:mt-0 px-4">
-            <h2 className="text-2xl font-semibold mb-4 border-l-4 border-[#F38901] pl-2">
+            <h2 className="text-2xl font-semibold mb-4 border-l-4 border-site-accent pl-2">
               Ficha Técnica
             </h2>
             <p>{integrante.fichaTecnica}</p>
@@ -44,7 +46,7 @@ export default function IntegranteClient({ integrante }: { integrante: Integrant
 
           {/* Biografia */}
           <div className="w-full max-w-2xl mt-6 p-4">
-            <h2 className="text-2xl font-semibold mb-4 border-l-4 border-[#F38901] pl-2">
+            <h2 className="text-2xl font-semibold mb-4 border-l-4 border-site-accent pl-2">
               Biografia
             </h2>
             <p className="whitespace-pre-line text-justify">{shortBio}</p>
@@ -53,9 +55,9 @@ export default function IntegranteClient({ integrante }: { integrante: Integrant
             {integrante.biografia.length > MAX_LENGTH && (
               <button
           onClick={() => setExpanded((prev) => !prev)}
-          className="mt-3 text-[#F38901] hover:underline transition"
+          className="mt-3 text-site-accent hover:underline transition"
               >
-          {expanded ? "Ler menos" : "Ler mais"}
+          {expanded ? textos?.lerMenos ?? "Ler menos" : textos?.lerMais ?? "Ler mais"}
               </button>
             )}
           </div>

@@ -6,6 +6,8 @@ import { YearStepper } from "@/components/YearStepper";
 import BackBtn from "@/components/BackBtn";
 import CarouselWithInfo from "@/components/CarouselWithInfo";
 import { projectImgs } from "@/data/projetos";
+import type { ProjectPageSettings, ProjectPhoto } from "@/lib/siteContent";
+import { useSiteTexts } from "@/components/SiteTextProvider";
 
 interface TimelineItem {
   data: string;
@@ -13,12 +15,17 @@ interface TimelineItem {
   id: number;
 }
 
-export default function ProjetosClient({ initialData }: { initialData: TimelineItem[] }) {
+export default function ProjetosClient({ initialData, pagina, fotos }: { initialData: TimelineItem[]; pagina: ProjectPageSettings; fotos: ProjectPhoto[] }) {
+  const textos = useSiteTexts();
   const currentYear = new Date().getFullYear();
   const newestProjectYear = initialData.reduce(
     (year, item) => Math.max(year, new Date(item.data).getFullYear()),
     0,
   ) || currentYear;
+  const oldestProjectYear = initialData.reduce(
+    (year, item) => Math.min(year, new Date(item.data).getFullYear()),
+    newestProjectYear,
+  );
   const [filteredItems, setFilteredItems] = useState<TimelineItem[]>(() =>
     initialData.filter((item) => new Date(item.data).getFullYear() === newestProjectYear),
   );
@@ -34,6 +41,12 @@ export default function ProjetosClient({ initialData }: { initialData: TimelineI
   const onCloseDrawer = () => setSelectedItem(null);
 
   const initialYear = newestProjectYear;
+  const imagesInfo = (fotos.length ? fotos.map((foto) => ({
+    descricao: foto.legenda,
+    data: foto.dataEditorial ?? "",
+    img: foto.url,
+    textoAlternativo: foto.textoAlternativo,
+  })) : projectImgs).slice().sort((a, b) => (a.data ? new Date(a.data).getTime() : 0) - (b.data ? new Date(b.data).getTime() : 0));
 
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);
@@ -61,7 +74,7 @@ export default function ProjetosClient({ initialData }: { initialData: TimelineI
 
   const timelineItems = filteredItems.map((item, index) => ({
     key: index,
-    color: "#FECA55",
+    color: "var(--site-accent)",
     label: (
       <span className="text-white">
         {new Intl.DateTimeFormat("pt-BR", {
@@ -91,9 +104,9 @@ export default function ProjetosClient({ initialData }: { initialData: TimelineI
         {isTruncated[index] && (
           <button
             onClick={() => showDrawer(item)}
-            className="text-[#00000095] cursor-pointer w-full bg-[#FECA55] rounded-full font-semibold mt-auto"
+            className="text-[#00000095] cursor-pointer w-full bg-site-accent rounded-full font-semibold mt-auto"
           >
-            Mostrar mais
+            {textos?.mostrarMais ?? "Mostrar mais"}
           </button>
         )}
       </div>
@@ -102,39 +115,36 @@ export default function ProjetosClient({ initialData }: { initialData: TimelineI
 
   return (
     <section
-      className="relative bg-[#2F4158] min-h-screen flex flex-col items-center text-white px-4 pb-10 bg-cover bg-center"
+      className="relative bg-site-primary min-h-screen flex flex-col items-center text-white px-4 pb-10 bg-cover bg-center"
       style={{
-        backgroundImage: "url('/padrao2.webp')",
+        backgroundImage: `url('${pagina.fundo.url ?? "/padrao2.webp"}')`,
       }}
     >
-      <BackBtn label="Projetos" />
+      <BackBtn label="Projetos" textKey="tituloProjetos" />
       <div className="max-w-2xl mt-40 mx-2">
         <section className="flex flex-col gap-8 max-w-xl">
           <Typography.Paragraph
             style={{ color: "white", textAlign: "justify" }}
           >
-            O Coletivo À Margem também desenvolve ações educacionais. Seus
-            integrantes, professores de teatro, têm como foco a difusão da
-            metodologia do teatro hip-hop em diferentes contextos, como escolas,
-            ONGs e projetos culturais.
+            {pagina.introducao}
           </Typography.Paragraph>
 
           <div
             className="w-full aspect-[4/3] sm:max-w-xl mb-16"
             style={{ height: "clamp(200px, calc(38vw + 70px), 350px)" }}
           >
-            <CarouselWithInfo imagesInfo={[...projectImgs].sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime())} />
+            <CarouselWithInfo imagesInfo={imagesInfo} />
           </div>
 
           <Typography.Title
-            className="font-sedgwick !text-2xl md:!text-3xl border-l-4 border-[#F38901] pl-2"
+            className="font-sedgwick !text-2xl md:!text-3xl border-l-4 border-site-accent pl-2"
             style={{
               marginTop: "20px",
               color: "#ffffff",
               fontWeight: "normal",
             }}
           >
-            Conheça a trajetória
+            {pagina.tituloTrajetoria}
           </Typography.Title>
         </section>
 
@@ -145,6 +155,7 @@ export default function ProjetosClient({ initialData }: { initialData: TimelineI
         ) : (
           <>
             <YearStepper
+              minYear={oldestProjectYear}
               maxYear={lastProjectYear}
               initialYear={initialYear}
               onYearChange={(year) => setSelectedYear(year)}
@@ -156,8 +167,8 @@ export default function ProjetosClient({ initialData }: { initialData: TimelineI
                   theme={{
                     components: {
                       Timeline: {
-                        dotBg: "#FECA55",
-                        tailColor: "#FECA55",
+                        dotBg: "var(--site-accent)",
+                        tailColor: "var(--site-accent)",
                         itemPaddingBottom: 40,
                       },
                     },
@@ -170,7 +181,7 @@ export default function ProjetosClient({ initialData }: { initialData: TimelineI
                   open={selectedItem !== null}
                   onClose={onCloseDrawer}
                   title="Detalhes"
-                  bgColor="#FECA55"
+                  bgColor="var(--site-accent)"
                   contents={selectedItem ? [selectedItem.descricao] : []}
                 />
               </div>

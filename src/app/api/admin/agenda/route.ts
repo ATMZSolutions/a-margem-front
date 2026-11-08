@@ -12,7 +12,7 @@ function parseDate(value: unknown): Date | null {
 export async function GET(request: Request) {
   const denied = await authorizeAdminRequest(request);
   if (denied) return denied;
-  const items = await prisma.agenda.findMany({ orderBy: { data: "asc" } });
+  const items = await prisma.agenda.findMany({ orderBy: { data: "asc" }, select: { id: true, titulo: true, data: true, local: true, createdAt: true, cidade: true } });
   return NextResponse.json(items);
 }
 
@@ -29,7 +29,7 @@ export async function POST(request: Request) {
     data: date,
     local: body.local,
     cidade: body.cidade,
-  } });
+  }, select: { id: true } });
   return NextResponse.json({ id: created.id }, { status: 201 });
 }
 
@@ -57,7 +57,7 @@ export async function PUT(request: Request) {
     data.cidade = body.cidade;
   }
   if (!Object.keys(data).length) return NextResponse.json({ error: "No valid fields to update" }, { status: 400 });
-  const updated = await prisma.agenda.update({ where: { id: body.id }, data });
+  const updated = await prisma.agenda.update({ where: { id: body.id }, data, select: { id: true } });
   return NextResponse.json({ id: updated.id });
 }
 

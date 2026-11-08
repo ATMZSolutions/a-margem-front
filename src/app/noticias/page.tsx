@@ -1,20 +1,15 @@
 import type { Metadata } from "next";
-import prisma from "@/lib/prisma";
+import { notFound } from "next/navigation";
+import { listPublicNews } from "@/lib/publicContent";
+import { getPageMetadata, isPublicSitePage } from "@/lib/siteMetadata";
 import NoticiasClient from "./NoticiasClient";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Notícias",
-  description: "Novidades, publicações e notícias do Coletivo À Margem, grupo de teatro hip-hop de Pernambuco.",
-  alternates: { canonical: "/noticias" },
-  openGraph: { title: "Notícias | Coletivo À Margem", description: "Acompanhe as novidades do coletivo.", url: "https://www.amargem.com.br/noticias" },
-};
+export function generateMetadata(): Promise<Metadata> { return getPageMetadata("/noticias", "Notícias", "Novidades, publicações e notícias do Coletivo À Margem, grupo de teatro hip-hop de Pernambuco."); }
 
 export default async function NoticiasPage() {
-  const items = await prisma.noticia.findMany({
-    orderBy: { createdAt: "desc" },
-    select: { id: true, titulo: true, conteudo: true, link: true },
-  });
+  if (!await isPublicSitePage("/noticias")) notFound();
+  const items = await listPublicNews();
   return <NoticiasClient items={items} />;
 }

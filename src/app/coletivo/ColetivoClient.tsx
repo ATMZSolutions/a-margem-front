@@ -21,9 +21,9 @@ export default function ColetivoClient({ integrantes }: { integrantes: Integrant
   return (
     <section
       className="relative min-h-screen flex flex-col items-center text-white px-4 pb-10 bg-cover bg-center"
-      style={{ backgroundColor: "#412551", backgroundImage: "url('/padrao2.webp')" }}
+      style={{ backgroundColor: "var(--site-primary)", backgroundImage: "var(--site-background-image)" }}
     >
-      <BackBtn label="Integrantes" />
+      <BackBtn label="Integrantes" textKey="tituloColetivo" />
       {integrantes.length === 0 ? (
         <p className="mt-40 text-center">Nenhum integrante publicado no momento.</p>
       ) : (

@@ -3,6 +3,25 @@
 
 @import "tailwindcss";
 
+@theme inline {
+  --color-site-background: var(--site-background);
+  --color-site-foreground: var(--site-foreground);
+  --color-site-accent: var(--site-accent);
+  --color-site-primary: var(--site-primary);
+}
+
+body {
+  background-color: var(--site-background, #000000);
+  background-image: var(--site-background-image, none);
+  background-attachment: fixed;
+  background-size: cover;
+  color: var(--site-foreground, #ffffff);
+}
+
+body[data-site-font="sedgwick"] { font-family: "Sedgwick Ave Display", cursive; }
+body[data-site-font="zen-dots"] { font-family: "Zen Dots", sans-serif; }
+body[data-site-font="sistema"] { font-family: ui-sans-serif, system-ui, sans-serif; }
+
 .font-sedgwick {
   font-family: 'Sedgwick Ave Display', cursive;
 }

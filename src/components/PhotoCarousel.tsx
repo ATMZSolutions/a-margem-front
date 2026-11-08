@@ -42,7 +42,7 @@ export default function PhotoCarousel({ images = [], imageAlts = [], topButton, 
         <div className="absolute top-4 left-4 z-10">
           <Link
             href={topButton.href || "#"}
-            className="bg-[#F38901]/70 text-black font-semibold text-sm px-2 py-1 rounded hover:bg-opacity-70 transition"
+            className="bg-site-accent/70 text-black font-semibold text-sm px-2 py-1 rounded hover:bg-opacity-70 transition"
           >
             {topButton.label}
           </Link>
@@ -59,12 +59,13 @@ export default function PhotoCarousel({ images = [], imageAlts = [], topButton, 
       </button>
 
       {/* Imagem */}
-      <div className="relative overflow-hidden w-full h-full border-b-8 border border-[#F38901]/70">
+      <div className="relative overflow-hidden w-full h-full border-b-8 border border-site-accent/70">
         <Image
           src={images[currentIndex]}
           alt={imageAlts[currentIndex] || `Fotografia do Coletivo À Margem, slide ${currentIndex + 1}`}
           fill
           sizes="(max-width: 640px) 100vw, 60vw"
+          unoptimized
           className="object-cover"
         />
       </div>

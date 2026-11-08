@@ -2,13 +2,13 @@ import { ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight } from "lucide-r
 import { useState } from "react";
 
 interface YearStepperProps {
+  minYear: number;
   maxYear: number;
   initialYear: number;
   onYearChange: (year: number) => void;
 }
 
-export function YearStepper({ onYearChange, maxYear, initialYear }: YearStepperProps) {
-  const minYear = 2023 // Ano mínimo é 2023
+export function YearStepper({ onYearChange, minYear, maxYear, initialYear }: YearStepperProps) {
   const [currentYear, setCurrentYear] = useState(initialYear);
 
   const handleYearChange = (newYear: number) => {
@@ -35,7 +35,7 @@ export function YearStepper({ onYearChange, maxYear, initialYear }: YearStepperP
       <h1
         className="text-3xl md:text-5xl font-sedgwick text-white"
         style={{
-          color: '#FECA55',
+          color: 'var(--site-accent)',
           fontWeight: 'normal'
         }}>
         {currentYear}

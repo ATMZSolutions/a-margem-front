@@ -1,17 +1,15 @@
 import type { Metadata } from "next";
-import prisma from "@/lib/prisma";
+import { notFound } from "next/navigation";
+import { listPublicAgenda } from "@/lib/publicContent";
+import { getPageMetadata, isPublicSitePage } from "@/lib/siteMetadata";
 import AgendaClient from "./AgendaClient";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Agenda cultural no Recife",
-  description: "Confira apresentações, encontros e atividades culturais do Coletivo À Margem.",
-  alternates: { canonical: "/agenda" },
-  openGraph: { title: "Agenda | Coletivo À Margem", description: "Próximos eventos e atividades culturais.", url: "https://www.amargem.com.br/agenda" },
-};
+export function generateMetadata(): Promise<Metadata> { return getPageMetadata("/agenda", "Agenda cultural no Recife", "Confira apresentações, encontros e atividades culturais do Coletivo À Margem."); }
 
 export default async function AgendaPage() {
-  const events = await prisma.agenda.findMany({ orderBy: { data: "asc" } });
+  if (!await isPublicSitePage("/agenda")) notFound();
+  const events = await listPublicAgenda();
   return <AgendaClient initialEvents={events.map((event) => ({ ...event, data: event.data.toISOString(), createdAt: event.createdAt.toISOString() }))} />;
 }

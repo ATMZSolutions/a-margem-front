@@ -14,6 +14,7 @@ import {
 import { ptBR } from "date-fns/locale";
 import { ChevronLeft, ChevronRight, MapPin } from "lucide-react";
 import BackBtn from "@/components/BackBtn";
+import { useSiteTexts } from "@/components/SiteTextProvider";
 
 interface EventItem {
   id: number;
@@ -31,10 +32,11 @@ interface AgendaPageProps {
 }
 
 export default function AgendaPage({
-  bgColor = "#5C1E0F",
-  bgImage = "/padrao2.webp",
+  bgColor = "var(--site-primary)",
+  bgImage = "var(--site-background-image)",
   initialEvents,
 }: AgendaPageProps) {
+  const textos = useSiteTexts();
   const [currentDate, setCurrentDate] = useState(() => new Date());
   const [events] = useState<EventItem[]>(initialEvents);
   const loading = false;
@@ -62,40 +64,40 @@ export default function AgendaPage({
       {bgImage && (
         <div
           className="absolute inset-0 bg-cover bg-center opacity-50 pointer-events-none"
-          style={{ backgroundImage: `url(${bgImage})` }}
+          style={{ backgroundImage: bgImage.startsWith("var(") ? bgImage : `url(${bgImage})` }}
         />
       )}
 
-      <BackBtn label="Agenda" />
+      <BackBtn label="Agenda" textKey="tituloAgenda" />
 
       <div className="relative w-full md:w-[35%] text-white font-sans mx-4 z-10 mt-16 flex flex-col gap-12">
         {/* Calendário */}
-        <div className="bg-[#F38901] rounded-lg p-4 shadow-lg">
+        <div className="bg-site-accent rounded-lg p-4 shadow-lg">
           <div className="flex justify-between items-center mb-3">
             <button
               type="button"
               onClick={() => setCurrentDate(subMonths(currentDate, 1))}
             >
-              <ChevronLeft className="text-[#5C1E0F]" />
+              <ChevronLeft className="text-site-primary" />
             </button>
-            <span className="uppercase font-bold text-lg text-[#5C1E0F]">
+            <span className="uppercase font-bold text-lg text-site-primary">
               {format(currentDate, "MMMM yyyy", { locale: ptBR })}
             </span>
             <button
               type="button"
               onClick={() => setCurrentDate(addMonths(currentDate, 1))}
             >
-              <ChevronRight className="text-[#5C1E0F]" />
+              <ChevronRight className="text-site-primary" />
             </button>
           </div>
 
-          <div className="grid grid-cols-7 text-center text-xs font-semibold bg-[#5C1E0F] px-4 text-white py-1 rounded">
+          <div className="grid grid-cols-7 text-center text-xs font-semibold bg-site-primary px-4 text-white py-1 rounded">
             {["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SAB"].map((d) => (
               <div key={d}>{d}</div>
             ))}
           </div>
 
-          <div className="grid grid-cols-7 gap-2 text-center mt-2 relative border-2 border-[#5C1E0F] p-4">
+          <div className="grid grid-cols-7 gap-2 text-center mt-2 relative border-2 border-site-primary p-4">
             {(() => {
               const firstDayOfWeek = start.getDay();
               const blanksBefore = Array(firstDayOfWeek).fill(null);
@@ -120,11 +122,11 @@ export default function AgendaPage({
                     className={`relative flex items-center justify-center h-7 w-7 rounded-full
                       ${
                         isToday(day)
-                          ? "bg-[#5C1E0F] text-white font-bold"
-                          : "text-[#5C1E0F]"
+                          ? "bg-site-primary text-white font-bold"
+                          : "text-site-primary"
                       }
                       ${!isSameMonth(day, currentDate) ? "opacity-30" : ""}
-                      ${hasEvent ? "border-2 border-[#5C1E0F]" : ""}`}
+                      ${hasEvent ? "border-2 border-site-primary" : ""}`}
                   >
                     <span>{day.getDate()}</span>
                   </div>
@@ -151,7 +153,7 @@ export default function AgendaPage({
                 }, {})
             ).map(([location, locationEvents]) => (
               <div key={location} className="space-y-4">
-                <span className="bg-[#F38901] uppercase text-[#681A01] font-bold px-3 py-1 rounded flex items-center gap-2">
+                <span className="bg-site-accent uppercase text-site-primary font-bold px-3 py-1 rounded flex items-center gap-2">
                   <MapPin aria-hidden="true" className="mr-2 inline-block" size={16} />
                   {location}
                 </span>
@@ -197,7 +199,7 @@ export default function AgendaPage({
             ))
           ) : (
             <div className="text-center text-white/70 py-8">
-              Nenhum evento encontrado.
+              {textos?.agendaVazia ?? "Nenhum evento encontrado."}
             </div>
           )}
         </div>

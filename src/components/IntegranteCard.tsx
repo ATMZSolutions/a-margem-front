@@ -21,7 +21,7 @@ export default function IntegranteCard({ nome, image, onClick }: IntegranteCardP
         sizes="(max-width: 640px) 50vw, 33vw"
         className="object-cover"
       />
-      <div className="absolute bottom-0 w-full bg-[#F38901] text-black text-center font-semibold">
+      <div className="absolute bottom-0 w-full bg-site-accent text-black text-center font-semibold">
         {nome}
       </div>
     </div>

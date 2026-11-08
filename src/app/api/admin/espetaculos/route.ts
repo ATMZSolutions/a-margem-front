@@ -44,7 +44,7 @@ function parseFotos(value: unknown): FotoInput[] | null {
   for (const item of value) {
     if (!item || typeof item !== "object" || Array.isArray(item)) return null;
     const foto = item as Record<string, unknown>;
-    if (typeof foto.midiaId !== "string" || !foto.midiaId || foto.midiaId.length > 64
+    if (typeof foto.midiaId !== "string" || !foto.midiaId || foto.midiaId.length > 128
       || !nullableText(foto.textoAlternativo ?? "", 300)
       || !nullableText(foto.legenda ?? "", 2000)
       || !nullableText(foto.credito ?? null, 300)
@@ -70,7 +70,7 @@ function parseEspetaculo(body: Record<string, unknown>): EspetaculoInput | null 
     || !nullableText(body.estreia ?? null, 50) || !nullableText(body.localEstreia ?? null, 500)
     || !nullableText(body.corFundo ?? null, 20)
     || (typeof body.corFundo === "string" && !/^#[0-9a-fA-F]{6}$/.test(body.corFundo))
-    || !(body.capaId === null || body.capaId === undefined || body.capaId === "" || (typeof body.capaId === "string" && body.capaId.length <= 64))
+    || !(body.capaId === null || body.capaId === undefined || body.capaId === "" || (typeof body.capaId === "string" && body.capaId.length <= 128))
     || !validarOrdem(ordem) || typeof estado !== "string" || !ESTADOS.has(estado) || !secoes || !fotosGaleria) return null;
 
   return {

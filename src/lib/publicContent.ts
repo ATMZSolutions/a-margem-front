@@ -15,6 +15,18 @@ export interface BookListing {
   createdAt: Date;
 }
 
+export interface AgendaListing {
+  id: number; titulo: string; data: Date; local: string; createdAt: Date; cidade: string;
+}
+
+export interface NoticiaListing {
+  id: number; titulo: string; conteudo: string; link: string;
+}
+
+export interface ProjetoListing {
+  id: number; data: Date; descricao: string;
+}
+
 export interface SobreListing {
   ano: number;
   descricao: string;
@@ -37,6 +49,7 @@ export interface IntegrantePublico {
   fichaTecnica: string;
   biografia: string;
   ordem: number;
+  seo?: unknown;
 }
 
 export interface SecaoEspetaculoPublica {
@@ -66,6 +79,7 @@ export interface EspetaculoPublico {
   ordem: number;
   imgs: FotoEspetaculoPublica[];
   sections: SecaoEspetaculoPublica[];
+  seo?: unknown;
 }
 
 export interface PremioPublico {
@@ -77,6 +91,7 @@ export interface PremioPublico {
   description: string;
   img: string | null;
   ordem: number;
+  seo?: unknown;
 }
 
 type MidiaComUrl = { bucket: string; chave: string; origem: string | null };
@@ -165,6 +180,7 @@ export async function listPublishedIntegrantes(): Promise<IntegrantePublico[]> {
     fichaTecnica: item.fichaTecnica,
     biografia: item.biografia,
     ordem: item.ordem,
+    seo: item.seo,
   }));
 }
 
@@ -186,6 +202,7 @@ export async function getPublishedIntegrante(slug: string): Promise<IntegrantePu
     fichaTecnica: item.fichaTecnica,
     biografia: item.biografia,
     ordem: item.ordem,
+    seo: item.seo,
   };
 }
 
@@ -213,6 +230,7 @@ function projetarEspetaculo(item: Awaited<ReturnType<typeof prisma.espetaculo.fi
       textoAlternativo: foto.textoAlternativo,
     })),
     sections: item.secoes.map((secao) => ({ id: secao.id, titulo: secao.titulo, texto: secao.texto, ordem: secao.ordem })),
+    seo: item.seo,
   };
 }
 
@@ -242,7 +260,7 @@ export async function getPublishedEspetaculo(slug: string): Promise<EspetaculoPu
 }
 
 function projetarPremio(item: {
-  id: string; slug: string; titulo: string; ano: string; evento: string; descricao: string; ordem: number;
+  id: string; slug: string; titulo: string; ano: string; evento: string; descricao: string; ordem: number; seo: unknown;
   foto: { bucket: string; chave: string; origem: string | null } | null;
 }): PremioPublico {
   return {
@@ -254,6 +272,7 @@ function projetarPremio(item: {
     description: item.descricao,
     img: urlPublicaDaMidia(item.foto),
     ordem: item.ordem,
+    seo: item.seo,
   };
 }
 
@@ -282,6 +301,15 @@ export async function getPublishedPremio(slug: string, year: string): Promise<Pr
 }
 
 export function listBookListings() {
+  if (supabaseEditorialAtivo()) {
+    return prisma.$queryRaw<BookListing[]>`
+      SELECT "id", "titulo", "autor", "descricao",
+        ("imagem" IS NOT NULL) AS "hasImage", "createdAt"
+      FROM "Livro"
+      WHERE "estado" = 'PUBLICADO'
+      ORDER BY "ordem" ASC, "createdAt" DESC, "id" DESC
+    `;
+  }
   return prisma.$queryRaw<BookListing[]>`
     SELECT "id", "titulo", "autor", "descricao",
       ("imagem" IS NOT NULL) AS "hasImage", "createdAt"
@@ -290,7 +318,29 @@ export function listBookListings() {
   `;
 }
 
+export function listAdminBookListings() {
+  return prisma.$queryRaw<BookListing[]>`
+    SELECT "id", "titulo", "autor", "descricao",
+      ("imagem" IS NOT NULL) AS "hasImage", "createdAt"
+    FROM "Livro"
+    ORDER BY "createdAt" DESC, "id" DESC
+  `;
+}
+
 export function listSobreListings(order: "asc" | "desc" = "desc") {
+  if (supabaseEditorialAtivo()) {
+    return order === "asc"
+      ? prisma.$queryRaw<SobreListing[]>`
+          SELECT "ano", "descricao", ("imagem" IS NOT NULL) AS "hasImage"
+          FROM "Sobre" WHERE "estado" = 'PUBLICADO'
+          ORDER BY "ordem" ASC, "ano" ASC
+        `
+      : prisma.$queryRaw<SobreListing[]>`
+          SELECT "ano", "descricao", ("imagem" IS NOT NULL) AS "hasImage"
+          FROM "Sobre" WHERE "estado" = 'PUBLICADO'
+          ORDER BY "ordem" ASC, "ano" DESC
+        `;
+  }
   if (order === "asc") {
     return prisma.$queryRaw<SobreListing[]>`
       SELECT "ano", "descricao", ("imagem" IS NOT NULL) AS "hasImage"
@@ -303,4 +353,37 @@ export function listSobreListings(order: "asc" | "desc" = "desc") {
     FROM "Sobre"
     ORDER BY "ano" DESC
   `;
+}
+
+export function listAdminSobreListings(order: "asc" | "desc" = "desc") {
+  return order === "asc"
+    ? prisma.$queryRaw<SobreListing[]>`
+        SELECT "ano", "descricao", ("imagem" IS NOT NULL) AS "hasImage"
+        FROM "Sobre" ORDER BY "ano" ASC
+      `
+    : prisma.$queryRaw<SobreListing[]>`
+        SELECT "ano", "descricao", ("imagem" IS NOT NULL) AS "hasImage"
+        FROM "Sobre" ORDER BY "ano" DESC
+      `;
+}
+
+export function listPublicAgenda(): Promise<AgendaListing[]> {
+  const select = { id: true, titulo: true, data: true, local: true, createdAt: true, cidade: true } as const;
+  return supabaseEditorialAtivo()
+    ? prisma.agenda.findMany({ where: { estado: PUBLICADO }, orderBy: [{ ordem: "asc" }, { data: "asc" }, { id: "asc" }], select })
+    : prisma.agenda.findMany({ orderBy: [{ data: "asc" }, { id: "asc" }], select });
+}
+
+export function listPublicNews(): Promise<NoticiaListing[]> {
+  const select = { id: true, titulo: true, conteudo: true, link: true } as const;
+  return supabaseEditorialAtivo()
+    ? prisma.noticia.findMany({ where: { estado: PUBLICADO }, orderBy: [{ ordem: "asc" }, { createdAt: "desc" }, { id: "desc" }], select })
+    : prisma.noticia.findMany({ orderBy: [{ createdAt: "desc" }, { id: "desc" }], select });
+}
+
+export function listPublicProjects(): Promise<ProjetoListing[]> {
+  const select = { id: true, data: true, descricao: true } as const;
+  return supabaseEditorialAtivo()
+    ? prisma.projeto.findMany({ where: { estado: PUBLICADO }, orderBy: [{ ordem: "asc" }, { data: "desc" }, { id: "desc" }], select })
+    : prisma.projeto.findMany({ orderBy: [{ data: "desc" }, { id: "desc" }], select });
 }

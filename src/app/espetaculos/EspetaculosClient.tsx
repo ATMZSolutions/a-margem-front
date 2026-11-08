@@ -21,10 +21,10 @@ export default function EspetaculosClient({ espetaculos }: { espetaculos: Espeta
 
   return (
     <section
-      className="relative bg-[#F38901] min-h-screen flex flex-col items-center text-white px-4 pb-10 bg-cover bg-center"
-      style={{ backgroundImage: "url('/padrao2.webp')" }}
+      className="relative bg-site-primary min-h-screen flex flex-col items-center text-white px-4 pb-10 bg-cover bg-center"
+      style={{ backgroundImage: "var(--site-background-image)" }}
     >
-      <BackBtn label="Voltar" color="text-black" />
+      <BackBtn label="Espetáculos" textKey="tituloEspetaculos" color="text-black" />
       {ordenados.length === 0 ? (
         <p className="mt-40 text-center text-black">Nenhum espetáculo publicado no momento.</p>
       ) : (

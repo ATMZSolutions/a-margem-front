@@ -1,23 +1,21 @@
 import type { Metadata } from "next";
-import { listSobreListings } from "@/lib/publicContent";
+import { notFound } from "next/navigation";
+import { listPublicHistory } from "@/lib/siteContent";
+import { getPageMetadata, isPublicSitePage } from "@/lib/siteMetadata";
 import SobreClient from "./SobreClient";
 import type { Sobre } from "./SobreClient";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Sobre o Coletivo À Margem",
-  description: "Conheça a história, as ações e a trajetória do Coletivo À Margem, no Recife.",
-  alternates: { canonical: "/sobre" },
-  openGraph: { title: "Sobre | Coletivo À Margem", description: "História e trajetória do coletivo.", url: "https://www.amargem.com.br/sobre" },
-};
+export function generateMetadata(): Promise<Metadata> { return getPageMetadata("/sobre", "Sobre o Coletivo À Margem", "Conheça a história, as ações e a trajetória do Coletivo À Margem, no Recife."); }
 
 export default async function SobrePage() {
-  const items = await listSobreListings("asc");
+  if (!await isPublicSitePage("/sobre")) notFound();
+  const items = await listPublicHistory();
   const initialData: Sobre[] = items.map((item) => ({
     ano: item.ano,
     descricao: item.descricao,
-    imageUrl: item.hasImage ? `/api/image/sobre/${item.ano}` : null,
+    imageUrl: item.imageUrl,
   }));
   return <SobreClient initialData={initialData} />;
 }

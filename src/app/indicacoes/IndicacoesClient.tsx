@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import BackBtn from "@/components/BackBtn";
 import AppDrawer from "@/components/AppDrawer";
+import { useSiteTexts } from "@/components/SiteTextProvider";
 
 interface LivroItem {
   id: number;
@@ -22,10 +23,11 @@ interface LivrosPageProps {
 }
 
 export default function IndicacoesPage({
-  bgColor = "#5C1E0F",
-  bgImage = "/padrao2.webp",
+  bgColor = "var(--site-primary)",
+  bgImage = "var(--site-background-image)",
   initialBooks,
 }: LivrosPageProps) {
+  const textos = useSiteTexts();
   const [livros] = useState<LivroItem[]>(initialBooks);
   const loading = false;
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -46,7 +48,7 @@ export default function IndicacoesPage({
     return (
       <div
         className="min-h-screen w-full flex justify-center items-center"
-        style={{ backgroundColor: bgColor, backgroundImage: `url(${bgImage})` }}
+        style={{ backgroundColor: bgColor, backgroundImage: bgImage.startsWith("var(") ? bgImage : `url(${bgImage})` }}
       >
         <div className="text-white">Carregando livros...</div>
       </div>
@@ -61,20 +63,20 @@ export default function IndicacoesPage({
       {bgImage && (
         <div
           className="absolute inset-0 bg-cover bg-center opacity-50 pointer-events-none"
-          style={{ backgroundImage: `url(${bgImage})` }}
+          style={{ backgroundImage: bgImage.startsWith("var(") ? bgImage : `url(${bgImage})` }}
         />
       )}
-      <BackBtn label="Livros" />
+      <BackBtn label="Livros" textKey="tituloIndicacoes" />
 
       <div className="relative w-full max-w-6xl text-white font-sans mx-4 z-10 mt-16">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-[#F38901] mb-2">Nossa Biblioteca</h1>
+          <h1 className="text-3xl font-bold text-site-accent mb-2">{textos?.tituloIndicacoes ?? "Nossa Biblioteca"}</h1>
           <p className="text-lg text-white/80">Livros Recomendados</p>
         </div>
 
         {livros.length === 0 ? (
           <div className="text-center text-white/70 py-16">
-            <p className="text-xl">Nenhum livro disponível no momento.</p>
+            <p className="text-xl">{textos?.livrosVazios ?? "Nenhum livro disponível no momento."}</p>
             <p className="text-sm mt-2">Em breve teremos novos títulos para você!</p>
           </div>
         ) : (
@@ -82,7 +84,7 @@ export default function IndicacoesPage({
             {livros.map((livro) => (
               <div
                 key={livro.id}
-                className="bg-black/20 backdrop-blur-sm rounded-t-lg border-b-3 border-[#F38901] hover:bg-black/30 transition-all duration-300 flex flex-col items-center p-4 sm:p-6 max-w-xs mx-auto"
+                className="bg-black/20 backdrop-blur-sm rounded-t-lg border-b-3 border-site-accent hover:bg-black/30 transition-all duration-300 flex flex-col items-center p-4 sm:p-6 max-w-xs mx-auto"
               >
                 <div className="mb-4 flex justify-center w-full">
                   <Image
@@ -95,7 +97,7 @@ export default function IndicacoesPage({
                   />
                 </div>
                 <div className="text-end flex flex-col flex-1 w-full">
-                  <h3 className="font-bold text-lg sm:text-xl text-[#F38901] mb-1 sm:mb-2">
+                  <h3 className="font-bold text-lg sm:text-xl text-site-accent mb-1 sm:mb-2">
                     {livro.titulo}
                   </h3>
                   <p className="text-white/90 font-medium text-xs sm:text-sm text-end mb-4">
@@ -106,10 +108,10 @@ export default function IndicacoesPage({
                   </p>
                   <div className="mt-auto pt-4 flex flex-col items-center w-full">
                     <button
-                      className="text-sm w-full text-[#F38901] rounded-2xl border border-[#F38901] px-3 py-1 sm:px-4 sm:py-1"
+                      className="text-sm w-full text-site-accent rounded-2xl border border-site-accent px-3 py-1 sm:px-4 sm:py-1"
                       onClick={() => openDrawer(livro)}
                     >
-                      Saiba Mais
+                      {textos?.saibaMais ?? "Saiba mais"}
                     </button>
                   </div>
                 </div>

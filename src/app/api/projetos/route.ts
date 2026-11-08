@@ -1,11 +1,9 @@
 import { NextResponse } from "next/server";
-import prisma from "../../../lib/prisma";
+import { listPublicProjects } from "@/lib/publicContent";
 
 export async function GET() {
   try {
-    const items = await prisma.projeto.findMany({ 
-      orderBy: { data: 'asc' } 
-    });
+    const items = await listPublicProjects();
     return NextResponse.json(items);
   } catch (error) {
     console.error('Erro ao buscar projetos:', error);
