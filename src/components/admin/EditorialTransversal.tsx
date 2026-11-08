@@ -20,7 +20,7 @@ const ESTADOS: { valor: Estado; rotulo: string }[] = [
   { valor: "RASCUNHO", rotulo: "Rascunho" }, { valor: "PUBLICADO", rotulo: "Publicado" }, { valor: "ARQUIVADO", rotulo: "Arquivado" },
 ];
 const CAMPOS_TEXTO_LONGOS = new Set<keyof TransversalSettings["textos"]>([
-  "naoEncontradoMensagem", "agendaVazia", "noticiasVazias", "livrosVazios", "livrosComplementoVazio",
+  "naoEncontradoMensagem", "agendaVazia", "noticiasVazias", "livrosVazios", "projetosAnoVazio", "livrosComplementoVazio",
   "integrantesVazios", "espetaculosVazios", "premiosVazios",
 ]);
 const CAMPOS_TEXTO: { campo: keyof TransversalSettings["textos"]; rotulo: string }[] = [
@@ -37,12 +37,17 @@ const CAMPOS_TEXTO: { campo: keyof TransversalSettings["textos"]; rotulo: string
   { campo: "proximoSlide", rotulo: "Rótulo acessível do próximo slide" },
   { campo: "detalhes", rotulo: "Título de detalhes" },
   { campo: "carregando", rotulo: "Mensagem de carregamento" },
+  { campo: "anoAnterior", rotulo: "Rótulo acessível de um ano anterior" },
+  { campo: "doisAnosAntes", rotulo: "Rótulo acessível de dois anos antes" },
+  { campo: "proximoAno", rotulo: "Rótulo acessível de um ano seguinte" },
+  { campo: "doisAnosDepois", rotulo: "Rótulo acessível de dois anos depois" },
   { campo: "tituloAgenda", rotulo: "Título de navegação: agenda" },
   { campo: "tituloNoticias", rotulo: "Título de navegação: notícias" },
   { campo: "tituloIndicacoes", rotulo: "Título de navegação: indicações" },
   { campo: "tituloSobre", rotulo: "Título de navegação: sobre" },
   { campo: "tituloProjetos", rotulo: "Título de navegação: projetos" },
   { campo: "tituloColetivo", rotulo: "Título de navegação: coletivo" },
+  { campo: "tituloIntegrante", rotulo: "Título de integrante" },
   { campo: "tituloEspetaculos", rotulo: "Título de navegação: espetáculos" },
   { campo: "tituloPremios", rotulo: "Título de navegação: prêmios" },
   { campo: "naoEncontradoTitulo", rotulo: "Título da página 404" },
@@ -50,6 +55,7 @@ const CAMPOS_TEXTO: { campo: keyof TransversalSettings["textos"]; rotulo: string
   { campo: "agendaVazia", rotulo: "Lista de agenda vazia" },
   { campo: "noticiasVazias", rotulo: "Lista de notícias vazia" },
   { campo: "livrosVazios", rotulo: "Lista de indicações vazia" },
+  { campo: "projetosAnoVazio", rotulo: "Lista de projetos do ano vazia" },
   { campo: "livrosSubtitulo", rotulo: "Subtítulo das indicações" },
   { campo: "livrosComplementoVazio", rotulo: "Complemento da lista de indicações vazia" },
   { campo: "integrantesVazios", rotulo: "Lista de integrantes vazia" },

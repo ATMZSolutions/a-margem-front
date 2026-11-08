@@ -10,14 +10,15 @@ const PALETAS = new Set(["margem", "contraste", "terrosa"]);
 const FUNDOS = new Set(["nenhum", "padrao1.webp", "padrao2.webp", "exu-bg.svg"]);
 const TIPOGRAFIAS = new Set(["sistema", "sedgwick", "zen-dots"]);
 const CAMPOS_TEXTO_LONGOS = new Set<keyof TransversalSettings["textos"]>([
-  "naoEncontradoMensagem", "agendaVazia", "noticiasVazias", "livrosVazios", "livrosComplementoVazio",
+  "naoEncontradoMensagem", "agendaVazia", "noticiasVazias", "livrosVazios", "projetosAnoVazio", "livrosComplementoVazio",
   "integrantesVazios", "espetaculosVazios", "premiosVazios",
 ]);
 const CAMPOS_TEXTO: (keyof TransversalSettings["textos"])[] = [
   "voltar", "fecharPainel", "saibaMais", "mostrarMais", "lerMais", "lerMenos",
   "abrirMenu", "fecharMenu", "voltarTopo", "slideAnterior", "proximoSlide", "detalhes", "carregando",
-  "tituloAgenda", "tituloNoticias", "tituloIndicacoes", "tituloSobre", "tituloProjetos", "tituloColetivo", "tituloEspetaculos", "tituloPremios",
-  "naoEncontradoTitulo", "naoEncontradoMensagem", "agendaVazia", "noticiasVazias", "livrosVazios",
+  "anoAnterior", "doisAnosAntes", "proximoAno", "doisAnosDepois",
+  "tituloAgenda", "tituloNoticias", "tituloIndicacoes", "tituloSobre", "tituloProjetos", "tituloColetivo", "tituloIntegrante", "tituloEspetaculos", "tituloPremios",
+  "naoEncontradoTitulo", "naoEncontradoMensagem", "agendaVazia", "noticiasVazias", "livrosVazios", "projetosAnoVazio",
   "livrosSubtitulo", "livrosComplementoVazio", "integrantesVazios", "espetaculosVazios", "premiosVazios",
 ];
 

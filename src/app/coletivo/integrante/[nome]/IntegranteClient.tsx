@@ -25,7 +25,7 @@ export default function IntegranteClient({ integrante }: { integrante: Integrant
         backgroundImage: "var(--site-background-image)",
       }}
     >
-      <BackBtn label="Integrante" />
+      <BackBtn label={textos?.tituloIntegrante ?? "Integrante"} />
 
       <div className="pt-28 flex flex-col md:flex-row md:items-start items-center">
         <IntegranteCard

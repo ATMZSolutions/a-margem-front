@@ -188,7 +188,7 @@ export default function ProjetosClient({ initialData, pagina, fotos }: { initial
             ) : (
               <section className="h-auto flex-grow flex w-full">
                 <span className="mx-auto">
-                  Nenhum projeto encontrado para o ano selecionado.
+                  {textos?.projetosAnoVazio ?? "Nenhum projeto encontrado para o ano selecionado."}
                 </span>
               </section>
             )}

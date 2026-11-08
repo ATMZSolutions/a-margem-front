@@ -85,10 +85,11 @@ export type TransversalSettings = {
   textos: {
     voltar: string; fecharPainel: string; saibaMais: string; mostrarMais: string; lerMais: string; lerMenos: string;
     abrirMenu: string; fecharMenu: string; voltarTopo: string; slideAnterior: string; proximoSlide: string; detalhes: string; carregando: string;
+    anoAnterior: string; doisAnosAntes: string; proximoAno: string; doisAnosDepois: string;
     tituloAgenda: string; tituloNoticias: string; tituloIndicacoes: string; tituloSobre: string;
-    tituloProjetos: string; tituloColetivo: string; tituloEspetaculos: string; tituloPremios: string;
+    tituloProjetos: string; tituloColetivo: string; tituloIntegrante: string; tituloEspetaculos: string; tituloPremios: string;
     naoEncontradoTitulo: string; naoEncontradoMensagem: string;
-    agendaVazia: string; noticiasVazias: string; livrosVazios: string;
+    agendaVazia: string; noticiasVazias: string; livrosVazios: string; projetosAnoVazio: string;
     livrosSubtitulo: string; livrosComplementoVazio: string; integrantesVazios: string; espetaculosVazios: string; premiosVazios: string;
   };
 };
@@ -216,10 +217,11 @@ const DEFAULT_TRANSVERSAL: TransversalSettings = {
   textos: {
     voltar: "Voltar", fecharPainel: "Fechar painel", saibaMais: "Saiba mais", mostrarMais: "Mostrar mais", lerMais: "Ler mais", lerMenos: "Ler menos",
     abrirMenu: "Abrir menu", fecharMenu: "Fechar menu", voltarTopo: "Voltar ao topo", slideAnterior: "Slide anterior", proximoSlide: "Próximo slide", detalhes: "Detalhes", carregando: "Carregando…",
+    anoAnterior: "Ano anterior", doisAnosAntes: "Dois anos antes", proximoAno: "Próximo ano", doisAnosDepois: "Dois anos depois",
     tituloAgenda: "Agenda", tituloNoticias: "Notícias", tituloIndicacoes: "Livros", tituloSobre: "Sobre nós",
-    tituloProjetos: "Projetos", tituloColetivo: "Integrantes", tituloEspetaculos: "Espetáculos", tituloPremios: "Prêmios",
+    tituloProjetos: "Projetos", tituloColetivo: "Integrantes", tituloIntegrante: "Integrante", tituloEspetaculos: "Espetáculos", tituloPremios: "Prêmios",
     naoEncontradoTitulo: "404", naoEncontradoMensagem: "Seção não encontrada.",
-    agendaVazia: "Nenhum evento encontrado.", noticiasVazias: "Nenhuma notícia encontrada.", livrosVazios: "Nenhum livro disponível no momento.",
+    agendaVazia: "Nenhum evento encontrado.", noticiasVazias: "Nenhuma notícia encontrada.", livrosVazios: "Nenhum livro disponível no momento.", projetosAnoVazio: "Nenhum projeto encontrado para o ano selecionado.",
     livrosSubtitulo: "Livros Recomendados", livrosComplementoVazio: "Em breve teremos novos títulos para você!",
     integrantesVazios: "Nenhum integrante publicado no momento.", espetaculosVazios: "Nenhum espetáculo publicado no momento.", premiosVazios: "Nenhum prêmio publicado no momento.",
   },
@@ -311,12 +313,17 @@ export async function getPublicTransversalSettings(): Promise<TransversalSetting
       proximoSlide: textOr(textos.proximoSlide, DEFAULT_TRANSVERSAL.textos.proximoSlide, 100),
       detalhes: textOr(textos.detalhes, DEFAULT_TRANSVERSAL.textos.detalhes, 100),
       carregando: textOr(textos.carregando, DEFAULT_TRANSVERSAL.textos.carregando, 100),
+      anoAnterior: textOr(textos.anoAnterior, DEFAULT_TRANSVERSAL.textos.anoAnterior, 100),
+      doisAnosAntes: textOr(textos.doisAnosAntes, DEFAULT_TRANSVERSAL.textos.doisAnosAntes, 100),
+      proximoAno: textOr(textos.proximoAno, DEFAULT_TRANSVERSAL.textos.proximoAno, 100),
+      doisAnosDepois: textOr(textos.doisAnosDepois, DEFAULT_TRANSVERSAL.textos.doisAnosDepois, 100),
       tituloAgenda: textOr(textos.tituloAgenda, DEFAULT_TRANSVERSAL.textos.tituloAgenda, 100),
       tituloNoticias: textOr(textos.tituloNoticias, DEFAULT_TRANSVERSAL.textos.tituloNoticias, 100),
       tituloIndicacoes: textOr(textos.tituloIndicacoes, DEFAULT_TRANSVERSAL.textos.tituloIndicacoes, 100),
       tituloSobre: textOr(textos.tituloSobre, DEFAULT_TRANSVERSAL.textos.tituloSobre, 100),
       tituloProjetos: textOr(textos.tituloProjetos, DEFAULT_TRANSVERSAL.textos.tituloProjetos, 100),
       tituloColetivo: textOr(textos.tituloColetivo, DEFAULT_TRANSVERSAL.textos.tituloColetivo, 100),
+      tituloIntegrante: textOr(textos.tituloIntegrante, DEFAULT_TRANSVERSAL.textos.tituloIntegrante, 100),
       tituloEspetaculos: textOr(textos.tituloEspetaculos, DEFAULT_TRANSVERSAL.textos.tituloEspetaculos, 100),
       tituloPremios: textOr(textos.tituloPremios, DEFAULT_TRANSVERSAL.textos.tituloPremios, 100),
       naoEncontradoTitulo: textOr(textos.naoEncontradoTitulo, DEFAULT_TRANSVERSAL.textos.naoEncontradoTitulo, 100),
@@ -324,6 +331,7 @@ export async function getPublicTransversalSettings(): Promise<TransversalSetting
       agendaVazia: textOr(textos.agendaVazia, DEFAULT_TRANSVERSAL.textos.agendaVazia, 300),
       noticiasVazias: textOr(textos.noticiasVazias, DEFAULT_TRANSVERSAL.textos.noticiasVazias, 300),
       livrosVazios: textOr(textos.livrosVazios, DEFAULT_TRANSVERSAL.textos.livrosVazios, 300),
+      projetosAnoVazio: textOr(textos.projetosAnoVazio, DEFAULT_TRANSVERSAL.textos.projetosAnoVazio, 300),
       livrosSubtitulo: textOr(textos.livrosSubtitulo, DEFAULT_TRANSVERSAL.textos.livrosSubtitulo, 100),
       livrosComplementoVazio: textOr(textos.livrosComplementoVazio, DEFAULT_TRANSVERSAL.textos.livrosComplementoVazio, 300),
       integrantesVazios: textOr(textos.integrantesVazios, DEFAULT_TRANSVERSAL.textos.integrantesVazios, 300),
