@@ -28,12 +28,14 @@ export default function IntegranteClient({ integrante }: { integrante: Integrant
       <BackBtn label={textos?.tituloIntegrante ?? "Integrante"} />
 
       <div className="pt-28 flex flex-col md:flex-row md:items-start items-center">
-        <IntegranteCard
-          key={integrante.id}
-          nome={integrante.nome}
-          image={integrante.image}
-          onClick={() => {}}
-        />
+        <div className="w-full max-w-xs shrink-0">
+          <IntegranteCard
+            key={integrante.id}
+            nome={integrante.nome}
+            image={integrante.image}
+            onClick={() => {}}
+          />
+        </div>
 
         <div className="flex flex-col md:ml-10 items-center md:items-start max-w-4xl">
           {/* Ficha Técnica */}
