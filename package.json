@@ -12,6 +12,7 @@
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
     "migrate": "prisma migrate dev",
+    "migrate:staging": "node scripts/migrar-schema-staging.mjs",
     "generate": "prisma generate",
     "conteudo:inventariar": "node scripts/conteudo/cli.mjs inventariar",
     "conteudo:migrar": "node scripts/conteudo/cli.mjs migrar",

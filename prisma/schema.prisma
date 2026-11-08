@@ -100,6 +100,7 @@ model Midia {
   altura       Int?
   nomeOriginal String?
   origem       String?
+  semVinculoDesde DateTime?   @db.Timestamptz(6)
   criadoEm     DateTime      @default(now()) @db.Timestamptz(6)
   atualizadoEm DateTime      @updatedAt @db.Timestamptz(6)
   usos         UsoMidia[]
@@ -110,6 +111,7 @@ model Midia {
 
   @@unique([bucket, chave])
   @@index([sha256])
+  @@index([semVinculoDesde])
 }
 
 // Contexto editorial é separado dos bytes para permitir reuso do mesmo arquivo.

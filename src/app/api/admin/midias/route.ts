@@ -91,7 +91,7 @@ export async function GET(request: Request) {
       orderBy: [{ criadoEm: "desc" }, { id: "asc" }],
       select: {
         id: true, bucket: true, chave: true, mime: true, bytes: true, largura: true, altura: true,
-        nomeOriginal: true, origem: true, criadoEm: true,
+        nomeOriginal: true, origem: true, criadoEm: true, semVinculoDesde: true,
         usos: { select: { id: true, dominio: true, registro: true, campo: true, textoAlternativo: true, legenda: true, credito: true } },
         integrantes: { select: { slug: true, nome: true } },
         espetaculos: { select: { slug: true, titulo: true } },
@@ -179,6 +179,7 @@ export async function GET(request: Request) {
       altura: item.altura,
       nomeOriginal: item.nomeOriginal,
       criadoEm: item.criadoEm,
+      semVinculoDesde: item.semVinculoDesde,
       usos,
       quantidadeUsos: usos.length,
       semVinculosDetectados: usos.length === 0,

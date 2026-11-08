@@ -190,7 +190,7 @@ Somente após observação e aceite: remover arrays e cópias de conteúdo do c�
 - [x] E2: importar fontes estáticas e banco em staging; verificar arquivos, textos e repetição; concluída para o manifesto registrado em 08/11/2026.
 - [x] E3: integrantes, espetáculos e prêmios integrados ao painel e leitores; smoke de CRUD/SEO/publicação aprovado em staging.
 - [x] E4: entregar home, contatos, menu, identidade, projetos e história; smoke funcional aprovado e preview 858×900 conferido. Viewport mobile estreito não medido.
-- [ ] E5: concluir aparência, textos, publicação, ordem, SEO, cache e C15 em todas as áreas (primeira entrega em andamento; ver relatório E5).
+- [x] E5: aparência, textos, publicação, ordem, SEO, cache e C15 concluídos no código e staging em 08/11/2026; ver [relatório E5](../execucao/integracao-editorial-e5-2026-11-08.md). A reconciliação iniciou retenção de 30 dias para dois objetos conferidos, sem exclusão.
 - [ ] E6: ensaiar backup/reversão, importar delta final e efetuar corte verificado.
 - [ ] E7: registrar aceite de C01–C15, observar e remover estruturas antigas após retenção.
 

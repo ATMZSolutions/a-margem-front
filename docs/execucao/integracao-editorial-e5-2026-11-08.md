@@ -1,4 +1,4 @@
-# Integração editorial E5 — primeira entrega
+# Integração editorial E5 — conclusão
 
 Implementação na branch `dev`, em **08/11/2026**. Esta entrega liga publicação, ordem, SEO, aparência e textos comuns do painel às consultas públicas. E5 continua em andamento; este relatório registra apenas o que foi implementado e conferido nesta etapa.
 
@@ -33,9 +33,9 @@ O smoke funcional reversível foi concluído em **08/11/2026**, usando o painel 
 
 O painel ganhou a área **Mídia**, com busca, filtros de vínculo, prévias, tipo/tamanho/dimensões e referências detectadas em `UsoMidia`, nas relações editoriais e nas configurações JSON de site/páginas/seções. Cada referência abre a área correspondente para trocar ou remover o vínculo; os editores existentes oferecem seleção vazia ou ação explícita de remoção.
 
-Arquivos sem referência detectada aparecem como candidatos a órfãos. Esta entrega não apaga linhas nem objetos do Storage: o adaptador ainda não oferece exclusão, e a rotina prevista no plano exige retenção e uma nova verificação de referências antes de qualquer remoção física.
+Arquivos sem referência detectada aparecem como candidatos a órfãos. A reconciliação confirma novamente as referências, confere existência, tamanho e SHA-256 no Storage e inicia um prazo mínimo de retenção de 30 dias. Ela não apaga linhas nem objetos; qualquer remoção futura exige uma conferência nova após o prazo.
 
-Uma consulta somente leitura ao staging encontrou **70 mídias**, **68 com referência detectada**, **79 referências** e **2 candidatas a órfãs**. A consulta incluiu os seletores efetivos da identidade, home, contato e projetos para evitar classificar imagens de fallback como órfãs. Nenhuma linha ou objeto foi alterado.
+Uma consulta somente leitura ao staging encontrou **70 mídias**, **68 com referência detectada**, **79 referências** e **2 candidatas a órfãs**. A consulta incluiu os seletores efetivos da identidade, home, contato e projetos para evitar classificar imagens de fallback como órfãs. Na reconciliação posterior, os dois objetos candidatos existiam e conferiram em tamanho/hash; ambos tiveram a retenção iniciada. Nenhum arquivo foi excluído.
 
 O smoke visual/funcional da biblioteca foi concluído em **08/11/2026**, no painel local autenticado com o banco de staging isolado, sem gravar no Supabase. Busca por arquivo, filtro “Sem vínculo detectado” (2 resultados) e os atalhos “Abrir editor” foram conferidos; uma referência da História abriu a área Sobre e uma referência de configuração abriu Configurações. As referências dos marcos passaram a exibir o ano em vez do identificador técnico, e a linha correspondente à tabela legada está marcada como “legado”.
 
@@ -51,7 +51,7 @@ O login e o shell do painel também foram conferidos em 390×844; Sobre e Public
 
 Uma captura desktop posterior mostrou apenas as cinco áreas legadas porque `CONTEUDO_EDITORIAL_SUPABASE_ATIVO` estava ausente no processo local. O filtro era intencional: desligado, as APIs editoriais retornam 503. Foi adicionado `yarn dev:staging`, que valida referência, SSL e topologia `bancos-separados` do `.env.staging.local`, mapeia as credenciais de staging e liga o flag somente no processo Next iniciado por esse comando. Ele não executa o importador nem grava dados ao iniciar; os salvamentos feitos no painel apontam para o staging.
 
-A revisão visual dos formulários restantes não terminou: durante a alternância anterior de módulos, o staging acusou saturação do pool (`EMAXCONNSESSION`, limite de 15 clientes), com respostas 500 em algumas consultas GET e 200 em novas tentativas. Com `dev:staging`, a leitura de Página de projetos retornou 200; falta revisar visualmente seus campos e os de Configurações. Não houve POST/PUT/DELETE nem gravação no Supabase nesta auditoria.
+Na primeira tentativa, a revisão visual dos formulários restantes não terminou: durante a alternância anterior de módulos, o staging acusou saturação do pool (`EMAXCONNSESSION`, limite de 15 clientes), com respostas 500 em algumas consultas GET e 200 em novas tentativas. O bloqueio foi resolvido na continuação abaixo; Página de projetos e Configurações foram revisadas sem salvar formulários.
 
 ## Continuação E5 — editores e textos de interface
 
@@ -61,8 +61,8 @@ A leitura complementar de C12 encontrou rótulos públicos ainda literais: naveg
 
 A galeria pública de Projetos agora trata a lista do Supabase como fonte autoritativa quando o módulo editorial está ativo. Se o administrador remover todos os vínculos, as imagens antigas de `src/data/projetos.ts` não reaparecem; a lista estática continua disponível somente com o módulo desligado, como fallback de reversão durante a transição.
 
-## Pendências para concluir E5
+## Fechamento da etapa
 
-- A revisão responsiva dos dois editores restantes foi concluída. Fazer a varredura final das rotas/componentes públicos para confirmar que não restam textos de conteúdo fora das configurações, além dos novos textos já cobertos em C12.
-- Concluir a retenção e reconciliação de órfãos de C15 com Storage. O relatório de candidatos/referências permanece somente leitura; não se implementou nem executou remoção física.
-- Confirmar em E0 que o manifesto representa a revisão publicada. E6 (backup, delta e corte de produção) continua sem execução.
+A varredura final dos componentes públicos não encontrou texto editorial fora dos campos persistidos: o que aparece como literal restante é valor padrão coberto pelo painel, metadado já editável, conteúdo dinâmico ou texto alternativo derivado da entidade. A reconciliação C15 foi executada no staging em **08/11/2026**: 2 novas retenções, 0 mantidas, 0 corrigidas, 2 objetos conferidos, 0 ausentes e 0 divergentes. A nova migração aditiva foi aplicada e `prisma migrate status` confirmou a cadeia atualizada. Os detalhes estão no [relatório C15 de retenção](./reconciliacao-retencao-midia-c15-2026-11-08.md).
+
+E5 está concluída no código da branch `dev` e no staging. Não há rotina de remoção física de mídia. E0 ainda precisa confirmar que o manifesto corresponde à revisão efetivamente publicada; E6 (backup, delta e corte de produção) e E7 continuam sem execução.

@@ -128,6 +128,19 @@ export function criarAdaptadorStorage({ url, serviceKey, serviceRoleKey, fetchIm
     return Buffer.from(await resposta.arrayBuffer());
   }
 
+  async function conferirObjeto(bucket, chave, esperado) {
+    if (!bucketsConfigurados.has(bucket)) throw new Error('Bucket público ainda não foi conferido');
+    const bytes = await baixarSeExiste(bucket, chave);
+    if (!bytes) return { existe: false, bytes: null, sha256: null, valido: false };
+    const hash = sha256(bytes);
+    return {
+      existe: true,
+      bytes: bytes.length,
+      sha256: hash,
+      valido: bytes.length === esperado.bytes && hash === esperado.sha256,
+    };
+  }
+
   function conferirBytes(bytes, item) {
     if (bytes.length !== item.bytes || sha256(bytes) !== item.sha256) throw new Error(`Objeto existente diverge do manifesto: ${item.chave}`);
     return { chave: item.chave, bytes: bytes.length, sha256: item.sha256, estado: 'verificado' };
@@ -166,5 +179,5 @@ export function criarAdaptadorStorage({ url, serviceKey, serviceRoleKey, fetchIm
     return `${origem}/storage/v1/object/public/${encodeURIComponent(bucket)}/${chave.split('/').map(encodeURIComponent).join('/')}`;
   }
 
-  return { conferirOuCriarBucket, enviarEVerificar, urlPublica };
+  return { conferirOuCriarBucket, conferirObjeto, enviarEVerificar, urlPublica };
 }

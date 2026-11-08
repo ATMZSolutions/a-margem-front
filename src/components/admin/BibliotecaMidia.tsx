@@ -22,6 +22,7 @@ type Midia = {
   altura: number | null;
   nomeOriginal: string | null;
   criadoEm: string;
+  semVinculoDesde: string | null;
   usos: Referencia[];
   quantidadeUsos: number;
   semVinculosDetectados: boolean;
@@ -59,6 +60,8 @@ export default function BibliotecaMidia() {
   const [filtro, setFiltro] = useState<Filtro>("todas");
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState("");
+  const [aviso, setAviso] = useState("");
+  const [reconciliando, setReconciliando] = useState(false);
 
   const carregar = useCallback(async () => {
     setCarregando(true);
@@ -88,6 +91,21 @@ export default function BibliotecaMidia() {
     });
   }, [busca, filtro, midias]);
 
+  const reconciliar = async () => {
+    setReconciliando(true);
+    setErro("");
+    setAviso("");
+    try {
+      const resposta = await fetch("/api/admin/midias/reconciliar", { method: "POST", credentials: "include" });
+      const resultado = await resposta.json().catch(() => null) as { error?: string; marcadas?: number; mantidas?: number; corrigidas?: number; armazenamento?: number; ausentes?: number; divergentes?: number } | null;
+      if (!resposta.ok) throw new Error(resultado?.error ?? "Não foi possível reconciliar referências e Storage.");
+      setAviso(`Reconciliação concluída: ${resultado?.marcadas ?? 0} novas retenções, ${resultado?.mantidas ?? 0} mantidas, ${resultado?.corrigidas ?? 0} corrigidas, ${resultado?.armazenamento ?? 0} objetos conferidos, ${resultado?.ausentes ?? 0} ausentes e ${resultado?.divergentes ?? 0} divergentes. Nenhum arquivo foi excluído.`);
+      await carregar();
+    } catch (error) {
+      setErro(error instanceof Error ? error.message : "Não foi possível reconciliar referências e Storage.");
+    } finally { setReconciliando(false); }
+  };
+
   return (
     <section className="mx-auto max-w-6xl space-y-5" aria-labelledby="biblioteca-midia-titulo">
       <header className="rounded-xl bg-white p-5 shadow-sm sm:p-6">
@@ -96,12 +114,16 @@ export default function BibliotecaMidia() {
             <h1 id="biblioteca-midia-titulo" className="text-2xl font-bold text-slate-900">Biblioteca de mídia</h1>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">Consulte imagens do Storage, prévias e os conteúdos que usam cada arquivo. A troca ou remoção do vínculo é feita no editor do conteúdo correspondente.</p>
           </div>
-          <button type="button" onClick={() => void carregar()} disabled={carregando} className="min-h-11 shrink-0 rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-[#412551] disabled:opacity-60">{carregando ? "Atualizando…" : "Atualizar lista"}</button>
+          <div className="flex flex-wrap gap-2">
+            <button type="button" onClick={() => void carregar()} disabled={carregando || reconciliando} className="min-h-11 shrink-0 rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-[#412551] disabled:opacity-60">{carregando ? "Atualizando…" : "Atualizar lista"}</button>
+            <button type="button" onClick={() => void reconciliar()} disabled={carregando || reconciliando} className="min-h-11 shrink-0 rounded-lg bg-[#412551] px-4 text-sm font-semibold text-white disabled:opacity-60">{reconciliando ? "Conferindo…" : "Reconciliar referências e Storage"}</button>
+          </div>
         </div>
         <p className="mt-4 text-sm text-slate-600">{midias.length} {midias.length === 1 ? "arquivo" : "arquivos"} no catálogo · {midias.filter((midia) => midia.semVinculosDetectados).length} sem vínculo detectado</p>
       </header>
 
       {erro && <p role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">{erro}</p>}
+      {aviso && <p role="status" className="rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-800">{aviso}</p>}
 
       <div className="grid gap-3 rounded-xl bg-white p-4 shadow-sm sm:grid-cols-[minmax(0,1fr)_220px] sm:p-5">
         <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-700">Buscar mídia ou referência
@@ -138,6 +160,7 @@ export default function BibliotecaMidia() {
               {midia.semVinculosDetectados ? <div className="space-y-2">
                 <p className="inline-flex rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-900">Sem vínculo detectado</p>
                 <p className="text-sm leading-5 text-slate-600">Candidata a órfã. O arquivo permanece no Storage; confirme referências e retenção antes de qualquer limpeza.</p>
+                <p className="text-sm leading-5 text-slate-600">{midia.semVinculoDesde ? `Retenção iniciada em ${new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium" }).format(new Date(midia.semVinculoDesde))}. O prazo mínimo é de 30 dias e exige nova conferência antes de qualquer remoção.` : "Ainda não reconciliada: a retenção só começa depois de confirmar referências, existência e hash do objeto."}</p>
               </div> : <>
                 <h3 className="text-sm font-semibold text-slate-800">Usada em {midia.quantidadeUsos} {midia.quantidadeUsos === 1 ? "lugar" : "lugares"}</h3>
                 <ul className="mt-2 space-y-2">

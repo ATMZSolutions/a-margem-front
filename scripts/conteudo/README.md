@@ -48,7 +48,7 @@ O relatório grava apenas contagens, hash da projeção e bloqueios. A fonte `gl
 
 `storage.mjs` encapsula a API REST de buckets e objetos. Só aceita upload depois de verificar ou criar explicitamente um bucket público, com limite e MIME configurados. O bucket só é criado com `allowCreate: true`; buckets existentes com outra visibilidade, limite insuficiente ou tipos divergentes são bloqueados e nunca ajustados automaticamente.
 
-O upload verifica SHA/tamanho local, usa caminho por hash e `x-upsert: false`, e baixa o objeto após envio para comparar novamente os bytes. Objeto existente é reutilizado apenas se SHA/tamanho coincidirem. Não há método de exclusão. A chave privilegiada fica somente no servidor; não carregar esse módulo em componentes cliente. Chaves `sb_secret_` novas são enviadas em `apikey`, sem `Authorization: Bearer`; JWT `service_role` legado mantém os dois headers. O Supabase documenta os novos formatos e a migração em [API keys](https://supabase.com/docs/guides/getting-started/api-keys) e [migração para as novas chaves](https://supabase.com/docs/guides/getting-started/migrating-to-new-api-keys). A API também recomenda evitar sobrescrita e usar caminhos novos; o guia de uploads sugere TUS para arquivos acima de 6 MiB ([upload](https://supabase.com/docs/guides/storage/uploads/standard-uploads), [criação de buckets](https://supabase.com/docs/guides/storage/buckets/creating-buckets)).
+O upload verifica SHA/tamanho local, usa caminho por hash e `x-upsert: false`, e baixa o objeto após envio para comparar novamente os bytes. `conferirObjeto` baixa o objeto para comparar existência, tamanho e SHA-256 durante a reconciliação C15. Objeto existente só é reutilizado se SHA/tamanho coincidirem. Não há método de exclusão. A chave privilegiada fica somente no servidor; não carregar esse módulo em componentes cliente. Chaves `sb_secret_` novas são enviadas em `apikey`, sem `Authorization: Bearer`; JWT `service_role` legado mantém os dois headers. O Supabase documenta os novos formatos e a migração em [API keys](https://supabase.com/docs/guides/getting-started/api-keys) e [migração para as novas chaves](https://supabase.com/docs/guides/getting-started/migrating-to-new-api-keys). A API também recomenda evitar sobrescrita e usar caminhos novos; o guia de uploads sugere TUS para arquivos acima de 6 MiB ([upload](https://supabase.com/docs/guides/storage/uploads/standard-uploads), [criação de buckets](https://supabase.com/docs/guides/storage/buckets/creating-buckets)).
 
 No snapshot atual, o maior arquivo tem 2.460.275 bytes. O adaptador interrompe uploads padrão acima de 6 MiB e exige transporte retomável, ainda não implementado. Os testes unitários usam fetch falso. Em 08/11, a execução real no staging criou o bucket e verificou todos os 70 objetos; tamanho e SHA-256 conferiram nos 19.030.280 bytes.
 
@@ -64,7 +64,9 @@ A CLI compara nomes/checksums e estado das migrações com os arquivos locais. H
 
 `prisma/schema.prisma` e a migração `20261108020000_estrutura_conteudo_migracao` acrescentam mídia/usos, configurações, contatos/menu, integrantes, espetáculos/seções, prêmios, galerias/fotos, páginas/home, marcos históricos, aliases e execuções/itens da importação. Os cinco modelos atuais e seus blobs permanecem intactos. Marcos históricos novos usam ID próprio e referência opcional ao ano legado, permitindo múltiplos marcos sem trocar agora a PK de Sobre.
 
-A migração foi gerada por comparação local de datamodels. Depois da confirmação do banco staging vazio, `prisma migrate deploy` aplicou `0_base_legada` e `20261108020000_estrutura_conteudo_migracao` nesse destino. O preflight pós-migração confirmou as 22 tabelas, grants/RLS/sequences e checksums. A origem e produção não receberam migrações. **Não executar `migrate deploy`, `migrate dev`, `db push` ou reset contra a origem.** As colunas JSON são estrutura inicial versionada; validação das edições do painel e integração desses DTOs aos leitores/admin serão implementadas com os módulos.
+A migração foi gerada por comparação local de datamodels. Depois da confirmação do banco staging vazio, `prisma migrate deploy` aplicou `0_base_legada` e `20261108020000_estrutura_conteudo_migracao` nesse destino. O preflight pós-migração confirmou as 22 tabelas, grants/RLS/sequences e checksums. A origem e produção não receberam migrações. **Não executar `migrate deploy`, `migrate dev`, `db push` ou reset contra a origem.** As colunas JSON são estrutura inicial versionada; E3–E5 integraram as edições do painel e os leitores públicos.
+
+A migração aditiva `20261108040000_retencao_midia_sem_vinculo` adiciona `Midia.semVinculoDesde` e seu índice. Foi aplicada somente no staging pelo wrapper `yarn migrate:staging --ambiente staging --aplicar`; `--check` valida referência/topologia/SSL sem conectar e `--status` consulta o histórico sem gravar. O wrapper lê apenas `.env.staging.local`/`.env.staging`, valida que URLs e PostgreSQL pertencem à referência configurada e nunca usa `DATABASE_URL` como fallback. Após aplicação, `prisma migrate status` confirmou a cadeia atualizada. O relatório C15 descreve a conferência dos objetos e a retenção.
 
 ## Reconciliação e baseline
 
@@ -86,9 +88,8 @@ O orquestrador e os adaptadores PostgreSQL/Prisma e Storage estão ligados ao co
 
 ## Próximas etapas
 
-1. Confirmar se o manifesto representa exatamente a revisão publicada; atualizar o snapshot se a revisão publicada divergir.
-2. Integrar entidades e configurações aos formulários do painel e aos leitores públicos (E3–E5), validando os fluxos completos contra o staging preenchido.
-3. Planejar E6 separadamente: backup e restauração ensaiados, delta final e corte reversível em produção. O comando de staging não aplica schema.
+1. Confirmar se o manifesto representa exatamente a revisão publicada; atualizar o snapshot se a revisão publicada divergir (E0).
+2. Planejar E6 separadamente: backup e restauração ensaiados, delta final e corte reversível em produção. Não executar gravações em produção sem esse preparo.
 
 Os resultados da projeção e do ensaio com o manifesto local estão em [validação dos DTOs e mídias](../../docs/execucao/projecao-dtos-midias-2026-11-07.md). O staging agora contém schema, conteúdo e objetos verificados para este manifesto. A origem e produção não foram alteradas.
 
