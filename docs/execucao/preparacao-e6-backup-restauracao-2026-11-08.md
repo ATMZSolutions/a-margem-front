@@ -45,4 +45,4 @@ O Supabase descreve que backups do banco não incluem bytes de objetos Storage; 
 
 ## Git
 
-Esta atualização permanece na `dev`. `main` e `origin/main` continuam em `c05ce1b791569f4c577571f7cef236708b64f3aa`; `dev` está 25 commits à frente de `origin/dev`. Não houve merge, push nem deploy.
+Esta atualização permanece na `dev`. `main` e `origin/main` continuam em `c05ce1b791569f4c577571f7cef236708b64f3aa`. Não houve merge, push nem deploy.
