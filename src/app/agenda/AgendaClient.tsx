@@ -77,6 +77,7 @@ export default function AgendaPage({
             <button
               type="button"
               onClick={() => setCurrentDate(subMonths(currentDate, 1))}
+              aria-label={textos?.mesAnterior ?? "Mês anterior"}
             >
               <ChevronLeft className="text-site-primary" />
             </button>
@@ -86,13 +87,22 @@ export default function AgendaPage({
             <button
               type="button"
               onClick={() => setCurrentDate(addMonths(currentDate, 1))}
+              aria-label={textos?.proximoMes ?? "Próximo mês"}
             >
               <ChevronRight className="text-site-primary" />
             </button>
           </div>
 
           <div className="grid grid-cols-7 text-center text-xs font-semibold bg-site-primary px-4 text-white py-1 rounded">
-            {["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SAB"].map((d) => (
+            {[
+              textos?.domingo ?? "DOM",
+              textos?.segunda ?? "SEG",
+              textos?.terca ?? "TER",
+              textos?.quarta ?? "QUA",
+              textos?.quinta ?? "QUI",
+              textos?.sexta ?? "SEX",
+              textos?.sabado ?? "SAB",
+            ].map((d) => (
               <div key={d}>{d}</div>
             ))}
           </div>
@@ -144,7 +154,7 @@ export default function AgendaPage({
               events
                 .filter((ev) => isSameMonth(new Date(ev.data), currentDate))
                 .reduce<Record<string, EventItem[]>>((acc, event) => {
-                  const city = event.cidade?.trim().toLowerCase() || "EVENTO";
+                  const city = event.cidade?.trim().toLowerCase() || (textos?.eventoSemCidade ?? "EVENTO").toLocaleLowerCase("pt-BR");
                   const locationLabel =
                     city.charAt(0).toUpperCase() + city.slice(1);
                   if (!acc[locationLabel]) acc[locationLabel] = [];

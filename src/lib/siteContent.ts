@@ -91,6 +91,8 @@ export type TransversalSettings = {
     naoEncontradoTitulo: string; naoEncontradoMensagem: string;
     agendaVazia: string; noticiasVazias: string; livrosVazios: string; projetosAnoVazio: string;
     livrosSubtitulo: string; livrosComplementoVazio: string; integrantesVazios: string; espetaculosVazios: string; premiosVazios: string;
+    mesAnterior: string; proximoMes: string; domingo: string; segunda: string; terca: string; quarta: string; quinta: string; sexta: string; sabado: string;
+    eventoSemCidade: string; tituloFichaTecnica: string; tituloBiografia: string;
   };
 };
 export type ProjectPhoto = {
@@ -224,6 +226,9 @@ const DEFAULT_TRANSVERSAL: TransversalSettings = {
     agendaVazia: "Nenhum evento encontrado.", noticiasVazias: "Nenhuma notícia encontrada.", livrosVazios: "Nenhum livro disponível no momento.", projetosAnoVazio: "Nenhum projeto encontrado para o ano selecionado.",
     livrosSubtitulo: "Livros Recomendados", livrosComplementoVazio: "Em breve teremos novos títulos para você!",
     integrantesVazios: "Nenhum integrante publicado no momento.", espetaculosVazios: "Nenhum espetáculo publicado no momento.", premiosVazios: "Nenhum prêmio publicado no momento.",
+    mesAnterior: "Mês anterior", proximoMes: "Próximo mês",
+    domingo: "DOM", segunda: "SEG", terca: "TER", quarta: "QUA", quinta: "QUI", sexta: "SEX", sabado: "SAB",
+    eventoSemCidade: "EVENTO", tituloFichaTecnica: "Ficha Técnica", tituloBiografia: "Biografia",
   },
 };
 
@@ -337,6 +342,18 @@ export async function getPublicTransversalSettings(): Promise<TransversalSetting
       integrantesVazios: textOr(textos.integrantesVazios, DEFAULT_TRANSVERSAL.textos.integrantesVazios, 300),
       espetaculosVazios: textOr(textos.espetaculosVazios, DEFAULT_TRANSVERSAL.textos.espetaculosVazios, 300),
       premiosVazios: textOr(textos.premiosVazios, DEFAULT_TRANSVERSAL.textos.premiosVazios, 300),
+      mesAnterior: textOr(textos.mesAnterior, DEFAULT_TRANSVERSAL.textos.mesAnterior, 100),
+      proximoMes: textOr(textos.proximoMes, DEFAULT_TRANSVERSAL.textos.proximoMes, 100),
+      domingo: textOr(textos.domingo, DEFAULT_TRANSVERSAL.textos.domingo, 12),
+      segunda: textOr(textos.segunda, DEFAULT_TRANSVERSAL.textos.segunda, 12),
+      terca: textOr(textos.terca, DEFAULT_TRANSVERSAL.textos.terca, 12),
+      quarta: textOr(textos.quarta, DEFAULT_TRANSVERSAL.textos.quarta, 12),
+      quinta: textOr(textos.quinta, DEFAULT_TRANSVERSAL.textos.quinta, 12),
+      sexta: textOr(textos.sexta, DEFAULT_TRANSVERSAL.textos.sexta, 12),
+      sabado: textOr(textos.sabado, DEFAULT_TRANSVERSAL.textos.sabado, 12),
+      eventoSemCidade: textOr(textos.eventoSemCidade, DEFAULT_TRANSVERSAL.textos.eventoSemCidade, 100),
+      tituloFichaTecnica: textOr(textos.tituloFichaTecnica, DEFAULT_TRANSVERSAL.textos.tituloFichaTecnica, 100),
+      tituloBiografia: textOr(textos.tituloBiografia, DEFAULT_TRANSVERSAL.textos.tituloBiografia, 100),
     },
   };
 }

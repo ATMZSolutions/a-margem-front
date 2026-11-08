@@ -38,18 +38,16 @@ export default function IntegranteClient({ integrante }: { integrante: Integrant
         </div>
 
         <div className="flex flex-col md:ml-10 items-center md:items-start max-w-4xl">
-          {/* Ficha Técnica */}
           <div className="w-full max-w-2xl mt-8 md:mt-0 px-4">
             <h2 className="text-2xl font-semibold mb-4 border-l-4 border-site-accent pl-2">
-              Ficha Técnica
+              {textos?.tituloFichaTecnica ?? "Ficha Técnica"}
             </h2>
             <p>{integrante.fichaTecnica}</p>
           </div>
 
-          {/* Biografia */}
           <div className="w-full max-w-2xl mt-6 p-4">
             <h2 className="text-2xl font-semibold mb-4 border-l-4 border-site-accent pl-2">
-              Biografia
+              {textos?.tituloBiografia ?? "Biografia"}
             </h2>
             <p className="whitespace-pre-line text-justify">{shortBio}</p>
 

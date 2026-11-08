@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { listPublicProjects } from "@/lib/publicContent";
 import { getPageMetadata, isPublicSitePage } from "@/lib/siteMetadata";
 import { getPublicProjectPageSettings, listPublicProjectPhotos } from "@/lib/siteContent";
+import { supabaseEditorialAtivo } from "@/lib/editorialConfig";
 import ProjetosClient from "./ProjetosClient";
 
 export const dynamic = "force-dynamic";
@@ -20,5 +21,6 @@ export default async function ProjetosPage() {
     initialData={items.map((item) => ({ ...item, data: item.data.toISOString() }))}
     pagina={pagina}
     fotos={fotos}
+    usarGaleriaAdministrada={supabaseEditorialAtivo()}
   />;
 }

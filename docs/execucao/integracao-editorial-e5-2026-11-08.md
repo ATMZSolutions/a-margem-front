@@ -53,8 +53,16 @@ Uma captura desktop posterior mostrou apenas as cinco áreas legadas porque `CON
 
 A revisão visual dos formulários restantes não terminou: durante a alternância anterior de módulos, o staging acusou saturação do pool (`EMAXCONNSESSION`, limite de 15 clientes), com respostas 500 em algumas consultas GET e 200 em novas tentativas. Com `dev:staging`, a leitura de Página de projetos retornou 200; falta revisar visualmente seus campos e os de Configurações. Não houve POST/PUT/DELETE nem gravação no Supabase nesta auditoria.
 
+## Continuação E5 — editores e textos de interface
+
+Em **08/11/2026**, a revisão dos editores Página de projetos e Configurações foi concluída no painel local autenticado com staging, em **390×844** e **1280×900**. Página de projetos exibiu os campos e as 27 fotos migradas; Configurações exibiu identidade, conteúdo da home, contatos e navegação. Os campos se empilham em uma coluna no viewport móvel. Em ambos, `documentElement.scrollWidth` ficou abaixo da largura do viewport (375/390 no móvel e 1265/1280 no desktop), sem rolagem horizontal. A área Publicação e SEO também mostrou os novos campos de texto. Foram feitas apenas leituras; nenhum formulário foi salvo e não houve POST/PUT/DELETE de conteúdo.
+
+A leitura complementar de C12 encontrou rótulos públicos ainda literais: navegação mensal e abreviações dos dias no calendário, nome substituto para evento sem cidade e títulos de ficha técnica/biografia no perfil. Os 12 valores agora são persistidos em `site:transversal`, aparecem em Publicação e SEO, têm limites de validação e alimentam a Agenda e a ficha do integrante. Configurações antigas continuam usando os padrões; não há migração SQL. Os botões de mês também receberam rótulos acessíveis configuráveis.
+
+A galeria pública de Projetos agora trata a lista do Supabase como fonte autoritativa quando o módulo editorial está ativo. Se o administrador remover todos os vínculos, as imagens antigas de `src/data/projetos.ts` não reaparecem; a lista estática continua disponível somente com o módulo desligado, como fallback de reversão durante a transição.
+
 ## Pendências para concluir E5
 
-- Concluir a auditoria visual responsiva dos editores restantes; as 13 rotas públicas listadas acima passaram pela revisão mobile e pela verificação desktop. Revisar também strings de interface que ainda são conteúdo fixo.
-- Concluir o tratamento de órfãos de C15: relatório de candidatos e referências está disponível no painel; a retenção, reconciliação com o Storage e remoção física continuam pendentes.
+- A revisão responsiva dos dois editores restantes foi concluída. Fazer a varredura final das rotas/componentes públicos para confirmar que não restam textos de conteúdo fora das configurações, além dos novos textos já cobertos em C12.
+- Concluir a retenção e reconciliação de órfãos de C15 com Storage. O relatório de candidatos/referências permanece somente leitura; não se implementou nem executou remoção física.
 - Confirmar em E0 que o manifesto representa a revisão publicada. E6 (backup, delta e corte de produção) continua sem execução.

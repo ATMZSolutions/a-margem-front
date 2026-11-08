@@ -15,7 +15,7 @@ interface TimelineItem {
   id: number;
 }
 
-export default function ProjetosClient({ initialData, pagina, fotos }: { initialData: TimelineItem[]; pagina: ProjectPageSettings; fotos: ProjectPhoto[] }) {
+export default function ProjetosClient({ initialData, pagina, fotos, usarGaleriaAdministrada }: { initialData: TimelineItem[]; pagina: ProjectPageSettings; fotos: ProjectPhoto[]; usarGaleriaAdministrada: boolean }) {
   const textos = useSiteTexts();
   const currentYear = new Date().getFullYear();
   const newestProjectYear = initialData.reduce(
@@ -41,12 +41,15 @@ export default function ProjetosClient({ initialData, pagina, fotos }: { initial
   const onCloseDrawer = () => setSelectedItem(null);
 
   const initialYear = newestProjectYear;
-  const imagesInfo = (fotos.length ? fotos.map((foto) => ({
+  const fotosAdministradas = fotos.map((foto) => ({
     descricao: foto.legenda,
     data: foto.dataEditorial ?? "",
     img: foto.url,
     textoAlternativo: foto.textoAlternativo,
-  })) : projectImgs).slice().sort((a, b) => (a.data ? new Date(a.data).getTime() : 0) - (b.data ? new Date(b.data).getTime() : 0));
+  }));
+  const imagesInfo = (usarGaleriaAdministrada ? fotosAdministradas : projectImgs)
+    .slice()
+    .sort((a, b) => (a.data ? new Date(a.data).getTime() : 0) - (b.data ? new Date(b.data).getTime() : 0));
 
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);
@@ -129,12 +132,12 @@ export default function ProjetosClient({ initialData, pagina, fotos }: { initial
             {pagina.introducao}
           </Typography.Paragraph>
 
-          <div
+          {imagesInfo.length > 0 && <div
             className="w-full aspect-[4/3] sm:max-w-xl mb-16"
             style={{ height: "clamp(200px, calc(38vw + 70px), 350px)" }}
           >
             <CarouselWithInfo imagesInfo={imagesInfo} />
-          </div>
+          </div>}
 
           <Typography.Title
             className="font-sedgwick !text-2xl md:!text-3xl border-l-4 border-site-accent pl-2"

@@ -23,6 +23,9 @@ const CAMPOS_TEXTO_LONGOS = new Set<keyof TransversalSettings["textos"]>([
   "naoEncontradoMensagem", "agendaVazia", "noticiasVazias", "livrosVazios", "projetosAnoVazio", "livrosComplementoVazio",
   "integrantesVazios", "espetaculosVazios", "premiosVazios",
 ]);
+const CAMPOS_TEXTO_CURTOS = new Set<keyof TransversalSettings["textos"]>([
+  "domingo", "segunda", "terca", "quarta", "quinta", "sexta", "sabado",
+]);
 const CAMPOS_TEXTO: { campo: keyof TransversalSettings["textos"]; rotulo: string }[] = [
   { campo: "voltar", rotulo: "Rótulo acessível do botão voltar" },
   { campo: "fecharPainel", rotulo: "Rótulo acessível de fechar painel" },
@@ -61,6 +64,18 @@ const CAMPOS_TEXTO: { campo: keyof TransversalSettings["textos"]; rotulo: string
   { campo: "integrantesVazios", rotulo: "Lista de integrantes vazia" },
   { campo: "espetaculosVazios", rotulo: "Lista de espetáculos vazia" },
   { campo: "premiosVazios", rotulo: "Lista de prêmios vazia" },
+  { campo: "mesAnterior", rotulo: "Agenda: mês anterior" },
+  { campo: "proximoMes", rotulo: "Agenda: próximo mês" },
+  { campo: "domingo", rotulo: "Agenda: domingo" },
+  { campo: "segunda", rotulo: "Agenda: segunda-feira" },
+  { campo: "terca", rotulo: "Agenda: terça-feira" },
+  { campo: "quarta", rotulo: "Agenda: quarta-feira" },
+  { campo: "quinta", rotulo: "Agenda: quinta-feira" },
+  { campo: "sexta", rotulo: "Agenda: sexta-feira" },
+  { campo: "sabado", rotulo: "Agenda: sábado" },
+  { campo: "eventoSemCidade", rotulo: "Agenda: evento sem cidade" },
+  { campo: "tituloFichaTecnica", rotulo: "Perfil: título da ficha técnica" },
+  { campo: "tituloBiografia", rotulo: "Perfil: título da biografia" },
 ];
 
 export default function EditorialTransversal() {
@@ -175,7 +190,7 @@ export default function EditorialTransversal() {
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
           {CAMPOS_TEXTO.map(({ campo, rotulo }) => <label key={campo} className="flex flex-col gap-1.5 text-sm font-medium text-slate-700">{rotulo}
-            <input maxLength={CAMPOS_TEXTO_LONGOS.has(campo) ? 300 : 100} className={CLASSE} value={configuracoes.textos[campo]} onChange={(event) => setConfiguracoes({ ...configuracoes, textos: { ...configuracoes.textos, [campo]: event.target.value } })} />
+            <input maxLength={CAMPOS_TEXTO_LONGOS.has(campo) ? 300 : CAMPOS_TEXTO_CURTOS.has(campo) ? 12 : 100} className={CLASSE} value={configuracoes.textos[campo]} onChange={(event) => setConfiguracoes({ ...configuracoes, textos: { ...configuracoes.textos, [campo]: event.target.value } })} />
           </label>)}
         </div>
         <div className="flex justify-end"><button type="submit" disabled={salvando} className="min-h-11 rounded-lg bg-[#412551] px-5 font-semibold text-white disabled:opacity-60">{salvando ? "Salvando…" : "Salvar aparência e textos"}</button></div>
