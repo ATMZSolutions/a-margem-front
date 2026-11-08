@@ -185,7 +185,7 @@ Somente após observação e aceite: remover arrays e cópias de conteúdo do c�
 
 ## Checklist executável
 
-- [ ] E0: confirmar revisão publicada e bancos, gerar inventário/manifesto e conferir histórico Prisma.
+- [ ] E0: manifesto gerado e hashes das 58 fontes/70 mídias conferem com `main` em `c05ce1b`; falta confirmar o SHA do deploy ativo e concluir a identidade/histórico Prisma da origem. Ver [validação E0](../execucao/validacao-e0-publicacao-manifesto-2026-11-08.md).
 - [x] E1: implementar schema aditivo, camada de mídia, provisionamento e CLI com simulação; concluída em staging em 08/11/2026.
 - [x] E2: importar fontes estáticas e banco em staging; verificar arquivos, textos e repetição; concluída para o manifesto registrado em 08/11/2026.
 - [x] E3: integrantes, espetáculos e prêmios integrados ao painel e leitores; smoke de CRUD/SEO/publicação aprovado em staging.
