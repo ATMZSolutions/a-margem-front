@@ -50,9 +50,11 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   return (
     <html lang="pt-BR">
       <body className="w-full min-h-screen bg-site-background text-site-foreground" data-site-font={transversal.tipografia} style={siteStyle}>
+        <SiteTextProvider textos={transversal.textos}>
         <Sidebar items={navegacao} logoUrl={identidade.logo.url ?? "/logo-branca.png"} logoAlt={identidade.logo.alt || `Logo ${identidade.nomePublico}`} logoHref={identidade.destinoLogo} nomePublico={identidade.nomePublico} />
-        <main><SiteTextProvider textos={transversal.textos}>{children}</SiteTextProvider></main>
+        <main>{children}</main>
         <Footer textoCopyright={identidade.textoCopyright} textoDireitos={identidade.textoDireitos} />
+        </SiteTextProvider>
       </body>
     </html>
   );

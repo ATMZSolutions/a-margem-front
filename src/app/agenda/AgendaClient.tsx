@@ -51,7 +51,7 @@ export default function AgendaPage({
         className="min-h-screen w-full flex justify-center items-center"
         style={{ backgroundColor: bgColor }}
       >
-        <div className="text-white">Carregando eventos...</div>
+        <div className="text-white">{textos?.carregando ?? "Carregando…"}</div>
       </div>
     );
   }

@@ -8,6 +8,7 @@ import Contato from "@/components/home/Contato";
 import AgendaHome from "@/components/home/Agenda";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import type { ContactChannel, HomeSectionKey, HomeSettings } from "@/lib/siteContent";
+import { useSiteTexts } from "@/components/SiteTextProvider";
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 30 },
@@ -19,6 +20,7 @@ const fadeUp: Variants = {
 };
 
 export default function HomeClient({ settings, contacts }: { settings: HomeSettings; contacts: ContactChannel[] }) {
+  const textos = useSiteTexts();
   const [atBottom, setAtBottom] = useState(false);
   const sections: Record<HomeSectionKey, ReactNode> = {
     main: <Main settings={settings} />,
@@ -69,7 +71,7 @@ export default function HomeClient({ settings, contacts }: { settings: HomeSetti
       ))}
 
       {!atBottom && <motion.div className="fixed bottom-8 left-1/2 z-50 -translate-x-1/2 animate-bounce text-white" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, repeat: Infinity, repeatType: "mirror" }}><ChevronDown size={28} /></motion.div>}
-      {atBottom && <motion.button className="fixed bottom-28 right-8 z-50 rounded-full bg-site-accent p-3 text-site-primary shadow-lg transition-transform hover:scale-110" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }} aria-label="Voltar ao topo"><ChevronUp size={24} /></motion.button>}
+      {atBottom && <motion.button className="fixed bottom-28 right-8 z-50 rounded-full bg-site-accent p-3 text-site-primary shadow-lg transition-transform hover:scale-110" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }} aria-label={textos?.voltarTopo ?? "Voltar ao topo"}><ChevronUp size={24} /></motion.button>}
     </div>
   );
 }

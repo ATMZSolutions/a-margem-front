@@ -137,7 +137,7 @@ export default function SobreClient({ initialData }: { initialData: Sobre[] }) {
     return (
       <div className="min-h-screen w-full flex justify-center items-center bg-site-primary relative overflow-hidden">
         <div className="absolute inset-0 bg-black/30 backdrop-blur-xl"></div>
-        <div className="text-white z-10">Carregando...</div>
+        <div className="text-white z-10">{textos?.carregando ?? "Carregando…"}</div>
       </div>
     );
   }

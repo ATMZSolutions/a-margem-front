@@ -7,12 +7,14 @@ import Image from "next/image";
 import dynamic from "next/dynamic";
 import { Menu, X } from "lucide-react";
 import type { NavigationItem } from "@/lib/siteContent";
+import { useSiteTexts } from "@/components/SiteTextProvider";
 
 const Drawer = dynamic(() => import("antd").then((module) => module.Drawer), { ssr: false });
 
 export default function Sidebar({ items, logoUrl, logoAlt, logoHref, nomePublico }: { items: NavigationItem[]; logoUrl: string; logoAlt: string; logoHref: string; nomePublico: string }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const textos = useSiteTexts();
 
   if (pathname === "/admin" || pathname.startsWith("/admin/")) return null;
 
@@ -36,7 +38,7 @@ export default function Sidebar({ items, logoUrl, logoAlt, logoHref, nomePublico
         <button
           onClick={() => setOpen(true)}
           className="text-white text-2xl p-2"
-          aria-label="Abrir menu"
+          aria-label={textos?.abrirMenu ?? "Abrir menu"}
         >
           <Menu aria-hidden="true" />
         </button>
@@ -63,7 +65,7 @@ export default function Sidebar({ items, logoUrl, logoAlt, logoHref, nomePublico
           <button
             onClick={() => setOpen(false)}
             className="text-site-accent text-3xl"
-            aria-label="Fechar menu"
+            aria-label={textos?.fecharMenu ?? "Fechar menu"}
           >
             <X aria-hidden="true" />
           </button>

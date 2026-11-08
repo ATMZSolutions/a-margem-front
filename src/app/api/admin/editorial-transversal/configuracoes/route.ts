@@ -9,10 +9,16 @@ import { getPublicTransversalSettings, type TransversalSettings } from "@/lib/si
 const PALETAS = new Set(["margem", "contraste", "terrosa"]);
 const FUNDOS = new Set(["nenhum", "padrao1.webp", "padrao2.webp", "exu-bg.svg"]);
 const TIPOGRAFIAS = new Set(["sistema", "sedgwick", "zen-dots"]);
+const CAMPOS_TEXTO_LONGOS = new Set<keyof TransversalSettings["textos"]>([
+  "naoEncontradoMensagem", "agendaVazia", "noticiasVazias", "livrosVazios", "livrosComplementoVazio",
+  "integrantesVazios", "espetaculosVazios", "premiosVazios",
+]);
 const CAMPOS_TEXTO: (keyof TransversalSettings["textos"])[] = [
   "voltar", "fecharPainel", "saibaMais", "mostrarMais", "lerMais", "lerMenos",
+  "abrirMenu", "fecharMenu", "voltarTopo", "slideAnterior", "proximoSlide", "detalhes", "carregando",
   "tituloAgenda", "tituloNoticias", "tituloIndicacoes", "tituloSobre", "tituloProjetos", "tituloColetivo", "tituloEspetaculos", "tituloPremios",
   "naoEncontradoTitulo", "naoEncontradoMensagem", "agendaVazia", "noticiasVazias", "livrosVazios",
+  "livrosSubtitulo", "livrosComplementoVazio", "integrantesVazios", "espetaculosVazios", "premiosVazios",
 ];
 
 export async function GET(request: Request) {
@@ -32,7 +38,7 @@ export async function PUT(request: Request) {
     || typeof body.fundo !== "string" || !FUNDOS.has(body.fundo)
     || typeof body.tipografia !== "string" || !TIPOGRAFIAS.has(body.tipografia)
     || !textos || typeof textos !== "object" || Array.isArray(textos)
-    || CAMPOS_TEXTO.some((campo) => !isText((textos as Record<string, unknown>)[campo], campo === "naoEncontradoMensagem" || campo.endsWith("Vazia") ? 300 : 100))) {
+    || CAMPOS_TEXTO.some((campo) => !isText((textos as Record<string, unknown>)[campo], CAMPOS_TEXTO_LONGOS.has(campo) ? 300 : 100))) {
     return NextResponse.json({ error: "Aparência ou textos fora dos limites permitidos" }, { status: 400 });
   }
   const dados: TransversalSettings = {

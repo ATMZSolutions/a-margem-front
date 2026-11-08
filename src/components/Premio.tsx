@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion, Variants } from "framer-motion"; 
 import { slugify } from "@/utils/helpers";
 import Image from "next/image";
+import { useSiteTexts } from "@/components/SiteTextProvider";
 
 // Definindo as variantes da animação
 const cardVariants: Variants = {
@@ -31,6 +32,7 @@ const Premio: React.FC<PremioProps> = ({
   slug,
   isSaibaMais = false,
 }) => {
+  const textos = useSiteTexts();
   const titleUpper = title.toUpperCase();
   const href = `/premios/${slug || slugify(title)}/${year}`;
 
@@ -84,7 +86,7 @@ const Premio: React.FC<PremioProps> = ({
             isSaibaMais ? "hidden" : ""
           } w-full text-black p-1 cursor-pointer`}
         >
-          Saiba mais
+          {textos?.saibaMais ?? "Saiba mais"}
         </button>
       </Link>
     </motion.div>

@@ -50,7 +50,7 @@ export default function IndicacoesPage({
         className="min-h-screen w-full flex justify-center items-center"
         style={{ backgroundColor: bgColor, backgroundImage: bgImage.startsWith("var(") ? bgImage : `url(${bgImage})` }}
       >
-        <div className="text-white">Carregando livros...</div>
+        <div className="text-white">{textos?.carregando ?? "Carregando…"}</div>
       </div>
     );
   }
@@ -71,13 +71,13 @@ export default function IndicacoesPage({
       <div className="relative w-full max-w-6xl text-white font-sans mx-4 z-10 mt-16">
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-bold text-site-accent mb-2">{textos?.tituloIndicacoes ?? "Nossa Biblioteca"}</h1>
-          <p className="text-lg text-white/80">Livros Recomendados</p>
+          <p className="text-lg text-white/80">{textos?.livrosSubtitulo ?? "Livros Recomendados"}</p>
         </div>
 
         {livros.length === 0 ? (
           <div className="text-center text-white/70 py-16">
             <p className="text-xl">{textos?.livrosVazios ?? "Nenhum livro disponível no momento."}</p>
-            <p className="text-sm mt-2">Em breve teremos novos títulos para você!</p>
+            <p className="text-sm mt-2">{textos?.livrosComplementoVazio ?? "Em breve teremos novos títulos para você!"}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">

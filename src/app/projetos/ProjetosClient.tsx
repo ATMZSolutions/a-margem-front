@@ -180,7 +180,7 @@ export default function ProjetosClient({ initialData, pagina, fotos }: { initial
                 <AppDrawer
                   open={selectedItem !== null}
                   onClose={onCloseDrawer}
-                  title="Detalhes"
+                  title={textos?.detalhes ?? "Detalhes"}
                   bgColor="var(--site-accent)"
                   contents={selectedItem ? [selectedItem.descricao] : []}
                 />

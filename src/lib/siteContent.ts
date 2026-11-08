@@ -84,10 +84,12 @@ export type TransversalSettings = {
   tipografia: "sistema" | "sedgwick" | "zen-dots";
   textos: {
     voltar: string; fecharPainel: string; saibaMais: string; mostrarMais: string; lerMais: string; lerMenos: string;
+    abrirMenu: string; fecharMenu: string; voltarTopo: string; slideAnterior: string; proximoSlide: string; detalhes: string; carregando: string;
     tituloAgenda: string; tituloNoticias: string; tituloIndicacoes: string; tituloSobre: string;
     tituloProjetos: string; tituloColetivo: string; tituloEspetaculos: string; tituloPremios: string;
     naoEncontradoTitulo: string; naoEncontradoMensagem: string;
     agendaVazia: string; noticiasVazias: string; livrosVazios: string;
+    livrosSubtitulo: string; livrosComplementoVazio: string; integrantesVazios: string; espetaculosVazios: string; premiosVazios: string;
   };
 };
 export type ProjectPhoto = {
@@ -213,10 +215,13 @@ const DEFAULT_TRANSVERSAL: TransversalSettings = {
   tipografia: "sistema",
   textos: {
     voltar: "Voltar", fecharPainel: "Fechar painel", saibaMais: "Saiba mais", mostrarMais: "Mostrar mais", lerMais: "Ler mais", lerMenos: "Ler menos",
+    abrirMenu: "Abrir menu", fecharMenu: "Fechar menu", voltarTopo: "Voltar ao topo", slideAnterior: "Slide anterior", proximoSlide: "Próximo slide", detalhes: "Detalhes", carregando: "Carregando…",
     tituloAgenda: "Agenda", tituloNoticias: "Notícias", tituloIndicacoes: "Livros", tituloSobre: "Sobre nós",
     tituloProjetos: "Projetos", tituloColetivo: "Integrantes", tituloEspetaculos: "Espetáculos", tituloPremios: "Prêmios",
     naoEncontradoTitulo: "404", naoEncontradoMensagem: "Seção não encontrada.",
     agendaVazia: "Nenhum evento encontrado.", noticiasVazias: "Nenhuma notícia encontrada.", livrosVazios: "Nenhum livro disponível no momento.",
+    livrosSubtitulo: "Livros Recomendados", livrosComplementoVazio: "Em breve teremos novos títulos para você!",
+    integrantesVazios: "Nenhum integrante publicado no momento.", espetaculosVazios: "Nenhum espetáculo publicado no momento.", premiosVazios: "Nenhum prêmio publicado no momento.",
   },
 };
 
@@ -299,6 +304,13 @@ export async function getPublicTransversalSettings(): Promise<TransversalSetting
       mostrarMais: textOr(textos.mostrarMais, DEFAULT_TRANSVERSAL.textos.mostrarMais, 100),
       lerMais: textOr(textos.lerMais, DEFAULT_TRANSVERSAL.textos.lerMais, 100),
       lerMenos: textOr(textos.lerMenos, DEFAULT_TRANSVERSAL.textos.lerMenos, 100),
+      abrirMenu: textOr(textos.abrirMenu, DEFAULT_TRANSVERSAL.textos.abrirMenu, 100),
+      fecharMenu: textOr(textos.fecharMenu, DEFAULT_TRANSVERSAL.textos.fecharMenu, 100),
+      voltarTopo: textOr(textos.voltarTopo, DEFAULT_TRANSVERSAL.textos.voltarTopo, 100),
+      slideAnterior: textOr(textos.slideAnterior, DEFAULT_TRANSVERSAL.textos.slideAnterior, 100),
+      proximoSlide: textOr(textos.proximoSlide, DEFAULT_TRANSVERSAL.textos.proximoSlide, 100),
+      detalhes: textOr(textos.detalhes, DEFAULT_TRANSVERSAL.textos.detalhes, 100),
+      carregando: textOr(textos.carregando, DEFAULT_TRANSVERSAL.textos.carregando, 100),
       tituloAgenda: textOr(textos.tituloAgenda, DEFAULT_TRANSVERSAL.textos.tituloAgenda, 100),
       tituloNoticias: textOr(textos.tituloNoticias, DEFAULT_TRANSVERSAL.textos.tituloNoticias, 100),
       tituloIndicacoes: textOr(textos.tituloIndicacoes, DEFAULT_TRANSVERSAL.textos.tituloIndicacoes, 100),
@@ -312,6 +324,11 @@ export async function getPublicTransversalSettings(): Promise<TransversalSetting
       agendaVazia: textOr(textos.agendaVazia, DEFAULT_TRANSVERSAL.textos.agendaVazia, 300),
       noticiasVazias: textOr(textos.noticiasVazias, DEFAULT_TRANSVERSAL.textos.noticiasVazias, 300),
       livrosVazios: textOr(textos.livrosVazios, DEFAULT_TRANSVERSAL.textos.livrosVazios, 300),
+      livrosSubtitulo: textOr(textos.livrosSubtitulo, DEFAULT_TRANSVERSAL.textos.livrosSubtitulo, 100),
+      livrosComplementoVazio: textOr(textos.livrosComplementoVazio, DEFAULT_TRANSVERSAL.textos.livrosComplementoVazio, 300),
+      integrantesVazios: textOr(textos.integrantesVazios, DEFAULT_TRANSVERSAL.textos.integrantesVazios, 300),
+      espetaculosVazios: textOr(textos.espetaculosVazios, DEFAULT_TRANSVERSAL.textos.espetaculosVazios, 300),
+      premiosVazios: textOr(textos.premiosVazios, DEFAULT_TRANSVERSAL.textos.premiosVazios, 300),
     },
   };
 }

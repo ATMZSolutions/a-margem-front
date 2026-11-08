@@ -19,6 +19,10 @@ const CLASSE = "min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3
 const ESTADOS: { valor: Estado; rotulo: string }[] = [
   { valor: "RASCUNHO", rotulo: "Rascunho" }, { valor: "PUBLICADO", rotulo: "Publicado" }, { valor: "ARQUIVADO", rotulo: "Arquivado" },
 ];
+const CAMPOS_TEXTO_LONGOS = new Set<keyof TransversalSettings["textos"]>([
+  "naoEncontradoMensagem", "agendaVazia", "noticiasVazias", "livrosVazios", "livrosComplementoVazio",
+  "integrantesVazios", "espetaculosVazios", "premiosVazios",
+]);
 const CAMPOS_TEXTO: { campo: keyof TransversalSettings["textos"]; rotulo: string }[] = [
   { campo: "voltar", rotulo: "Rótulo acessível do botão voltar" },
   { campo: "fecharPainel", rotulo: "Rótulo acessível de fechar painel" },
@@ -26,6 +30,13 @@ const CAMPOS_TEXTO: { campo: keyof TransversalSettings["textos"]; rotulo: string
   { campo: "mostrarMais", rotulo: "Botão mostrar mais" },
   { campo: "lerMais", rotulo: "Expandir biografia" },
   { campo: "lerMenos", rotulo: "Recolher biografia" },
+  { campo: "abrirMenu", rotulo: "Rótulo acessível para abrir o menu" },
+  { campo: "fecharMenu", rotulo: "Rótulo acessível para fechar o menu" },
+  { campo: "voltarTopo", rotulo: "Rótulo acessível para voltar ao topo" },
+  { campo: "slideAnterior", rotulo: "Rótulo acessível do slide anterior" },
+  { campo: "proximoSlide", rotulo: "Rótulo acessível do próximo slide" },
+  { campo: "detalhes", rotulo: "Título de detalhes" },
+  { campo: "carregando", rotulo: "Mensagem de carregamento" },
   { campo: "tituloAgenda", rotulo: "Título de navegação: agenda" },
   { campo: "tituloNoticias", rotulo: "Título de navegação: notícias" },
   { campo: "tituloIndicacoes", rotulo: "Título de navegação: indicações" },
@@ -39,6 +50,11 @@ const CAMPOS_TEXTO: { campo: keyof TransversalSettings["textos"]; rotulo: string
   { campo: "agendaVazia", rotulo: "Lista de agenda vazia" },
   { campo: "noticiasVazias", rotulo: "Lista de notícias vazia" },
   { campo: "livrosVazios", rotulo: "Lista de indicações vazia" },
+  { campo: "livrosSubtitulo", rotulo: "Subtítulo das indicações" },
+  { campo: "livrosComplementoVazio", rotulo: "Complemento da lista de indicações vazia" },
+  { campo: "integrantesVazios", rotulo: "Lista de integrantes vazia" },
+  { campo: "espetaculosVazios", rotulo: "Lista de espetáculos vazia" },
+  { campo: "premiosVazios", rotulo: "Lista de prêmios vazia" },
 ];
 
 export default function EditorialTransversal() {
@@ -153,7 +169,7 @@ export default function EditorialTransversal() {
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
           {CAMPOS_TEXTO.map(({ campo, rotulo }) => <label key={campo} className="flex flex-col gap-1.5 text-sm font-medium text-slate-700">{rotulo}
-            <input maxLength={campo === "naoEncontradoMensagem" || campo.endsWith("Vazia") ? 300 : 100} className={CLASSE} value={configuracoes.textos[campo]} onChange={(event) => setConfiguracoes({ ...configuracoes, textos: { ...configuracoes.textos, [campo]: event.target.value } })} />
+            <input maxLength={CAMPOS_TEXTO_LONGOS.has(campo) ? 300 : 100} className={CLASSE} value={configuracoes.textos[campo]} onChange={(event) => setConfiguracoes({ ...configuracoes, textos: { ...configuracoes.textos, [campo]: event.target.value } })} />
           </label>)}
         </div>
         <div className="flex justify-end"><button type="submit" disabled={salvando} className="min-h-11 rounded-lg bg-[#412551] px-5 font-semibold text-white disabled:opacity-60">{salvando ? "Salvando…" : "Salvar aparência e textos"}</button></div>

@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { LeftOutlined, RightOutlined } from "@ant-design/icons";
+import { useSiteTexts } from "@/components/SiteTextProvider";
 
 interface TopButtonProps {
   show?: boolean;
@@ -19,6 +20,7 @@ interface PhotoCarouselProps {
 }
 
 export default function PhotoCarousel({ images = [], imageAlts = [], topButton, onIndexChange }: PhotoCarouselProps) {
+  const textos = useSiteTexts();
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const prevSlide = () => {
@@ -53,7 +55,7 @@ export default function PhotoCarousel({ images = [], imageAlts = [], topButton, 
       <button
         onClick={prevSlide}
         className="absolute left-0 sm:-left-10 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center text-white text-2xl sm:text-3xl z-20 focus:outline-none"
-        aria-label="Previous slide"
+        aria-label={textos?.slideAnterior ?? "Slide anterior"}
       >
         <LeftOutlined />
       </button>
@@ -74,7 +76,7 @@ export default function PhotoCarousel({ images = [], imageAlts = [], topButton, 
       <button
         onClick={nextSlide}
         className="absolute right-0 sm:-right-10 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center text-white text-2xl sm:text-3xl z-20 focus:outline-none"
-        aria-label="Next slide"
+        aria-label={textos?.proximoSlide ?? "Próximo slide"}
       >
         <RightOutlined />
       </button>

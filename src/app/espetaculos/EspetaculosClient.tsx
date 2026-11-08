@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion, Variants } from "framer-motion";
 import type { EspetaculoPublico } from "@/lib/publicContent";
+import { useSiteTexts } from "@/components/SiteTextProvider";
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -17,6 +18,7 @@ const itemVariants: Variants = {
 };
 
 export default function EspetaculosClient({ espetaculos }: { espetaculos: EspetaculoPublico[] }) {
+  const textos = useSiteTexts();
   const ordenados = [...espetaculos].sort((a, b) => a.ordem - b.ordem || b.release.localeCompare(a.release));
 
   return (
@@ -26,7 +28,7 @@ export default function EspetaculosClient({ espetaculos }: { espetaculos: Espeta
     >
       <BackBtn label="Espetáculos" textKey="tituloEspetaculos" color="text-black" />
       {ordenados.length === 0 ? (
-        <p className="mt-40 text-center text-black">Nenhum espetáculo publicado no momento.</p>
+        <p className="mt-40 text-center text-black">{textos?.espetaculosVazios ?? "Nenhum espetáculo publicado no momento."}</p>
       ) : (
         <motion.div
           className="max-w-xl md:max-w-2xl mt-40 flex flex-col gap-12"

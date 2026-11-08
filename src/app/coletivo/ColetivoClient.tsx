@@ -5,6 +5,7 @@ import { motion, Variants, easeOut } from "framer-motion";
 import BackBtn from "@/components/BackBtn";
 import IntegranteCard from "@/components/IntegranteCard";
 import type { IntegrantePublico } from "@/lib/publicContent";
+import { useSiteTexts } from "@/components/SiteTextProvider";
 
 const cardVariant: Variants = {
   hidden: { opacity: 0, y: 30 },
@@ -17,6 +18,7 @@ const cardVariant: Variants = {
 
 export default function ColetivoClient({ integrantes }: { integrantes: IntegrantePublico[] }) {
   const router = useRouter();
+  const textos = useSiteTexts();
 
   return (
     <section
@@ -25,7 +27,7 @@ export default function ColetivoClient({ integrantes }: { integrantes: Integrant
     >
       <BackBtn label="Integrantes" textKey="tituloColetivo" />
       {integrantes.length === 0 ? (
-        <p className="mt-40 text-center">Nenhum integrante publicado no momento.</p>
+        <p className="mt-40 text-center">{textos?.integrantesVazios ?? "Nenhum integrante publicado no momento."}</p>
       ) : (
         <div className="w-full max-w-3xl mt-40 grid grid-cols-2 sm:grid-cols-3 gap-6">
           {integrantes.map((integrante, index) => (
