@@ -55,6 +55,19 @@ describe("cache administrativo", () => {
     expect(lerDadosCacheados("admin:projetos")).toEqual(["atual"]);
   });
 
+  it("não remove uma entrada nova quando uma busca antiga invalidada falha", async () => {
+    let rejeitarAntigo!: (erro: Error) => void;
+    const buscaAntiga = obterDadosCacheados("admin:eventos", () => new Promise<string[]>((_, rejeitar) => { rejeitarAntigo = rejeitar; }));
+    const assertivaAntiga = expect(buscaAntiga).rejects.toThrow("antiga");
+
+    invalidarDadosCacheados("admin:eventos");
+    await obterDadosCacheados("admin:eventos", async () => ["atual"]);
+    rejeitarAntigo(new Error("antiga"));
+    await assertivaAntiga;
+
+    expect(lerDadosCacheados("admin:eventos")).toEqual(["atual"]);
+  });
+
   it("limpa todas as entradas ao encerrar a sessão", async () => {
     await obterDadosCacheados("admin:agenda", async () => [1]);
     await obterDadosCacheados("admin:noticias", async () => [2]);

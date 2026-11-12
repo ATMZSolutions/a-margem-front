@@ -121,6 +121,48 @@ describe("rotas de autenticação administrativa", () => {
     vi.useRealTimers();
   });
 
+  it("usa endereço desconhecido, corpo ausente e corpos JSON que não são objetos", async () => {
+    const semCorpo = new Request("https://amargem.test/api/admin/auth", {
+      method: "POST",
+      headers: { origin: "https://amargem.test", "content-type": "application/json" },
+    });
+    expect((await POST(semCorpo)).status).toBe(401);
+    for (const corpo of ["null", "[]", "5"]) expect((await POST(requisicaoLogin(corpo))).status).toBe(401);
+    expect((await POST(requisicaoLogin({}, { "x-forwarded-for": ", 1.1.1.1" }))).status).toBe(401);
+  });
+
+  it("bloqueia por uma hora quando quinze tentativas simultâneas falham", async () => {
+    const tentar = () => POST(requisicaoLogin({ username: "e", password: "e" }, { "x-forwarded-for": "7.7.7.7" }));
+    const respostas = await Promise.all(Array.from({ length: 15 }, tentar));
+    expect(respostas.every((resposta) => resposta.status === 401)).toBe(true);
+    const bloqueada = await tentar();
+    expect(bloqueada.status).toBe(429);
+    expect(Number(bloqueada.headers.get("retry-after"))).toBeGreaterThan(3500);
+  });
+
+  it("poda registros expirados mantendo os bloqueados e limita o mapa a cinco mil", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-11-07T12:00:00.000Z"));
+    const tentar = (ip: string) => POST(requisicaoLogin({ username: "e", password: "e" }, { "x-forwarded-for": ip }));
+
+    for (let i = 0; i < 5; i += 1) await tentar("bloqueado");
+    for (let i = 0; i < 5; i += 1) {
+      await vi.advanceTimersByTimeAsync(61_000);
+      await tentar("bloqueado");
+    }
+    for (let i = 0; i < 2001; i += 1) await tentar(`a${i}`);
+    await vi.advanceTimersByTimeAsync(15 * 60 * 1000 - 5 * 61_000 + 1);
+    expect((await tentar("novo")).status).toBe(401);
+    expect((await tentar("bloqueado")).status).toBe(429);
+
+    // Agora as janelas dos endereços "a*" também expiraram e devem ser removidas.
+    await vi.advanceTimersByTimeAsync(6 * 60 * 1000);
+    expect((await tentar("novo2")).status).toBe(401);
+
+    for (let i = 0; i < 5001; i += 1) await tentar(`b${i}`);
+    expect((await tentar("depois")).status).toBe(401);
+  }, 20_000);
+
   it("limpa o cookie ao sair e bloqueia logout entre origens", async () => {
     mocks.mesmaOrigem.mockReturnValue(false);
     expect((await DELETE(new Request("https://amargem.test/api/admin/auth", { method: "DELETE" }))).status).toBe(403);
