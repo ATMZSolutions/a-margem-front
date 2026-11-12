@@ -69,6 +69,42 @@ describe('snapshot do banco sem gravação', () => {
 });
 
 
+describe('cobertura adicional do banco', () => {
+  it('rejeita blob inválido', async () => {
+    const cliente = clienteDeTeste();
+    const base = cliente.query.getMockImplementation();
+    cliente.query.mockImplementation(async (sql) => sql.includes('FROM public."Livro"') ? { rows: [{ id: 1, imagem: 'texto' }] } : base(sql));
+    await expect(lerBancoSomenteLeitura(cliente)).rejects.toThrow('Blob inválido');
+  });
+  it('trata ausência de tabela de migrações', async () => {
+    for (const rows of [[{ tabela: null }], []]) {
+      const cliente = clienteDeTeste();
+      const base = cliente.query.getMockImplementation();
+      cliente.query.mockImplementation(async (sql) => sql.includes('to_regclass') ? { rows } : base(sql));
+      const resultado = await lerBancoSomenteLeitura(cliente);
+      expect(resultado.historicoPresente).toBe(false);
+      expect(resultado.migracoes).toEqual([]);
+    }
+  });
+  it('valida sslmode e usa cliente padrão', async () => {
+    const usar = async (url) => { const f = vi.fn(() => clienteDeTeste()); await conectarELerBanco(url, f); return f.mock.calls[0][0]; };
+    expect((await usar('postgres://u:s@localhost/b?sslmode=require')).ssl).toEqual({ rejectUnauthorized: false });
+    expect((await usar('postgres://u:s@x.supabase.co/b?sslmode=prefer')).ssl).toEqual({ rejectUnauthorized: false });
+    expect((await usar('postgres://u:s@x.supabase.co/b')).ssl).toEqual({ rejectUnauthorized: false });
+    expect((await usar('postgres://u:s@localhost/b?sslmode=prefer')).ssl).toBeUndefined();
+    expect((await usar('postgres://u:s@localhost/b?sslmode=verify-full')).ssl).toBeUndefined();
+    expect((await usar('postgres://u:s@localhost/b')).ssl).toBeUndefined();
+    await expect(conectarELerBanco('postgres://u:s@localhost/b?sslmode=xyz')).rejects.toThrow('sslmode da origem inválido');
+    await expect(conectarELerBanco('não é url')).rejects.toThrow('inválida');
+    await expect(conectarELerBanco('postgres://u:s@127.0.0.1:1/b?sslmode=disable')).rejects.toThrow('Falha na leitura da origem');
+  });
+  it('aceita migrações consistentes e revertidas', () => {
+    const resultado = conferirHistorico({ historicoPresente: true, migracoes: [{ migration_name: 'a', checksum: 'x', finished_at: 'ok' }, { migration_name: 'b', checksum: 'y', finished_at: null, rolled_back_at: 'r' }] }, [{ nome: 'a', sha256: 'x' }, { nome: 'b', sha256: 'y' }]);
+    expect(resultado.problemas).toEqual([]);
+    expect(resultado.locaisPendentes).toEqual(['b']);
+  });
+});
+
 it('reconcilia histórico local/remoto e bloqueia baseline ausente ou checksum divergente', () => {
   expect(conferirHistorico({ historicoPresente: false, migracoes: [] }, [{ nome: 'nova', sha256: 'a' }]).problemas[0]).toContain('baseline');
   const resultado = conferirHistorico({ historicoPresente: true, migracoes: [{ migration_name: 'inicial', checksum: 'alterado', finished_at: null }, { migration_name: 'remota', checksum: 'a', finished_at: 'ontem' }] }, [{ nome: 'inicial', sha256: 'a' }]);
