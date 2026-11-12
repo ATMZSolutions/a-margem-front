@@ -1,4 +1,4 @@
-name: Testes do admin
+name: Testes e CI
 
 on:
   pull_request:
@@ -9,20 +9,41 @@ on:
 
 jobs:
   testes:
-    name: Testes e cobertura
+    name: Verificações e Testes
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: "postgresql://dummy:dummy@localhost:5432/dummy"
+      ADMIN_SECRET: "ci-admin-secret-key-12345"
+      ADMIN_PASSWORD: "ci-admin-password"
     steps:
       - name: Baixar o repositório
         uses: actions/checkout@v4
+
       - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
+
       - name: Ativar Corepack
         run: corepack enable
+
       - name: Confirmar versão do Yarn
         run: yarn --version
+
       - name: Instalar dependências
         run: yarn install --immutable
+
+      - name: Gerar cliente Prisma
+        run: yarn generate
+
+      - name: Checagem de tipos (TypeScript)
+        run: yarn tsc --noEmit
+
+      - name: Verificação de Lint (ESLint)
+        run: yarn lint
+
       - name: Executar testes com cobertura
         run: yarn test:coverage
+
+      - name: Validar build de produção
+        run: yarn build

@@ -1,5 +1,5 @@
 // tailwind.config.ts
-export default {
+const config = {
   theme: {
     extend: {
       fontFamily: {
@@ -9,3 +9,5 @@ export default {
     },
   },
 };
+
+export default config;
