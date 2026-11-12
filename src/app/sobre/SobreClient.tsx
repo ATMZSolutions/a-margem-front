@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useRef, useLayoutEffect, useEffect } from "react";
 import { ConfigProvider, Timeline, Typography } from "antd";
@@ -82,7 +82,7 @@ export default function SobreClient({ initialData }: { initialData: Sobre[] }) {
             <Image
               key={`img-${item.ano}`}
               src={item.imageUrl} // ðŸ”¥ sem Date.now() pra permitir cache local
-              alt={`Evento de ${item.ano} - Coletivo Ã€ Margem`}
+              alt={`Fotografia de um evento do Coletivo À Margem em ${item.ano}`}
               fill
               sizes="(max-width: 768px) 90vw, 50vw"
               unoptimized

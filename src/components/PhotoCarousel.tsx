@@ -54,7 +54,7 @@ export default function PhotoCarousel({ images = [], imageAlts = [], topButton, 
       {/* Botão esquerdo */}
       <button
         onClick={prevSlide}
-        className="absolute left-0 sm:-left-10 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center text-white text-2xl sm:text-3xl z-20 focus:outline-none"
+        className="absolute left-0 sm:-left-10 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center text-white text-2xl sm:text-3xl z-20 rounded focus:outline-none focus-visible:ring-4 focus-visible:ring-site-accent focus-visible:ring-offset-2 focus-visible:ring-offset-black"
         aria-label={textos?.slideAnterior ?? "Slide anterior"}
       >
         <LeftOutlined />
@@ -75,7 +75,7 @@ export default function PhotoCarousel({ images = [], imageAlts = [], topButton, 
       {/* Botão direito */}
       <button
         onClick={nextSlide}
-        className="absolute right-0 sm:-right-10 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center text-white text-2xl sm:text-3xl z-20 focus:outline-none"
+        className="absolute right-0 sm:-right-10 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center text-white text-2xl sm:text-3xl z-20 rounded focus:outline-none focus-visible:ring-4 focus-visible:ring-site-accent focus-visible:ring-offset-2 focus-visible:ring-offset-black"
         aria-label={textos?.proximoSlide ?? "Próximo slide"}
       >
         <RightOutlined />

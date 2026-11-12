@@ -10,6 +10,12 @@
   --color-site-primary: var(--site-primary);
 }
 
+html,
+body {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
 body {
   background-color: var(--site-background, #000000);
   background-image: var(--site-background-image, none);

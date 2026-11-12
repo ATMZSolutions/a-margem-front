@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
-import { motion, Variants } from "framer-motion";
+import { motion, useReducedMotion, Variants } from "framer-motion";
 import Main from "@/components/home/Main";
 import Sobre from "@/components/home/Sobre";
 import Contato from "@/components/home/Contato";
@@ -21,6 +21,7 @@ const fadeUp: Variants = {
 
 export default function HomeClient({ settings, contacts }: { settings: HomeSettings; contacts: ContactChannel[] }) {
   const textos = useSiteTexts();
+  const reduzirMovimento = useReducedMotion();
   const [atBottom, setAtBottom] = useState(false);
   const sections: Record<HomeSectionKey, ReactNode> = {
     main: <Main settings={settings} />,
@@ -70,7 +71,7 @@ export default function HomeClient({ settings, contacts }: { settings: HomeSetti
         </motion.div>
       ))}
 
-      {!atBottom && <motion.div className="fixed bottom-8 left-1/2 z-50 -translate-x-1/2 animate-bounce text-white" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, repeat: Infinity, repeatType: "mirror" }}><ChevronDown size={28} /></motion.div>}
+      {!atBottom && <motion.div className="fixed bottom-8 left-1/2 z-50 -translate-x-1/2 motion-safe:animate-bounce text-white" initial={{ opacity: reduzirMovimento ? 1 : 0 }} animate={{ opacity: 1 }} transition={reduzirMovimento ? { duration: 0 } : { duration: 0.5, repeat: Infinity, repeatType: "mirror" }}><ChevronDown size={28} /></motion.div>}
       {atBottom && <motion.button className="fixed bottom-28 right-8 z-50 rounded-full bg-site-accent p-3 text-site-primary shadow-lg transition-transform hover:scale-110" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }} aria-label={textos?.voltarTopo ?? "Voltar ao topo"}><ChevronUp size={24} /></motion.button>}
     </div>
   );
