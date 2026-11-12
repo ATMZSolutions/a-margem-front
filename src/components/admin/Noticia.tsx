@@ -3,6 +3,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import NoticiaCard from "./subcomponents/NoticiaCard";
 import EstadoLista from "./EstadoLista";
 import CabecalhoSecao from "./CabecalhoSecao";
+import ModalAdmin from "./ModalAdmin";
+import CampoAdmin from "./CampoAdmin";
 import { Button, ConfigProvider, Input, Modal, Pagination } from "antd";
 import { buscarJsonAdministrativo, invalidarDadosCacheados, lerDadosCacheados, obterDadosCacheados } from "@/lib/cache-administrativo";
 
@@ -26,7 +28,8 @@ const AdminNoticia = () => {
     );
     const [modal, contextHolder] = Modal.useModal();
     const [loading, setLoading] = useState(false);
-    const [dataLoading, setDataLoading] = useState<boolean>(dadosIniciais === undefined)
+    const [dataLoading, setDataLoading] = useState<boolean>(dadosIniciais === undefined);
+    const [falhaCarga, setFalhaCarga] = useState<boolean>(false);
     const [processingEdit, setProcessingEdit] = useState(false);
     const [mostrarFormulario, setMostrarFormulario] = useState(false);
 
@@ -50,6 +53,8 @@ const AdminNoticia = () => {
 
     const load = useCallback(async (forcarAtualizacao = false) => {
         if (forcarAtualizacao) invalidarDadosCacheados("admin:noticias");
+        setDataLoading(true);
+        setFalhaCarga(false);
         try {
             const n = await obterDadosCacheados("admin:noticias", () =>
                 buscarJsonAdministrativo<NoticiaItem[]>("/api/admin/noticias")
@@ -57,6 +62,7 @@ const AdminNoticia = () => {
             setNoticias(n || []);
         } catch (error) {
             console.error("Falha ao carregar notícias:", error);
+            setFalhaCarga(true);
             modal.error({ title: "Erro", content: "Falha ao carregar notícias." });
         } finally {
             setDataLoading(false)
@@ -108,8 +114,9 @@ const AdminNoticia = () => {
         modal.confirm({
             title: "Confirmar exclusão",
             content: "Tem certeza que deseja excluir esta notícia?",
-            okText: "Sim",
+            okText: "Sim, excluir",
             cancelText: "Cancelar",
+            okButtonProps: { danger: true },
             onOk: async () => {
                 try {
                     const res = await fetch("/api/admin/noticias?id=" + id, { method: "DELETE" });
@@ -148,9 +155,12 @@ const AdminNoticia = () => {
         setEditingNoticia(null);
     }
 
+    function fecharFormularioCriacao() {
+        setMostrarFormulario(false);
+    }
+
     async function updateNoticia(e: React.FormEvent) {
         e.preventDefault();
-        if (!editingNoticia) return;
         setProcessingEdit(true);
         try {
             const res = await fetch("/api/admin/noticias", {
@@ -186,9 +196,15 @@ const AdminNoticia = () => {
 
     return (
         <section className="space-y-4" aria-labelledby="admin-secao-titulo">
-            <CabecalhoSecao titulo="Notícias" descricao="Compartilhe novidades e publicações do coletivo." acao="Nova notícia" aberto={mostrarFormulario} aoAlternar={() => setMostrarFormulario((visivel) => !visivel)} />
-            <div className="w-full rounded-xl border border-slate-300 bg-white p-4 sm:p-6 2xl:p-5">
-            {contextHolder}
+            <CabecalhoSecao
+                titulo="Notícias"
+                descricao="Compartilhe novidades e publicações do coletivo."
+                acao="Nova notícia"
+                aberto={false}
+                desabilitado={falhaCarga}
+                aoAlternar={() => setMostrarFormulario(true)}
+            />
+            <div className="w-full min-w-0 max-w-full overflow-hidden rounded-xl border border-slate-300 bg-white p-4 sm:p-6 2xl:p-5">
             <ConfigProvider
                 theme={{
                     components: {
@@ -219,53 +235,131 @@ const AdminNoticia = () => {
                     },
                 }}
             >
-                {mostrarFormulario && <form
-                    onSubmit={createNoticia}
-                    className="my-5 flex flex-col gap-4 rounded-xl border border-slate-200 bg-slate-50 p-4 text-slate-900 sm:p-5"
+                {contextHolder}
+                {/* Modal de Criação */}
+                <ModalAdmin
+                    aberto={mostrarFormulario}
+                    aoFechar={fecharFormularioCriacao}
+                    titulo="Nova notícia"
+                    descricao="Preencha os campos abaixo para publicar uma notícia no site."
                 >
-                    <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-700">Título
-                    <input
-                        required
-                        value={newNoticia.titulo}
-                        onChange={(e) =>
-                            setNewNoticia({ ...newNoticia, titulo: e.target.value })
-                        }
-                        className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 text-base text-slate-900 focus:border-[#412551] focus:outline-none focus:ring-2 focus:ring-[#412551]/20"
-                    />
-                    </label>
-                    <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-700">Conteúdo
-                    <textarea
-                        required
-                        value={newNoticia.conteudo}
-                        onChange={(e) =>
-                            setNewNoticia({ ...newNoticia, conteudo: e.target.value })
-                        }
-                        rows={6}
-                        className="min-h-36 rounded-lg border border-slate-300 bg-white px-3 py-2 text-base text-slate-900 focus:border-[#412551] focus:outline-none focus:ring-2 focus:ring-[#412551]/20"
-                    />
-                    </label>
-                    <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-700">Link
-                    <input
-                        type="url"
-                        required
-                        value={newNoticia.link || ""}
-                        onChange={(e) =>
-                            setNewNoticia({ ...newNoticia, link: e.target.value })
-                        }
-                        className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 text-base text-slate-900 placeholder:text-slate-400 focus:border-[#412551] focus:outline-none focus:ring-2 focus:ring-[#412551]/20"
-                    />
-                    </label>
-                    <Button
-                        type="primary"
-                        htmlType="submit"
-                        loading={loading}
-                        style={{ padding: 18, fontSize: '16px', borderRadius: '4px' }}
-                    >
-                        Publicar notícia
-                    </Button>
-                </form>}
+                    <form onSubmit={createNoticia} className="space-y-4">
+                        <CampoAdmin
+                            id="noticia-titulo"
+                            label="Título"
+                            required
+                            maxLen={200}
+                            proibirHtml
+                            value={newNoticia.titulo}
+                            onChange={(val) => setNewNoticia({ ...newNoticia, titulo: val })}
+                            placeholder="Ex: Espetáculo estreia no Teatro..."
+                        />
+                        <CampoAdmin
+                            id="noticia-conteudo"
+                            label="Conteúdo"
+                            tipo="textarea"
+                            required
+                            linhas={6}
+                            maxLen={10000}
+                            proibirHtml
+                            value={newNoticia.conteudo}
+                            onChange={(val) => setNewNoticia({ ...newNoticia, conteudo: val })}
+                            placeholder="Conteúdo da notícia..."
+                        />
+                        <CampoAdmin
+                            id="noticia-link"
+                            label="Link"
+                            tipo="url"
+                            required
+                            maxLen={1000}
+                            value={newNoticia.link || ""}
+                            onChange={(val) => setNewNoticia({ ...newNoticia, link: val })}
+                            placeholder="https://..."
+                            ajuda="URL pública onde a notícia foi publicada."
+                        />
+                        <div className="flex flex-wrap justify-end gap-2 pt-3 border-t border-slate-200">
+                            <Button
+                                onClick={fecharFormularioCriacao}
+                                disabled={loading}
+                                className="min-h-11"
+                            >
+                                Cancelar
+                            </Button>
+                            <Button
+                                type="primary"
+                                htmlType="submit"
+                                loading={loading}
+                                className="min-h-11 px-5"
+                            >
+                                Publicar notícia
+                            </Button>
+                        </div>
+                    </form>
+                </ModalAdmin>
 
-                {noticias.length > 0 && (
+                {/* Modal de Edição */}
+                <ModalAdmin
+                    aberto={Boolean(editingNoticia)}
+                    aoFechar={cancelEditNoticia}
+                    titulo="Editar notícia"
+                    descricao="Atualize os dados e confirme para salvar as alterações."
+                >
+                    {editingNoticia && (
+                        <form onSubmit={updateNoticia} className="space-y-4">
+                            <CampoAdmin
+                                id="noticia-edit-titulo"
+                                label="Título"
+                                required
+                                maxLen={200}
+                                proibirHtml
+                                value={editingNoticia.titulo}
+                                onChange={(val) => setEditingNoticia({ ...editingNoticia, titulo: val })}
+                                placeholder="Título da notícia"
+                            />
+                            <CampoAdmin
+                                id="noticia-edit-conteudo"
+                                label="Conteúdo"
+                                tipo="textarea"
+                                required
+                                linhas={6}
+                                maxLen={10000}
+                                proibirHtml
+                                value={editingNoticia.conteudo}
+                                onChange={(val) => setEditingNoticia({ ...editingNoticia, conteudo: val })}
+                                placeholder="Conteúdo da notícia"
+                            />
+                            <CampoAdmin
+                                id="noticia-edit-link"
+                                label="Link"
+                                tipo="url"
+                                required
+                                maxLen={1000}
+                                value={editingNoticia.link || ""}
+                                onChange={(val) => setEditingNoticia({ ...editingNoticia, link: val })}
+                                placeholder="https://..."
+                            />
+                            <div className="flex flex-wrap justify-end gap-2 pt-3 border-t border-slate-200">
+                                <Button
+                                    onClick={cancelEditNoticia}
+                                    disabled={processingEdit}
+                                    className="min-h-11"
+                                >
+                                    Cancelar
+                                </Button>
+                                <Button
+                                    type="primary"
+                                    htmlType="submit"
+                                    loading={processingEdit}
+                                    className="min-h-11 px-5"
+                                >
+                                    Salvar alterações
+                                </Button>
+                            </div>
+                        </form>
+                    )}
+                </ModalAdmin>
+
+                {!falhaCarga && noticias.length > 0 && (
                     <div className="my-4">
                         <div className="flex items-center justify-between mb-2">
                             <h3 className="text-lg font-bold text-[#19121d]">Notícias cadastradas</h3>
@@ -292,27 +386,40 @@ const AdminNoticia = () => {
                 )}
 
                 {/* Lista de notícias */}
-                {currentNoticias.length > 0 ? (
-                    <ul className="divide-y divide-slate-300 border-t border-slate-300">
+                {dataLoading ? (
+                    <EstadoLista
+                        carregando={true}
+                        buscando={false}
+                        mensagemVazia=""
+                    />
+                ) : falhaCarga ? (
+                    <div className="py-8 text-center space-y-3">
+                        <p role="alert" className="text-sm font-medium text-red-700">
+                            Não foi possível carregar as notícias.
+                        </p>
+                        <button
+                            type="button"
+                            onClick={() => void load(true)}
+                            className="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-[#412551] hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#412551]"
+                        >
+                            Tentar novamente
+                        </button>
+                    </div>
+                ) : currentNoticias.length > 0 ? (
+                    <ul className="w-full min-w-0 max-w-full divide-y divide-slate-300 border-t border-slate-300">
                         {currentNoticias.map((n) => (
                             <NoticiaCard
                                 key={n.id}
-                                noticia={editingNoticia?.id === n.id ? editingNoticia! : n}
-                                isEditing={editingNoticia?.id === n.id}
+                                noticia={n}
                                 processingEdit={processingEdit}
                                 onEditStart={startEditNoticia}
-                                onEditCancel={cancelEditNoticia}
-                                onEditChange={(updates) =>
-                                    setEditingNoticia((prev) => (prev ? { ...prev, ...updates } : prev))
-                                }
-                                onEditSubmit={updateNoticia}
                                 onDelete={deleteNoticia}
                             />
                         ))}
                     </ul>
                 ) : (
                     <EstadoLista
-                        carregando={dataLoading}
+                        carregando={false}
                         buscando={Boolean(filter)}
                         mensagemVazia="Ainda não há notícias. Crie a primeira para começar."
                         textoAcao="Criar primeira notícia"

@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import type { ButtonHTMLAttributes, InputHTMLAttributes, PropsWithChildren, ReactNode } from "react";
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import { limparCacheAdministrativo } from "@/lib/cache-administrativo";
 import AdminNoticia from "./Noticia";
 
@@ -40,11 +40,29 @@ vi.mock("antd", () => {
     ConfigProvider: Provedor,
     Input: { Search: Busca },
     Modal: { useModal: () => [mocks.modal, null] },
-    Pagination: () => null,
+    Pagination: ({ total, pageSize, onChange }: { total: number; pageSize: number; onChange: (pagina: number) => void }) => (
+      <nav>
+        {Array.from({ length: Math.ceil(total / pageSize) }, (_, indice) => (
+          <button key={indice} type="button" onClick={() => onChange(indice + 1)}>{`Página ${indice + 1}`}</button>
+        ))}
+      </nav>
+    ),
   };
 });
 
-type NoticiaTeste = { id: number; titulo: string; conteudo: string; link: string };
+const capturado = vi.hoisted(() => ({ props: null as null | Record<string, (...args: never[]) => unknown> }));
+
+vi.mock("./subcomponents/NoticiaCard", async (importOriginal) => {
+  const Original = (await importOriginal<typeof import("./subcomponents/NoticiaCard")>()).default;
+  return {
+    default: (props: React.ComponentProps<typeof Original>) => {
+      capturado.props = props as unknown as typeof capturado.props;
+      return <Original {...props} />;
+    },
+  };
+});
+
+type NoticiaTeste = { id?: number; titulo: string; conteudo: string; link: string };
 
 function respostaJson(dados: unknown, status = 200) {
   return new Response(JSON.stringify(dados), { status, headers: { "content-type": "application/json" } });
@@ -52,7 +70,7 @@ function respostaJson(dados: unknown, status = 200) {
 
 describe("fluxo de notícias no painel", () => {
   let noticias: NoticiaTeste[];
-  let buscar: ReturnType<typeof vi.fn>;
+  let buscar: Mock<(endereco: RequestInfo | URL, opcoes?: RequestInit) => Promise<Response>>;
 
   beforeEach(() => {
     limparCacheAdministrativo();
@@ -140,5 +158,109 @@ describe("fluxo de notícias no painel", () => {
     buscar.mockRejectedValueOnce(new Error("sem conexão"));
     render(<AdminNoticia />);
     await waitFor(() => expect(mocks.modal.error).toHaveBeenCalled());
+    expect(await screen.findByRole("alert")).toHaveTextContent("Não foi possível carregar as notícias.");
+    expect(screen.queryByText("Ainda não há notícias. Crie a primeira para começar.")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Nova notícia" })).toBeDisabled();
+
+    // Recupera pelo botão Tentar novamente
+    await usuario.click(screen.getByRole("button", { name: "Tentar novamente" }));
+    expect(await screen.findByRole("heading", { name: "Agenda cultural" })).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Nova notícia" })).toBeEnabled();
+  });
+
+  function falharMetodo(metodo: string) {
+    const original = buscar.getMockImplementation()!;
+    buscar.mockImplementation(async (endereco: RequestInfo | URL, opcoes?: RequestInit) =>
+      opcoes?.method === metodo ? respostaJson({}, 500) : original(endereco, opcoes));
+  }
+
+  it("informa erro quando criar notícia falha", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    falharMetodo("POST");
+    const usuario = userEvent.setup();
+    render(<AdminNoticia />);
+    await usuario.click(await screen.findByRole("button", { name: "Nova notícia" }));
+    await usuario.type(screen.getByLabelText("Título"), "T");
+    await usuario.type(screen.getByLabelText("Conteúdo"), "C");
+    await usuario.type(screen.getByLabelText("Link"), "https://amargem.test/x");
+    await usuario.click(screen.getByRole("button", { name: "Publicar notícia" }));
+    await waitFor(() => expect(mocks.modal.error).toHaveBeenCalledWith(expect.objectContaining({ content: "Não foi possível criar a notícia." })));
+  });
+
+  it("cancela a edição e informa erro quando atualizar falha", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    noticias = [{ id: 1, titulo: "Original", conteudo: "Texto", link: "https://amargem.test/o" }];
+    falharMetodo("PUT");
+    const usuario = userEvent.setup();
+    render(<AdminNoticia />);
+    await usuario.click(await screen.findByRole("button", { name: "Editar" }));
+    await usuario.click(screen.getByRole("button", { name: "Cancelar" }));
+    expect(screen.getByRole("heading", { name: "Original" })).toBeInTheDocument();
+
+    await usuario.click(screen.getByRole("button", { name: "Editar" }));
+    await usuario.click(screen.getByRole("button", { name: "Salvar alterações" }));
+    await waitFor(() => expect(mocks.modal.error).toHaveBeenCalledWith(expect.objectContaining({ content: "Não foi possível atualizar a notícia." })));
+  });
+
+  it("ignora exclusão sem identificador", async () => {
+    noticias = [{ id: 1, titulo: "Com id", conteudo: "A", link: "" }];
+    render(<AdminNoticia />);
+    await screen.findByRole("heading", { name: "Com id" });
+
+    await act(async () => {
+      await (capturado.props!.onDelete as (id?: number) => Promise<void>)(undefined);
+    });
+    expect(mocks.modal.confirm).not.toHaveBeenCalled();
+    expect(buscar).not.toHaveBeenCalledWith("/api/admin/noticias", expect.objectContaining({ method: "PUT" }));
+  });
+
+  it("trata resposta nula como lista vazia", async () => {
+    buscar.mockImplementation(async () => respostaJson(null));
+    render(<AdminNoticia />);
+    expect(await screen.findByText("Ainda não há notícias. Crie a primeira para começar.")).toBeInTheDocument();
+  });
+
+  it("abre o formulário pelo estado vazio e limpa o filtro", async () => {
+    const usuario = userEvent.setup();
+    const { unmount } = render(<AdminNoticia />);
+    await usuario.click(await screen.findByRole("button", { name: "Criar primeira notícia" }));
+    expect(screen.getByLabelText("Título")).toBeInTheDocument();
+    await usuario.click(screen.getByRole("button", { name: "Cancelar" }));
+    expect(screen.queryByLabelText("Título")).not.toBeInTheDocument();
+    unmount();
+
+    limparCacheAdministrativo();
+    noticias = [{ id: 1, titulo: "Agenda", conteudo: "A", link: "" }];
+    render(<AdminNoticia />);
+    await usuario.type(await screen.findByRole("textbox", { name: "Buscar notícias por título" }), "xyz");
+    await usuario.click(screen.getByRole("button", { name: "Limpar filtro" }));
+    expect(screen.getByRole("heading", { name: "Agenda" })).toBeInTheDocument();
+  });
+
+  it("volta à página anterior ao excluir o último item e trata falha na exclusão", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    noticias = [1, 2, 3, 4].map((id) => ({ id, titulo: `Notícia ${id}`, conteudo: "x", link: "" }));
+    buscar.mockImplementation(async (_endereco: RequestInfo | URL, opcoes?: RequestInit) => {
+      if (opcoes?.method === "DELETE") {
+        if (opcoes.method === "DELETE" && String(_endereco).endsWith("id=4")) {
+          noticias = noticias.filter((n) => n.id !== 4);
+          return respostaJson({ ok: true });
+        }
+        return respostaJson({}, 500);
+      }
+      return respostaJson(noticias);
+    });
+    const usuario = userEvent.setup();
+    render(<AdminNoticia />);
+    await usuario.click(await screen.findByRole("button", { name: "Página 2" }));
+    expect(screen.getByRole("heading", { name: "Notícia 4" })).toBeInTheDocument();
+    await usuario.click(screen.getByRole("button", { name: "Excluir" }));
+    await (mocks.modal.confirm.mock.calls.at(-1)?.[0] as { onOk: () => Promise<void> }).onOk();
+    expect(await screen.findByRole("heading", { name: "Notícia 1" })).toBeInTheDocument();
+
+    await usuario.click(screen.getAllByRole("button", { name: "Excluir" })[0]);
+    await (mocks.modal.confirm.mock.calls.at(-1)?.[0] as { onOk: () => Promise<void> }).onOk();
+    expect(mocks.modal.error).toHaveBeenCalledWith(expect.objectContaining({ content: "Não foi possível excluir a notícia." }));
   });
 });

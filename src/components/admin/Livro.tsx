@@ -5,6 +5,8 @@ import { Button, ConfigProvider, Input, Modal, Pagination } from "antd";
 import LivroCard from "./subcomponents/LivroCard";
 import EstadoLista from "./EstadoLista";
 import CabecalhoSecao from "./CabecalhoSecao";
+import ModalAdmin from "./ModalAdmin";
+import CampoAdmin from "./CampoAdmin";
 import CampoImagemAdmin from "./campo-imagem-admin";
 import { buscarJsonAdministrativo, invalidarDadosCacheados, lerDadosCacheados, obterDadosCacheados } from "@/lib/cache-administrativo";
 
@@ -40,6 +42,7 @@ const AdminLivro = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const editFileInputRef = useRef<HTMLInputElement>(null);
     const [dataLoading, setDataLoading] = useState<boolean>(dadosIniciais === undefined);
+    const [falhaCarga, setFalhaCarga] = useState<boolean>(false);
     const [mostrarFormulario, setMostrarFormulario] = useState(false);
 
     // --- Lógica de Filtro e Paginação ---
@@ -58,6 +61,8 @@ const AdminLivro = () => {
     // --- Carregamento de Dados ---
     const load = useCallback(async (forcarAtualizacao = false) => {
         if (forcarAtualizacao) invalidarDadosCacheados("admin:livros");
+        setDataLoading(true);
+        setFalhaCarga(false);
         try {
             const livrosComImagens = await obterDadosCacheados("admin:livros", async () => {
                 const livros = await buscarJsonAdministrativo<LivroItem[]>("/api/admin/livros");
@@ -69,6 +74,7 @@ const AdminLivro = () => {
             setLivros(livrosComImagens || []);
         } catch (error) {
             console.error("Falha ao carregar livros:", error);
+            setFalhaCarga(true);
             modal.error({ title: "Erro", content: "Falha ao carregar livros." });
         } finally {
             setDataLoading(false)
@@ -158,8 +164,9 @@ const AdminLivro = () => {
         modal.confirm({
             title: "Confirmar exclusão",
             content: "Tem certeza que deseja excluir este livro?",
-            okText: "Sim",
+            okText: "Sim, excluir",
             cancelText: "Cancelar",
+            okButtonProps: { danger: true },
             onOk: async () => {
                 try {
                     const res = await fetch("/api/admin/livros?id=" + id, { method: "DELETE" });
@@ -221,9 +228,15 @@ const AdminLivro = () => {
 
     return (
         <section className="space-y-4" aria-labelledby="admin-secao-titulo">
-            <CabecalhoSecao titulo="Livros" descricao="Cadastre obras e referências ligadas ao coletivo." acao="Novo livro" aberto={mostrarFormulario} aoAlternar={() => setMostrarFormulario((visivel) => !visivel)} />
-            <div className="w-full rounded-xl border border-slate-300 bg-white p-4 sm:p-6 2xl:p-5">
-            {contextHolder}
+            <CabecalhoSecao
+                titulo="Livros"
+                descricao="Cadastre obras e referências ligadas ao coletivo."
+                acao="Novo livro"
+                aberto={false}
+                desabilitado={falhaCarga}
+                aoAlternar={() => setMostrarFormulario(true)}
+            />
+            <div className="w-full min-w-0 max-w-full overflow-hidden rounded-xl border border-slate-300 bg-white p-4 sm:p-6 2xl:p-5">
             <ConfigProvider
                 theme={{
                     components: {
@@ -254,59 +267,162 @@ const AdminLivro = () => {
                     },
                 }}
             >
-                {/* Formulário de criação */}
-                {mostrarFormulario && <form onSubmit={createLivro} className="my-5 space-y-4 rounded-xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-700">Título
-                        <input
+                {contextHolder}
+                {/* Modal de Criação */}
+                <ModalAdmin
+                    aberto={mostrarFormulario}
+                    aoFechar={() => setMostrarFormulario(false)}
+                    titulo="Novo livro"
+                    descricao="Preencha os campos abaixo para cadastrar uma nova obra."
+                >
+                    <form onSubmit={createLivro} className="space-y-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <CampoAdmin
+                                id="livro-titulo"
+                                label="Título"
+                                required
+                                maxLen={200}
+                                minLen={2}
+                                proibirHtml
+                                value={newLivro.titulo}
+                                onChange={(val) => setNewLivro({ ...newLivro, titulo: val })}
+                                placeholder="Título da obra"
+                            />
+                            <CampoAdmin
+                                id="livro-autor"
+                                label="Autor"
+                                required
+                                maxLen={200}
+                                minLen={2}
+                                proibirHtml
+                                value={newLivro.autor}
+                                onChange={(val) => setNewLivro({ ...newLivro, autor: val })}
+                                placeholder="Nome do autor(a)"
+                            />
+                        </div>
+                        <CampoAdmin
+                            id="livro-descricao"
+                            label="Descrição"
+                            tipo="textarea"
                             required
-                            value={newLivro.titulo}
-                            onChange={(e) => setNewLivro({ ...newLivro, titulo: e.target.value })}
-                            className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 text-base text-slate-900 focus:border-[#412551] focus:outline-none focus:ring-2 focus:ring-[#412551]/20"
+                            linhas={4}
+                            maxLen={2000}
+                            minLen={5}
+                            value={newLivro.descricao}
+                            onChange={(val) => setNewLivro({ ...newLivro, descricao: val })}
+                            placeholder="Sinopse ou apresentação da obra..."
                         />
-                        </label>
-                        <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-700">Autor
-                        <input
-                            required
-                            value={newLivro.autor}
-                            onChange={(e) => setNewLivro({ ...newLivro, autor: e.target.value })}
-                            className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 text-base text-slate-900 focus:border-[#412551] focus:outline-none focus:ring-2 focus:ring-[#412551]/20"
+                        <CampoImagemAdmin
+                            id="imagem-livro"
+                            titulo="Capa do livro"
+                            ajuda="Escolha uma imagem para identificar a obra."
+                            imagem={newLivro.imagem}
+                            textoAlternativo="Prévia da capa do livro"
+                            aspecto="retrato"
+                            obrigatoria
+                            enviando={uploadingImage}
+                            referencia={fileInputRef}
+                            aoSelecionar={(e) => handleImageUpload(e, "new")}
                         />
-                        </label>
-                    </div>
-                    <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-700">Descrição
-                    <textarea
-                        required
-                        value={newLivro.descricao}
-                        onChange={(e) => setNewLivro({ ...newLivro, descricao: e.target.value })}
-                        className="w-full min-h-28 rounded-lg border border-slate-300 bg-white px-3 py-2 text-base text-slate-900 focus:border-[#412551] focus:outline-none focus:ring-2 focus:ring-[#412551]/20"
-                        rows={4}
-                    />
-                    </label>
-                    <CampoImagemAdmin
-                        id="imagem-livro"
-                        titulo="Capa do livro"
-                        ajuda="Escolha uma imagem para identificar a obra."
-                        imagem={newLivro.imagem}
-                        textoAlternativo="Prévia da capa do livro"
-                        aspecto="retrato"
-                        obrigatoria
-                        enviando={uploadingImage}
-                        referencia={fileInputRef}
-                        aoSelecionar={(e) => handleImageUpload(e, "new")}
-                    />
-                    <Button
-                        type="primary"
-                        style={{ padding: 18, fontSize: '16px', borderRadius: '4px', width: '100%' }}
-                        htmlType="submit"
-                        loading={loading || uploadingImage}
-                    >
-                        Publicar livro
-                    </Button>
-                </form>}
+                        <div className="flex flex-wrap justify-end gap-2 pt-3 border-t border-slate-200">
+                            <Button
+                                onClick={() => setMostrarFormulario(false)}
+                                disabled={loading || uploadingImage}
+                                className="min-h-11"
+                            >
+                                Cancelar
+                            </Button>
+                            <Button
+                                type="primary"
+                                htmlType="submit"
+                                loading={loading || uploadingImage}
+                                className="min-h-11 px-5"
+                            >
+                                Publicar livro
+                            </Button>
+                        </div>
+                    </form>
+                </ModalAdmin>
+
+                {/* Modal de Edição */}
+                <ModalAdmin
+                    aberto={Boolean(editingLivro)}
+                    aoFechar={() => setEditingLivro(null)}
+                    titulo="Editar livro"
+                    descricao="Atualize os dados da obra e confirme para salvar as alterações."
+                >
+                    {editingLivro && (
+                        <form onSubmit={updateLivro} className="space-y-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <CampoAdmin
+                                    id="livro-edit-titulo"
+                                    label="Título"
+                                    required
+                                    maxLen={200}
+                                    minLen={2}
+                                    proibirHtml
+                                    value={editingLivro.titulo}
+                                    onChange={(val) => setEditingLivro({ ...editingLivro, titulo: val })}
+                                    placeholder="Título da obra"
+                                />
+                                <CampoAdmin
+                                    id="livro-edit-autor"
+                                    label="Autor"
+                                    required
+                                    maxLen={200}
+                                    minLen={2}
+                                    proibirHtml
+                                    value={editingLivro.autor}
+                                    onChange={(val) => setEditingLivro({ ...editingLivro, autor: val })}
+                                    placeholder="Nome do autor(a)"
+                                />
+                            </div>
+                            <CampoAdmin
+                                id="livro-edit-descricao"
+                                label="Descrição"
+                                tipo="textarea"
+                                required
+                                linhas={4}
+                                maxLen={2000}
+                                minLen={5}
+                                value={editingLivro.descricao}
+                                onChange={(val) => setEditingLivro({ ...editingLivro, descricao: val })}
+                                placeholder="Sinopse da obra"
+                            />
+                            <CampoImagemAdmin
+                                id={`imagem-livro-${editingLivro.id}`}
+                                titulo="Capa do livro"
+                                ajuda={editingLivro.imagem ? "Imagem atual. Selecione outro arquivo para substituí-la." : "Escolha uma imagem para identificar a obra."}
+                                imagem={editingLivro.imagem}
+                                textoAlternativo={`Prévia da capa de ${editingLivro.titulo}`}
+                                aspecto="retrato"
+                                enviando={uploadingImage}
+                                referencia={editFileInputRef}
+                                aoSelecionar={(e) => handleImageUpload(e, 'edit')}
+                            />
+                            <div className="flex flex-wrap justify-end gap-2 pt-3 border-t border-slate-200">
+                                <Button
+                                    onClick={() => setEditingLivro(null)}
+                                    disabled={processingEdit || uploadingImage}
+                                    className="min-h-11"
+                                >
+                                    Cancelar
+                                </Button>
+                                <Button
+                                    type="primary"
+                                    htmlType="submit"
+                                    loading={processingEdit}
+                                    className="min-h-11 px-5"
+                                >
+                                    Salvar alterações
+                                </Button>
+                            </div>
+                        </form>
+                    )}
+                </ModalAdmin>
 
                 {/* Lista de livros */}
-                {livros.length > 0 && (
+                {!falhaCarga && livros.length > 0 && (
                     <div className="my-4">
                         <div className="flex items-center justify-between mb-2">
                             <h3 className="text-lg font-bold text-[#19121d]">Livros cadastrados</h3>
@@ -333,28 +449,40 @@ const AdminLivro = () => {
                 )}
 
                 {/* Lista de livros */}
-                {currentLivros.length > 0 ? (
-                    <ul className="divide-y divide-slate-300 border-t border-slate-300">
+                {dataLoading ? (
+                    <EstadoLista
+                        carregando={true}
+                        buscando={false}
+                        mensagemVazia=""
+                    />
+                ) : falhaCarga ? (
+                    <div className="py-8 text-center space-y-3">
+                        <p role="alert" className="text-sm font-medium text-red-700">
+                            Não foi possível carregar os livros.
+                        </p>
+                        <button
+                            type="button"
+                            onClick={() => void load(true)}
+                            className="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-[#412551] hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#412551]"
+                        >
+                            Tentar novamente
+                        </button>
+                    </div>
+                ) : currentLivros.length > 0 ? (
+                    <ul className="w-full min-w-0 max-w-full divide-y divide-slate-300 border-t border-slate-300">
                         {currentLivros.map((l) => (
                             <LivroCard
                                 key={l.id}
-                                editFileRef={editFileInputRef}
-                                livro={editingLivro?.id === l.id ? editingLivro! : l}
-                                isEditing={editingLivro?.id === l.id}
+                                livro={l}
                                 processingEdit={processingEdit}
-                                uploadingImage={uploadingImage}
                                 onEditStart={setEditingLivro}
-                                onEditCancel={() => setEditingLivro(null)}
-                                onEditChange={(updates) => setEditingLivro(prev => prev ? { ...prev, ...updates } : null)}
-                                onEditImageChange={(e) => handleImageUpload(e, 'edit')}
-                                onEditSubmit={updateLivro}
                                 onDelete={deleteLivro}
                             />
                         ))}
                     </ul>
                 ) : (
                     <EstadoLista
-                        carregando={dataLoading}
+                        carregando={false}
                         buscando={Boolean(filter)}
                         mensagemVazia="Ainda não há livros. Cadastre o primeiro para começar."
                         textoAcao="Cadastrar primeiro livro"

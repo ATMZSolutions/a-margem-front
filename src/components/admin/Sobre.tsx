@@ -4,6 +4,7 @@ import { Button, ConfigProvider, Input, Modal, Pagination } from "antd";
 import SobreCard from "./subcomponents/SobreCard";
 import EstadoLista from "./EstadoLista";
 import CabecalhoSecao from "./CabecalhoSecao";
+import ModalAdmin from "./ModalAdmin";
 import CampoImagemAdmin from "./campo-imagem-admin";
 import { buscarJsonAdministrativo, invalidarDadosCacheados, lerDadosCacheados, obterDadosCacheados } from "@/lib/cache-administrativo";
 
@@ -31,6 +32,7 @@ const AdminSobre = () => {
     // --- Estados ---
     const [loading, setLoading] = useState(false);
     const [dataLoading, setDataLoading] = useState<boolean>(dadosIniciais === undefined);
+    const [falhaCarga, setFalhaCarga] = useState<boolean>(false);
     const [modal, contextHolder] = Modal.useModal();
     const [filter, setFilter] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
@@ -56,6 +58,8 @@ const AdminSobre = () => {
 
     const load = useCallback(async (forcarAtualizacao = false) => {
         if (forcarAtualizacao) invalidarDadosCacheados("admin:sobre");
+        setDataLoading(true);
+        setFalhaCarga(false);
         try {
             const sobresComImagens = await obterDadosCacheados("admin:sobre", async () => {
                 const sobres = await buscarJsonAdministrativo<SobreItem[]>("/api/admin/sobre");
@@ -67,6 +71,7 @@ const AdminSobre = () => {
             setSobres(sobresComImagens || []);
         } catch (error) {
             console.error("Falha ao carregar sobre:", error);
+            setFalhaCarga(true);
             modal.error({ title: "Erro", content: "Falha ao carregar sobre." });
         } finally {
             setDataLoading(false)
@@ -162,8 +167,9 @@ const AdminSobre = () => {
         modal.confirm({
             title: "Confirmar exclusão",
             content: "Tem certeza que deseja excluir este item do Sobre Nós?",
-            okText: "Sim",
+            okText: "Sim, excluir",
             cancelText: "Cancelar",
+            okButtonProps: { danger: true },
             onOk: async () => {
                 try {
                     const res = await fetch("/api/admin/sobre?ano=" + ano, { method: "DELETE" });
@@ -227,9 +233,15 @@ const AdminSobre = () => {
 
     return (
         <section className="space-y-4" aria-labelledby="admin-secao-titulo">
-            <CabecalhoSecao titulo="Sobre" descricao="Registre a história e a trajetória do coletivo." acao="Novo registro" aberto={mostrarFormulario} aoAlternar={() => setMostrarFormulario((visivel) => !visivel)} />
-            <div className="w-full rounded-xl border border-slate-300 bg-white p-4 sm:p-6 2xl:p-5">
-            {contextHolder}
+            <CabecalhoSecao
+                titulo="Sobre"
+                descricao="Registre a história e a trajetória do coletivo."
+                acao="Novo registro"
+                aberto={false}
+                desabilitado={falhaCarga}
+                aoAlternar={() => setMostrarFormulario(true)}
+            />
+            <div className="w-full min-w-0 max-w-full overflow-hidden rounded-xl border border-slate-300 bg-white p-4 sm:p-6 2xl:p-5">
             <ConfigProvider
                 theme={{
                     components: {
@@ -260,53 +272,128 @@ const AdminSobre = () => {
                     },
                 }}
             >
-                {/* Formulário de criação */}
-                {mostrarFormulario && <form onSubmit={createSobre} className="my-5 space-y-4 rounded-xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
-                    <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-700">Ano
-                    <input
-                        required
-                        type="number"
-                        value={newSobre.ano}
-                        onChange={(e) =>
-                            setNewSobre({ ...newSobre, ano: parseInt(e.target.value) })
-                        }
-                        className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-base text-slate-900 focus:border-[#412551] focus:outline-none focus:ring-2 focus:ring-[#412551]/20"
-                    />
-                    </label>
-                    <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-700">Descrição
-                    <textarea
-                        required
-                        value={newSobre.descricao}
-                        onChange={(e) =>
-                            setNewSobre({ ...newSobre, descricao: e.target.value })
-                        }
-                        className="min-h-28 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-base text-slate-900 focus:border-[#412551] focus:outline-none focus:ring-2 focus:ring-[#412551]/20"
-                        rows={4}
-                    />
-                    </label>
-                    <CampoImagemAdmin
-                        id="imagem-sobre"
-                        titulo="Imagem"
-                        ajuda="Escolha uma imagem para acompanhar este registro."
-                        imagem={newSobre.imagem}
-                        textoAlternativo="Prévia da imagem sobre o coletivo"
-                        obrigatoria
-                        enviando={uploadingSobreImage}
-                        referencia={fileInputRef}
-                        aoSelecionar={(e) => handleSobreImageUpload(e, "new")}
-                    />
-                    <Button
-                        type="primary"
-                        style={{ padding: 18, fontSize: '16px', borderRadius: '4px', width: '100%' }}
-                        htmlType="submit"
-                        loading={loading || uploadingSobreImage}
-                    >
-                        Publicar registro
-                    </Button>
-                </form>}
+                {contextHolder}
+                {/* Modal de Criação */}
+                <ModalAdmin
+                    aberto={mostrarFormulario}
+                    aoFechar={() => setMostrarFormulario(false)}
+                    titulo="Novo registro histórico"
+                    descricao="Preencha os campos abaixo para registrar um marco histórico do coletivo."
+                >
+                    <form onSubmit={createSobre} className="space-y-4">
+                        <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-700">Ano
+                        <input
+                            required
+                            type="number"
+                            value={newSobre.ano}
+                            onChange={(e) =>
+                                setNewSobre({ ...newSobre, ano: parseInt(e.target.value) })
+                            }
+                            className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-base text-slate-900 focus:border-[#412551] focus:outline-none focus:ring-2 focus:ring-[#412551]/20"
+                        />
+                        </label>
+                        <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-700">Descrição
+                        <textarea
+                            required
+                            value={newSobre.descricao}
+                            onChange={(e) =>
+                                setNewSobre({ ...newSobre, descricao: e.target.value })
+                            }
+                            className="min-h-28 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-base text-slate-900 focus:border-[#412551] focus:outline-none focus:ring-2 focus:ring-[#412551]/20"
+                            rows={4}
+                        />
+                        </label>
+                        <CampoImagemAdmin
+                            id="imagem-sobre"
+                            titulo="Imagem"
+                            ajuda="Escolha uma imagem para acompanhar este registro."
+                            imagem={newSobre.imagem}
+                            textoAlternativo="Prévia da imagem sobre o coletivo"
+                            obrigatoria
+                            enviando={uploadingSobreImage}
+                            referencia={fileInputRef}
+                            aoSelecionar={(e) => handleSobreImageUpload(e, "new")}
+                        />
+                        <div className="flex flex-wrap justify-end gap-2 pt-3 border-t border-slate-200">
+                            <Button
+                                onClick={() => setMostrarFormulario(false)}
+                                disabled={loading || uploadingSobreImage}
+                                className="min-h-11"
+                            >
+                                Cancelar
+                            </Button>
+                            <Button
+                                type="primary"
+                                htmlType="submit"
+                                loading={loading || uploadingSobreImage}
+                                className="min-h-11 px-5"
+                            >
+                                Publicar registro
+                            </Button>
+                        </div>
+                    </form>
+                </ModalAdmin>
+
+                {/* Modal de Edição */}
+                <ModalAdmin
+                    aberto={Boolean(editingSobre)}
+                    aoFechar={() => setEditingSobre(null)}
+                    titulo="Editar registro histórico"
+                    descricao="Atualize os dados e confirme para salvar as alterações."
+                >
+                    {editingSobre && (
+                        <form onSubmit={updateSobre} className="space-y-4">
+                            <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-700">Ano
+                            <input
+                                required
+                                type="number"
+                                value={editingSobre.ano}
+                                onChange={(e) => setEditingSobre({ ...editingSobre, ano: parseInt(e.target.value) })}
+                                className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-base text-slate-900 focus:border-[#412551] focus:outline-none focus:ring-2 focus:ring-[#412551]/20"
+                            />
+                            </label>
+                            <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-700">Descrição
+                            <textarea
+                                required
+                                value={editingSobre.descricao}
+                                onChange={(e) => setEditingSobre({ ...editingSobre, descricao: e.target.value })}
+                                className="min-h-28 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-base text-slate-900 focus:border-[#412551] focus:outline-none focus:ring-2 focus:ring-[#412551]/20"
+                                rows={4}
+                            />
+                            </label>
+                            <CampoImagemAdmin
+                                id={`imagem-sobre-${editingSobre.ano}`}
+                                titulo="Imagem"
+                                ajuda={editingSobre.imagem ? "Imagem atual. Selecione outro arquivo para substituí-la." : "Escolha uma imagem para acompanhar este registro."}
+                                imagem={editingSobre.imagem}
+                                textoAlternativo={`Prévia da imagem de ${editingSobre.ano}`}
+                                enviando={uploadingSobreImage}
+                                referencia={editFileInputRef}
+                                aoSelecionar={(e) => handleSobreImageUpload(e, 'edit')}
+                            />
+                            <div className="flex flex-wrap justify-end gap-2 pt-3 border-t border-slate-200">
+                                <Button
+                                    onClick={() => setEditingSobre(null)}
+                                    disabled={processingEdit || uploadingSobreImage}
+                                    className="min-h-11"
+                                >
+                                    Cancelar
+                                </Button>
+                                <Button
+                                    type="primary"
+                                    htmlType="submit"
+                                    loading={processingEdit}
+                                    className="min-h-11 px-5"
+                                >
+                                    Salvar alterações
+                                </Button>
+                            </div>
+                        </form>
+                    )}
+                </ModalAdmin>
 
                 {/* Filtro e lista de sobre */}
-                {sobres.length > 0 && (
+                {!falhaCarga && sobres.length > 0 && (
                     <div className="my-4">
                         <div className="flex items-center justify-between mb-2">
                             <h3 className="text-lg font-bold text-[#19121d]">Registros cadastrados</h3>
@@ -333,28 +420,40 @@ const AdminSobre = () => {
                 )}
 
                 {/* Lista de sobre usando SobreCard */}
-                {currentSobres.length > 0 ? (
-                    <ul className="divide-y divide-slate-300 border-t border-slate-300">
+                {dataLoading ? (
+                    <EstadoLista
+                        carregando={true}
+                        buscando={false}
+                        mensagemVazia=""
+                    />
+                ) : falhaCarga ? (
+                    <div className="py-8 text-center space-y-3">
+                        <p role="alert" className="text-sm font-medium text-red-700">
+                            Não foi possível carregar os registros.
+                        </p>
+                        <button
+                            type="button"
+                            onClick={() => void load(true)}
+                            className="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-[#412551] hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#412551]"
+                        >
+                            Tentar novamente
+                        </button>
+                    </div>
+                ) : currentSobres.length > 0 ? (
+                    <ul className="w-full min-w-0 max-w-full divide-y divide-slate-300 border-t border-slate-300">
                         {currentSobres.map((s) => (
                             <SobreCard
                                 key={s.ano}
-                                editFileRef={editFileInputRef}
-                                sobre={editingSobre?.ano === s.ano ? editingSobre! : s}
-                                isEditing={editingSobre?.ano === s.ano}
+                                sobre={s}
                                 processingEdit={processingEdit}
-                                uploadingImage={uploadingSobreImage}
                                 onEditStart={setEditingSobre}
-                                onEditCancel={() => setEditingSobre(null)}
-                                onEditChange={(updates) => setEditingSobre(prev => prev ? { ...prev, ...updates } : null)}
-                                onEditImageChange={(e) => handleSobreImageUpload(e, 'edit')}
-                                onEditSubmit={updateSobre}
                                 onDelete={deleteSobre}
                             />
                         ))}
                     </ul>
                 ) : (
                     <EstadoLista
-                        carregando={dataLoading}
+                        carregando={false}
                         buscando={Boolean(filter)}
                         mensagemVazia="Ainda não há registros. Crie o primeiro para começar."
                         textoAcao="Criar primeiro registro"
