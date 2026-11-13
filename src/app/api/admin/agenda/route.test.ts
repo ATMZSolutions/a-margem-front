@@ -106,4 +106,19 @@ describe("API administrativa da agenda", () => {
       expect((await DELETE(requisicao("DELETE", undefined, `/api/admin/agenda?id=${id}`))).status).toBe(400);
     }
   });
+
+  it("devolve a negativa de autorização em todos os métodos sem tocar nos dados", async () => {
+    for (const [metodo, handler] of [["GET", GET], ["POST", POST], ["PUT", PUT], ["DELETE", DELETE]] as const) {
+      mocks.autorizar.mockResolvedValueOnce(new Response(null, { status: 401 }));
+      expect((await handler(requisicao(metodo, metodo === "POST" || metodo === "PUT" ? {} : undefined))).status).toBe(401);
+    }
+    expect(mocks.criar).not.toHaveBeenCalled();
+    expect(mocks.atualizar).not.toHaveBeenCalled();
+    expect(mocks.excluir).not.toHaveBeenCalled();
+  });
+
+  it("recusa exclusão sem identificador", async () => {
+    expect((await DELETE(requisicao("DELETE"))).status).toBe(400);
+    expect(mocks.excluir).not.toHaveBeenCalled();
+  });
 });

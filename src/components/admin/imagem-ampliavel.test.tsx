@@ -65,4 +65,17 @@ describe("ImagemAmpliavel", () => {
     fireEvent.error(screen.getByAltText("Foto do coletivo"));
     expect(screen.queryByRole("status", { name: "Carregando imagem" })).not.toBeInTheDocument();
   });
+
+  it("mantém o foco no botão de fechar com Tab, ignora outras teclas e cliques dentro do diálogo", async () => {
+    const usuario = userEvent.setup();
+    renderizarImagem();
+    await usuario.click(screen.getByRole("button", { name: "Ampliar imagem: Foto do coletivo" }));
+    const fechar = screen.getByRole("button", { name: "Fechar imagem ampliada" });
+
+    await usuario.keyboard("{Tab}");
+    expect(fechar).toHaveFocus();
+    await usuario.keyboard("a");
+    fireEvent.mouseDown(screen.getByRole("dialog"));
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+  });
 });

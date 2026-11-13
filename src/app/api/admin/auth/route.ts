@@ -54,9 +54,8 @@ function getRateLimit(address: string) {
       if (now - value.windowStartedAt > WINDOW_MS && value.blockedUntil < now) attemptsByAddress.delete(key);
     }
     while (attemptsByAddress.size > 5000) {
-      const oldest = attemptsByAddress.keys().next().value;
-      if (!oldest) break;
-      attemptsByAddress.delete(oldest);
+      // O mapa nunca está vazio aqui (size > 5000), então há sempre uma chave mais antiga.
+      attemptsByAddress.delete(attemptsByAddress.keys().next().value as string);
     }
   }
   return record;

@@ -3,6 +3,8 @@ import { Button, ConfigProvider, Input, Modal, Pagination } from "antd";
 import { useCallback, useEffect, useState } from "react";
 import EstadoLista from "./EstadoLista";
 import CabecalhoSecao from "./CabecalhoSecao";
+import ModalAdmin from "./ModalAdmin";
+import CampoAdmin from "./CampoAdmin";
 import AgendaCard from "./subcomponents/AgendaCard";
 import { buscarJsonAdministrativo, invalidarDadosCacheados, lerDadosCacheados, obterDadosCacheados } from "@/lib/cache-administrativo";
 
@@ -31,6 +33,7 @@ const AdminAgenda = () => {
     const [filterText, setFilterText] = useState<string>("");
     const [modal, contextHolder] = Modal.useModal();
     const [dataLoading, setDataLoading] = useState<boolean>(dadosIniciais === undefined);
+    const [falhaCarga, setFalhaCarga] = useState<boolean>(false);
     const [mostrarFormulario, setMostrarFormulario] = useState(false);
 
     // --- PAGINAÇÃO ---
@@ -39,6 +42,8 @@ const AdminAgenda = () => {
 
     const load = useCallback(async (forcarAtualizacao = false) => {
         if (forcarAtualizacao) invalidarDadosCacheados("admin:agenda");
+        setDataLoading(true);
+        setFalhaCarga(false);
         try {
             const a = await obterDadosCacheados("admin:agenda", () =>
                 buscarJsonAdministrativo<AgendaItem[]>("/api/admin/agenda")
@@ -46,6 +51,7 @@ const AdminAgenda = () => {
             setAgendas(a || []);
         } catch (error) {
             console.error("Falha ao carregar agenda:", error);
+            setFalhaCarga(true);
             modal.error({ title: "Erro", content: "Falha ao carregar agenda." });
         } finally {
             setDataLoading(false)
@@ -214,9 +220,15 @@ const AdminAgenda = () => {
 
     return (
         <section className="space-y-4" aria-labelledby="admin-secao-titulo">
-            <CabecalhoSecao titulo="Agenda" descricao="Organize apresentações e eventos do coletivo." acao="Nova agenda" aberto={mostrarFormulario} aoAlternar={() => setMostrarFormulario((visivel) => !visivel)} />
-            <div className="w-full rounded-xl border border-slate-300 bg-white p-4 sm:p-6 2xl:p-5">
-            {contextHolder}
+            <CabecalhoSecao
+                titulo="Agenda"
+                descricao="Organize apresentações e eventos do coletivo."
+                acao="Nova agenda"
+                aberto={false}
+                desabilitado={falhaCarga}
+                aoAlternar={() => setMostrarFormulario(true)}
+            />
+            <div className="w-full min-w-0 max-w-full overflow-hidden rounded-xl border border-slate-300 bg-white p-4 sm:p-6 2xl:p-5">
             <ConfigProvider
                 theme={{
                     components: {
@@ -247,74 +259,162 @@ const AdminAgenda = () => {
                     },
                 }}
             >
-                {/* FORMULÁRIO DE CRIAÇÃO */}
-                {mostrarFormulario && <form
-                    onSubmit={createAgenda}
-                    className="my-5 flex flex-col gap-4 rounded-xl border border-slate-200 bg-slate-50 p-4 text-slate-900 sm:p-5"
+                {contextHolder}
+                {/* Modal de Criação */}
+                <ModalAdmin
+                    aberto={mostrarFormulario}
+                    aoFechar={() => setMostrarFormulario(false)}
+                    titulo="Nova agenda"
+                    descricao="Preencha os campos abaixo para cadastrar um novo evento na agenda."
                 >
-                    <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-700">Título
-                    <input
-                        required
-                        value={newAgenda.titulo}
-                        onChange={(e) =>
-                            setNewAgenda({ ...newAgenda, titulo: e.target.value })
-                        }
-                        className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 text-base text-slate-900 placeholder:text-slate-400 focus:border-[#412551] focus:outline-none focus:ring-2 focus:ring-[#412551]/20"
-                    />
-                    </label>
-                    <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2">
-                        <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-700">Data
-                        <input
+                    <form onSubmit={createAgenda} className="space-y-4">
+                        <CampoAdmin
+                            id="agenda-titulo"
+                            label="Título"
                             required
-                            type="date"
-                            value={newAgenda.data}
-                            onChange={(e) =>
-                                setNewAgenda({ ...newAgenda, data: e.target.value })
-                            }
-                            className="min-h-11 min-w-0 rounded-lg border border-slate-300 bg-white px-3 text-base text-slate-900 focus:border-[#412551] focus:outline-none focus:ring-2 focus:ring-[#412551]/20"
+                            maxLen={200}
+                            minLen={3}
+                            proibirHtml
+                            value={newAgenda.titulo}
+                            onChange={(val) => setNewAgenda({ ...newAgenda, titulo: val })}
+                            placeholder="Ex: Apresentação no Festival..."
                         />
-                        </label>
-                        <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-700">Horário
-                        <input
-                            aria-label="Horário"
-                            type="time"
-                            value={agendaTime}
-                            onChange={(e) => setAgendaTime(e.target.value)}
-                            className="min-h-11 min-w-0 rounded-lg border border-slate-300 bg-white px-3 text-base text-slate-900 focus:border-[#412551] focus:outline-none focus:ring-2 focus:ring-[#412551]/20"
+                        <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2">
+                            <CampoAdmin
+                                id="agenda-data"
+                                label="Data"
+                                tipo="date"
+                                required
+                                value={newAgenda.data}
+                                onChange={(val) => setNewAgenda({ ...newAgenda, data: val })}
+                            />
+                            <CampoAdmin
+                                id="agenda-horario"
+                                label="Horário"
+                                tipo="time"
+                                value={agendaTime}
+                                onChange={(val) => setAgendaTime(val)}
+                            />
+                        </div>
+                        <CampoAdmin
+                            id="agenda-cidade"
+                            label="Cidade"
+                            maxLen={100}
+                            proibirHtml
+                            value={newAgenda.cidade || ""}
+                            onChange={(val) => setNewAgenda({ ...newAgenda, cidade: val })}
+                            placeholder="Ex: Recife - PE"
                         />
-                        </label>
-                    </div>
-                    <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-700">Cidade
-                    <input
-                        value={newAgenda.cidade}
-                        onChange={(e) =>
-                            setNewAgenda({ ...newAgenda, cidade: e.target.value })
-                        }
-                        className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 text-base text-slate-900 placeholder:text-slate-400 focus:border-[#412551] focus:outline-none focus:ring-2 focus:ring-[#412551]/20"
-                    />
-                    </label>
-                    <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-700">Local
-                    <input
-                        value={newAgenda.local}
-                        onChange={(e) =>
-                            setNewAgenda({ ...newAgenda, local: e.target.value })
-                        }
-                        className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 text-base text-slate-900 placeholder:text-slate-400 focus:border-[#412551] focus:outline-none focus:ring-2 focus:ring-[#412551]/20"
-                    />
-                    </label>
-                    <Button
-                        type="primary"
-                        htmlType="submit"
-                        loading={loading}
-                        style={{ padding: 18, fontSize: "16px", borderRadius: "4px" }}
-                    >
-                        Publicar agenda
-                    </Button>
-                </form>}
+                        <CampoAdmin
+                            id="agenda-local"
+                            label="Local"
+                            maxLen={200}
+                            proibirHtml
+                            value={newAgenda.local || ""}
+                            onChange={(val) => setNewAgenda({ ...newAgenda, local: val })}
+                            placeholder="Ex: Teatro de Santa Isabel"
+                        />
+                        <div className="flex flex-wrap justify-end gap-2 pt-3 border-t border-slate-200">
+                            <Button
+                                onClick={() => setMostrarFormulario(false)}
+                                disabled={loading}
+                                className="min-h-11"
+                            >
+                                Cancelar
+                            </Button>
+                            <Button
+                                type="primary"
+                                htmlType="submit"
+                                loading={loading}
+                                className="min-h-11 px-5"
+                            >
+                {contextHolder}
+                                Publicar agenda
+                            </Button>
+                        </div>
+                    </form>
+                </ModalAdmin>
+
+                {/* Modal de Edição */}
+                <ModalAdmin
+                    aberto={Boolean(editingAgenda)}
+                    aoFechar={cancelEditAgenda}
+                    titulo="Editar agenda"
+                    descricao="Atualize os dados e confirme para salvar as alterações."
+                >
+                {contextHolder}
+                    {editingAgenda && (
+                        <form onSubmit={updateAgenda} className="space-y-4">
+                            <CampoAdmin
+                                id="agenda-edit-titulo"
+                                label="Título"
+                                required
+                                maxLen={200}
+                                minLen={3}
+                                proibirHtml
+                                value={editingAgenda.titulo}
+                                onChange={(val) => setEditingAgenda({ ...editingAgenda, titulo: val })}
+                                placeholder="Título do evento"
+                            />
+                            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                <CampoAdmin
+                                    id="agenda-edit-data"
+                                    label="Data"
+                                    tipo="date"
+                                    required
+                                    value={new Date(editingAgenda.data).toISOString().split("T")[0]}
+                                    onChange={(val) => setEditingAgenda({ ...editingAgenda, data: val })}
+                                />
+                                <CampoAdmin
+                                    id="agenda-edit-horario"
+                                    label="Horário"
+                                    tipo="time"
+                                    value={editingAgendaTime}
+                                    onChange={(val) => setEditingAgendaTime(val)}
+                                />
+                            </div>
+                            <CampoAdmin
+                                id="agenda-edit-cidade"
+                                label="Cidade"
+                                maxLen={100}
+                                proibirHtml
+                                value={editingAgenda.cidade || ""}
+                                onChange={(val) => setEditingAgenda({ ...editingAgenda, cidade: val })}
+                                placeholder="Cidade"
+                            />
+                            <CampoAdmin
+                                id="agenda-edit-local"
+                                label="Local"
+                                maxLen={200}
+                                proibirHtml
+                                value={editingAgenda.local || ""}
+                                onChange={(val) => setEditingAgenda({ ...editingAgenda, local: val })}
+                                placeholder="Local do evento"
+                            />
+                            <div className="flex flex-wrap justify-end gap-2 pt-3 border-t border-slate-200">
+                                <Button
+                                    onClick={cancelEditAgenda}
+                                    disabled={processingEdit}
+                                    className="min-h-11"
+                                >
+                                    Cancelar
+                                </Button>
+                                <Button
+                                    type="primary"
+                                    htmlType="submit"
+                                    loading={processingEdit}
+                                    className="min-h-11 px-5"
+                                >
+                                    Salvar alterações
+                                </Button>
+                            </div>
+                        </form>
+                    )}
+                </ModalAdmin>
 
                 {/* Filtro e lista de projetos */}
-                {agendas.length > 0 ? (
-            <div className="my-4">
+                {!falhaCarga && agendas.length > 0 && (
+                    <div className="my-4">
                         <div className="flex items-center justify-between mb-2">
                             <h3 className="text-lg font-bold text-[#19121d]">Agendas cadastradas</h3>
                             {filterText && (
@@ -337,38 +437,41 @@ const AdminAgenda = () => {
                             allowClear
                         />
                     </div>
-                ) : (
-                    <EstadoLista
-                        carregando={dataLoading}
-                        buscando={Boolean(filterText)}
-                        mensagemVazia="Ainda não há agendas. Crie a primeira para começar."
-                        textoAcao="Criar primeira agenda"
-                        aoCriar={() => setMostrarFormulario(true)}
-                    />
                 )}
 
                 {/* LISTAGEM */}
-                <ul className="divide-y divide-slate-300 border-t border-slate-300">
-                    {currentAgendas.map((a) => (
-                        <AgendaCard
-                            key={a.id}
-                            agenda={editingAgenda?.id === a.id ? editingAgenda! : a}
-                            isEditing={editingAgenda?.id === a.id}
-                            editingAgendaTime={editingAgendaTime}
-                            loading={loading}
-                            processingEdit={processingEdit}
-                            onEditStart={startEditAgenda}
-                            onEditCancel={cancelEditAgenda}
-                            onEditSubmit={updateAgenda}
-                            onEditChange={(updates) =>
-                                setEditingAgenda((prev) => (prev ? { ...prev, ...updates } : prev))
-                            }
-                            onTimeChange={setEditingAgendaTime}
-                            onDelete={confirmDelete}
-                        />
-                    ))}
-                </ul>
-                {filteredAgendas.length === 0 && agendas.length > 0 && (
+                {dataLoading ? (
+                    <EstadoLista
+                        carregando={true}
+                        buscando={false}
+                        mensagemVazia=""
+                    />
+                ) : falhaCarga ? (
+                    <div className="py-8 text-center space-y-3">
+                        <p role="alert" className="text-sm font-medium text-red-700">
+                            Não foi possível carregar a agenda.
+                        </p>
+                        <button
+                            type="button"
+                            onClick={() => void load(true)}
+                            className="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-[#412551] hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#412551]"
+                        >
+                            Tentar novamente
+                        </button>
+                    </div>
+                ) : currentAgendas.length > 0 ? (
+                    <ul className="w-full min-w-0 max-w-full divide-y divide-slate-300 border-t border-slate-300">
+                        {currentAgendas.map((a) => (
+                            <AgendaCard
+                                key={a.id}
+                                agenda={a}
+                                processingEdit={processingEdit}
+                                onEditStart={startEditAgenda}
+                                onDelete={confirmDelete}
+                            />
+                        ))}
+                    </ul>
+                ) : (
                     <EstadoLista
                         carregando={false}
                         buscando={Boolean(filterText)}

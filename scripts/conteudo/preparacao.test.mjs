@@ -32,7 +32,7 @@ describe('preparação local da migração', () => {
       bucket: 'site-publico',
       midiasUnicas: 55,
       modelos: {
-        configuracoes: 37,
+        configuracoes: 36,
         canaisContato: 4,
         itensMenu: 10,
         aliases: 10,

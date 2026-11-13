@@ -36,4 +36,10 @@ describe("CabecalhoSecao", () => {
 
     expect(screen.getByRole("button", { name: "Cancelar" })).toHaveAttribute("aria-expanded", "true");
   });
+
+  it("desabilita a ação quando solicitado", () => {
+    render(<CabecalhoSecao titulo="Prêmios" descricao="Reconhecimentos." acao="Novo prêmio" aberto={false} desabilitado aoAlternar={vi.fn()} />);
+
+    expect(screen.getByRole("button", { name: "Novo prêmio" })).toBeDisabled();
+  });
 });

@@ -3,6 +3,8 @@ import { Button, ConfigProvider, Input, Modal, Pagination } from "antd";
 import ProjetoCard from "./subcomponents/ProjetoCard";
 import EstadoLista from "./EstadoLista";
 import CabecalhoSecao from "./CabecalhoSecao";
+import ModalAdmin from "./ModalAdmin";
+import CampoAdmin from "./CampoAdmin";
 import { buscarJsonAdministrativo, invalidarDadosCacheados, lerDadosCacheados, obterDadosCacheados } from "@/lib/cache-administrativo";
 
 type ProjetoItem = {
@@ -22,7 +24,8 @@ const AdminProjeto = () => {
 
     // --- Novos Estados ---
     const [loading, setLoading] = useState(false);
-    const [dataLoading, setDataLoading] = useState<boolean>(dadosIniciais === undefined)
+    const [dataLoading, setDataLoading] = useState<boolean>(dadosIniciais === undefined);
+    const [falhaCarga, setFalhaCarga] = useState<boolean>(false);
     const [modal, contextHolder] = Modal.useModal();
     const [filter, setFilter] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
@@ -45,6 +48,8 @@ const AdminProjeto = () => {
 
     const load = useCallback(async (forcarAtualizacao = false) => {
         if (forcarAtualizacao) invalidarDadosCacheados("admin:projetos");
+        setDataLoading(true);
+        setFalhaCarga(false);
         try {
             const p = await obterDadosCacheados("admin:projetos", () =>
                 buscarJsonAdministrativo<ProjetoItem[]>("/api/admin/projeto")
@@ -52,6 +57,7 @@ const AdminProjeto = () => {
             setProjetos(p || []);
         } catch (error) {
             console.error("Falha ao carregar projetos:", error);
+            setFalhaCarga(true);
             modal.error({ title: "Erro", content: "Falha ao carregar projetos." });
         } finally {
             setDataLoading(false)
@@ -105,8 +111,9 @@ const AdminProjeto = () => {
         modal.confirm({
             title: "Confirmar exclusão",
             content: "Tem certeza que deseja excluir este projeto?",
-            okText: "Sim",
+            okText: "Sim, excluir",
             cancelText: "Cancelar",
+            okButtonProps: { danger: true },
             onOk: async () => {
                 try {
                     const res = await fetch("/api/admin/projeto?id=" + id, { method: "DELETE" });
@@ -169,9 +176,15 @@ const AdminProjeto = () => {
 
     return (
         <section className="space-y-4" aria-labelledby="admin-secao-titulo">
-            <CabecalhoSecao titulo="Projetos" descricao="Registre ações e iniciativas do coletivo." acao="Novo projeto" aberto={mostrarFormulario} aoAlternar={() => setMostrarFormulario((visivel) => !visivel)} />
-            <div className="w-full rounded-xl border border-slate-300 bg-white p-4 sm:p-6 2xl:p-5">
-            {contextHolder}
+            <CabecalhoSecao
+                titulo="Projetos"
+                descricao="Registre ações e iniciativas do coletivo."
+                acao="Novo projeto"
+                aberto={false}
+                desabilitado={falhaCarga}
+                aoAlternar={() => setMostrarFormulario(true)}
+            />
+            <div className="w-full min-w-0 max-w-full overflow-hidden rounded-xl border border-slate-300 bg-white p-4 sm:p-6 2xl:p-5">
             <ConfigProvider
                 theme={{
                     components: {
@@ -202,42 +215,113 @@ const AdminProjeto = () => {
                     },
                 }}
             >
-                {/* Formulário de criação */}
-                {mostrarFormulario && <form onSubmit={createProjeto} className="my-5 space-y-4 rounded-xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
-                    <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-700">Data
-                    <input
-                        required
-                        type="date"
-                        value={newProjeto.data}
-                        onChange={(e) =>
-                            setNewProjeto({ ...newProjeto, data: e.target.value })
-                        }
-                        className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-base text-slate-900 focus:border-[#412551] focus:outline-none focus:ring-2 focus:ring-[#412551]/20"
-                    />
-                    </label>
-                    <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-700">Descrição
-                    <textarea
-                        required
-                        value={newProjeto.descricao}
-                        onChange={(e) =>
-                            setNewProjeto({ ...newProjeto, descricao: e.target.value })
-                        }
-                        className="min-h-28 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-base text-slate-900 focus:border-[#412551] focus:outline-none focus:ring-2 focus:ring-[#412551]/20"
-                        rows={4}
-                    />
-                    </label>
-                    <Button
-                        type="primary"
-                        style={{ padding: 18, fontSize: '16px', borderRadius: '4px', width: '100%' }}
-                        htmlType="submit"
-                        loading={loading}
-                    >
-                        Publicar projeto
-                    </Button>
-                </form>}
+                {contextHolder}
+                {/* Modal de Criação */}
+                <ModalAdmin
+                    aberto={mostrarFormulario}
+                    aoFechar={() => setMostrarFormulario(false)}
+                    titulo="Novo projeto"
+                    descricao="Preencha os campos abaixo para cadastrar um novo projeto."
+                >
+                    <form onSubmit={createProjeto} className="space-y-4">
+                        <CampoAdmin
+                            id="projeto-novo-data"
+                            label="Data"
+                            tipo="date"
+                            required
+                            value={newProjeto.data}
+                            onChange={(val) => setNewProjeto({ ...newProjeto, data: val })}
+                        />
+                        <CampoAdmin
+                            id="projeto-novo-descricao"
+                            label="Descrição"
+                            tipo="textarea"
+                            required
+                            linhas={4}
+                            maxLen={5000}
+                            minLen={5}
+                            proibirHtml
+                            value={newProjeto.descricao}
+                            onChange={(val) => setNewProjeto({ ...newProjeto, descricao: val })}
+                            placeholder="Descreva os objetivos, ações e impacto do projeto..."
+                        />
+                        <div className="flex flex-wrap justify-end gap-2 pt-3 border-t border-slate-200">
+                            <Button
+                                onClick={() => setMostrarFormulario(false)}
+                                disabled={loading}
+                                className="min-h-11"
+                            >
+                                Cancelar
+                            </Button>
+                            <Button
+                                type="primary"
+                                htmlType="submit"
+                                loading={loading}
+                                className="min-h-11 px-5"
+                            >
+                                Publicar projeto
+                            </Button>
+                        </div>
+                    </form>
+                </ModalAdmin>
+
+                {/* Modal de Edição */}
+                <ModalAdmin
+                    aberto={Boolean(editingProjeto)}
+                    aoFechar={() => setEditingProjeto(null)}
+                    titulo="Editar projeto"
+                    descricao="Atualize os dados e confirme para salvar as alterações."
+                >
+                    {editingProjeto && (
+                        <form onSubmit={updateProjeto} className="space-y-4">
+                            <CampoAdmin
+                                id="projeto-edit-data"
+                                label="Data"
+                                tipo="date"
+                                required
+                                value={editingProjeto.data.split("T")[0]}
+                                onChange={(val) =>
+                                    setEditingProjeto({ ...editingProjeto, data: val })
+                                }
+                            />
+                            <CampoAdmin
+                                id="projeto-edit-descricao"
+                                label="Descrição"
+                                tipo="textarea"
+                                required
+                                linhas={4}
+                                maxLen={5000}
+                                minLen={5}
+                                proibirHtml
+                                value={editingProjeto.descricao}
+                                onChange={(val) =>
+                                    setEditingProjeto({ ...editingProjeto, descricao: val })
+                                }
+                                placeholder="Descreva os objetivos, ações e impacto do projeto..."
+                            />
+                            <div className="flex flex-wrap justify-end gap-2 pt-3 border-t border-slate-200">
+                                <Button
+                                    onClick={() => setEditingProjeto(null)}
+                                    disabled={processingEdit}
+                                    className="min-h-11"
+                                >
+                                    Cancelar
+                                </Button>
+                                <Button
+                                    type="primary"
+                                    htmlType="submit"
+                                    loading={processingEdit}
+                                    className="min-h-11 px-5"
+                                >
+                                    Salvar alterações
+                                </Button>
+                            </div>
+                        </form>
+                    )}
+                </ModalAdmin>
 
                 {/* Filtro e lista de projetos */}
-                {projetos.length > 0 && (
+                {!falhaCarga && projetos.length > 0 && (
                     <div className="my-4">
                         <div className="flex items-center justify-between mb-2">
                             <h3 className="text-lg font-bold text-[#19121d]">Projetos cadastrados</h3>
@@ -264,25 +348,40 @@ const AdminProjeto = () => {
                 )}
 
                 {/* Lista de projetos */}
-                {currentProjetos.length > 0 ? (
-                    <ul className="divide-y divide-slate-300 border-t border-slate-300">
+                {dataLoading ? (
+                    <EstadoLista
+                        carregando={true}
+                        buscando={false}
+                        mensagemVazia=""
+                    />
+                ) : falhaCarga ? (
+                    <div className="py-8 text-center space-y-3">
+                        <p role="alert" className="text-sm font-medium text-red-700">
+                            Não foi possível carregar os projetos.
+                        </p>
+                        <button
+                            type="button"
+                            onClick={() => void load(true)}
+                            className="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-[#412551] hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#412551]"
+                        >
+                            Tentar novamente
+                        </button>
+                    </div>
+                ) : currentProjetos.length > 0 ? (
+                    <ul className="w-full min-w-0 max-w-full divide-y divide-slate-300 border-t border-slate-300">
                         {currentProjetos.map((p) => (
                             <ProjetoCard
                                 key={p.id}
-                                projeto={editingProjeto?.id === p.id ? editingProjeto! : p}
-                                isEditing={editingProjeto?.id === p.id}
+                                projeto={p}
                                 processingEdit={processingEdit}
                                 onEditStart={setEditingProjeto}
-                                onEditCancel={() => setEditingProjeto(null)}
-                                onEditChange={(updates) => setEditingProjeto(prev => prev ? { ...prev, ...updates } : null)}
-                                onEditSubmit={updateProjeto}
                                 onDelete={deleteProjeto}
                             />
                         ))}
                     </ul>
                 ) : (
                     <EstadoLista
-                        carregando={dataLoading}
+                        carregando={false}
                         buscando={Boolean(filter)}
                         mensagemVazia="Ainda não há projetos. Crie o primeiro para começar."
                         textoAcao="Criar primeiro projeto"

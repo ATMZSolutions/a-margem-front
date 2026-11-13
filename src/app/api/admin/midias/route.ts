@@ -246,3 +246,24 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Não foi possível armazenar a imagem" }, { status: 502 });
   }
 }
+
+export async function PATCH(request: Request) {
+  const denied = await authorizeAdminRequest(request, { write: true, json: true });
+  if (denied) return denied;
+  if (!supabaseEditorialAtivo()) return NextResponse.json({ error: "Módulo editorial desativado neste ambiente" }, { status: 503 });
+  const body = await readJsonObject(request);
+  if (!body || !isText(body.id, 128) || typeof body.nomeOriginal !== "string") {
+    return NextResponse.json({ error: "Dados inválidos para atualização" }, { status: 400 });
+  }
+  const nomeOriginal = body.nomeOriginal.trim().slice(0, 255);
+  try {
+    const atualizada = await prisma.midia.update({
+      where: { id: body.id },
+      data: { nomeOriginal: nomeOriginal || null },
+      select: { id: true, nomeOriginal: true },
+    });
+    return NextResponse.json(atualizada);
+  } catch {
+    return NextResponse.json({ error: "Não foi possível atualizar o nome da imagem" }, { status: 500 });
+  }
+}

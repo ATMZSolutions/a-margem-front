@@ -65,6 +65,29 @@ describe('simulação da migração', () => {
     expect(JSON.stringify(plano)).not.toContain('SEGREDO');
     expect(plano.bloqueiosExecucao).not.toContain('Banco de origem não consultado');
   });
+  it('rejeita mídia com erro ou sem formato validado', () => {
+    for (const alteracao of [{ erro: 'Formato não decodificado pelo sharp' }, { formato: null }]) {
+      const dados = manifestoBase();
+      delete dados.sha256;
+      Object.assign(dados.midias[0], alteracao);
+      expect(() => planejarMigracao({ ...dados, sha256: hash(JSON.stringify(dados)) }, 'local')).toThrow('mídia sem formato validado');
+    }
+  });
+  it('classifica bloqueios conforme o histórico Prisma do snapshot', () => {
+    const planejar = (banco) => {
+      const dados = manifestoBase();
+      delete dados.sha256;
+      dados.banco = { estado: 'snapshot-somente-leitura', ...banco };
+      return planejarMigracao({ ...dados, sha256: hash(JSON.stringify(dados)) }, 'local').bloqueiosExecucao;
+    };
+    expect(planejar({ historicoPresente: false })).toContain('Origem sem histórico Prisma; o manifesto não informa o estado do destino');
+    expect(planejar({ historicoPresente: true, migracoes: [] })).toContain('Origem sem histórico Prisma; o manifesto não informa o estado do destino');
+    const comProblemas = planejar({ historicoPresente: true, migracoes: [{}], conferenciaHistorico: { problemas: ['Checksum divergente'] } });
+    expect(comProblemas).toContain('Checksum divergente');
+    expect(comProblemas).not.toContain('Origem sem histórico Prisma; o manifesto não informa o estado do destino');
+    expect(planejar({ historicoPresente: true, migracoes: [{}], conferenciaHistorico: { problemas: [] } }).length).toBe(2);
+    expect(planejar({ historicoPresente: true, migracoes: [{}] }).length).toBe(2);
+  });
 });
 
 
