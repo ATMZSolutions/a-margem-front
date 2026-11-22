@@ -194,7 +194,7 @@ export async function PUT(request: Request) {
   if (denied) return denied;
   if (!supabaseEditorialAtivo()) return NextResponse.json({ error: "Módulo editorial desativado neste ambiente" }, { status: 503 });
   const body = await readJsonObject(request);
-  if (!body || typeof body.id !== "string" || !body.id || body.id.length > 64) {
+  if (!body || typeof body.id !== "string" || !body.id || body.id.length > 128) {
     return NextResponse.json({ error: "Identificador de espetáculo inválido" }, { status: 400 });
   }
   const input = parseEspetaculo(body);
@@ -273,7 +273,7 @@ export async function DELETE(request: Request) {
   if (denied) return denied;
   if (!supabaseEditorialAtivo()) return NextResponse.json({ error: "Módulo editorial desativado neste ambiente" }, { status: 503 });
   const id = new URL(request.url).searchParams.get("id");
-  if (!id || id.length > 64) return NextResponse.json({ error: "Identificador inválido" }, { status: 400 });
+  if (!id || id.length > 128) return NextResponse.json({ error: "Identificador inválido" }, { status: 400 });
   const item = await prisma.espetaculo.update({ where: { id }, data: { estado: "ARQUIVADO" }, select: { slug: true } }).catch(() => null);
   if (!item) return NextResponse.json({ error: "Espetáculo não encontrado" }, { status: 404 });
   await revalidar(item.slug);

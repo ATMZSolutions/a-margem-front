@@ -28,7 +28,7 @@ function validarEstado(value: unknown): value is "RASCUNHO" | "PUBLICADO" | "ARQ
 
 async function validarFotoId(value: unknown): Promise<boolean> {
   if (value === null || value === undefined || value === "") return true;
-  if (typeof value !== "string" || value.length > 64) return false;
+  if (typeof value !== "string" || value.length > 128) return false;
   return Boolean(await prisma.midia.findUnique({ where: { id: value }, select: { id: true } }));
 }
 
@@ -89,7 +89,7 @@ export async function PUT(request: Request) {
   if (denied) return denied;
   if (!supabaseEditorialAtivo()) return NextResponse.json({ error: "Módulo editorial desativado neste ambiente" }, { status: 503 });
   const body = await readJsonObject(request);
-  if (!body || typeof body.id !== "string" || !body.id || body.id.length > 64) {
+  if (!body || typeof body.id !== "string" || !body.id || body.id.length > 128) {
     return NextResponse.json({ error: "Identificador de prêmio inválido" }, { status: 400 });
   }
   const atual = await prisma.premio.findUnique({ where: { id: body.id }, select: { slug: true, ano: true } });
@@ -143,7 +143,7 @@ export async function DELETE(request: Request) {
   if (denied) return denied;
   if (!supabaseEditorialAtivo()) return NextResponse.json({ error: "Módulo editorial desativado neste ambiente" }, { status: 503 });
   const id = new URL(request.url).searchParams.get("id");
-  if (!id || id.length > 64) return NextResponse.json({ error: "Identificador inválido" }, { status: 400 });
+  if (!id || id.length > 128) return NextResponse.json({ error: "Identificador inválido" }, { status: 400 });
   const item = await prisma.premio.update({ where: { id }, data: { estado: "ARQUIVADO" }, select: { slug: true, ano: true } }).catch(() => null);
   if (!item) return NextResponse.json({ error: "Prêmio não encontrado" }, { status: 404 });
   await revalidar(item.slug, item.ano);
