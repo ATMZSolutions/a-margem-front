@@ -33,6 +33,14 @@ export default async function EspetaculosDetalhes({ params }: EspetaculosDetalhe
 
     if (!showData) notFound();
 
+    // O admin salva a capa separada da galeria; incluí-la no carrossel do detalhe.
+    const imagensGaleria = showData.imgs;
+    const capaDisponivel = Boolean(showData.img && showData.img !== "/padrao2.webp");
+    const capaJaNaGaleria = imagensGaleria.some((imagem) => imagem.img === showData.img);
+    const imagensDetalhe = capaDisponivel && !capaJaNaGaleria
+        ? [{ descricao: "", data: "", img: showData.img, textoAlternativo: `Capa do espetáculo ${showData.title}` }, ...imagensGaleria]
+        : imagensGaleria;
+
     return (
         <section
             className={`relative min-h-screen flex flex-col items-center text-white px-4 pb-10 bg-cover bg-center`}
@@ -49,7 +57,7 @@ export default async function EspetaculosDetalhes({ params }: EspetaculosDetalhe
                     className="w-full aspect-[4/3] sm:max-w-xl"
                     style={{ height: "clamp(200px, calc(38vw + 70px), 350px)" }}
                 >
-                    <CarouselWithInfo imagesInfo={showData.imgs}/>
+                    <CarouselWithInfo imagesInfo={imagensDetalhe}/>
                 </div>
                 <section className="flex flex-col mt-12 max-w-xl">
                     {showData.sections.map((section) => (
