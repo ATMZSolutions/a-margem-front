@@ -24,7 +24,7 @@ export default function BackBtn({ label, color, textKey }: BackBtnProps) {
   return (
     <button
       onClick={() => router.back()}
-      className={`absolute top-24 md:left-40 left-4 flex flex-row items-center gap-2 text-white/90 ${color}!`}
+      className={`absolute top-24 md:left-40 left-4 lg:left-[max(1rem,calc((100vw-80rem)/2+1rem))] flex flex-row items-center gap-2 text-white/90 ${color}!`}
       aria-label={textos?.voltar ?? "Voltar"}
     >
       <CircleArrowLeft size={25} strokeWidth={2.5} style={{ cursor: 'pointer' }}/>

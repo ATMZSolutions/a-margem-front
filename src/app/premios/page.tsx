@@ -20,7 +20,7 @@ export default async function PremiosPage() {
       {premios.length === 0 ? (
         <p className="mt-40 text-center">{transversal.textos.premiosVazios}</p>
       ) : (
-        <div className="flex flex-wrap justify-center gap-10 mt-44 w-full max-w-6xl px-4 mx-auto">
+        <div className="flex flex-wrap justify-center gap-10 lg:gap-x-16 lg:gap-y-16 mt-44 w-full max-w-6xl lg:max-w-7xl px-4 mx-auto">
           {premios.map((premio) => (
             <div key={premio.id} className="flex justify-center">
               <Premio title={premio.title} evento={premio.evento} year={premio.year} slug={premio.slug} />

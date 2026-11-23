@@ -27,7 +27,7 @@ export default function IntegranteClient({ integrante }: { integrante: Integrant
     >
       <BackBtn label={textos?.tituloIntegrante ?? "Integrante"} />
 
-      <div className="pt-28 flex flex-col md:flex-row md:items-start items-center">
+      <div className="pt-28 flex flex-col md:flex-row md:items-start items-center lg:w-full lg:max-w-7xl lg:gap-8 lg:px-4">
         <div className="w-full max-w-xs shrink-0">
           <IntegranteCard
             key={integrante.id}
@@ -37,15 +37,15 @@ export default function IntegranteClient({ integrante }: { integrante: Integrant
           />
         </div>
 
-        <div className="flex flex-col md:ml-10 items-center md:items-start max-w-4xl">
-          <div className="w-full max-w-2xl mt-8 md:mt-0 px-4">
+        <div className="flex flex-col md:ml-10 items-center md:items-start max-w-4xl lg:max-w-5xl">
+          <div className="w-full max-w-2xl lg:max-w-4xl mt-8 md:mt-0 px-4">
             <h2 className="text-2xl font-semibold mb-4 border-l-4 border-site-accent pl-2">
               {textos?.tituloFichaTecnica ?? "Ficha Técnica"}
             </h2>
             <p>{integrante.fichaTecnica}</p>
           </div>
 
-          <div className="w-full max-w-2xl mt-6 p-4">
+          <div className="w-full max-w-2xl lg:max-w-4xl mt-6 p-4">
             <h2 className="text-2xl font-semibold mb-4 border-l-4 border-site-accent pl-2">
               {textos?.tituloBiografia ?? "Biografia"}
             </h2>

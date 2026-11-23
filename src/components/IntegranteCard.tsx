@@ -12,7 +12,7 @@ export default function IntegranteCard({ nome, image, onClick }: IntegranteCardP
   return (
     <div
       onClick={onClick}
-      className="relative h-52 md:h-64 cursor-pointer rounded-md overflow-hidden hover:scale-[1.03] transition-transform duration-200"
+      className="relative h-52 md:h-64 lg:h-80 cursor-pointer rounded-md overflow-hidden hover:scale-[1.03] transition-transform duration-200"
     >
       <Image
         src={image}

@@ -1,11 +1,8 @@
-import React from 'react';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import Title from 'antd/es/typography/Title';
-import Paragraph from 'antd/es/typography/Paragraph';
 import BackBtn from '@/components/BackBtn';
 import { formatDescription } from '@/utils/helpers';
-import CarouselWithInfo from '@/components/CarouselWithInfo';
+import CarouselWithInfo, { type ImageInfo } from '@/components/CarouselWithInfo';
 import { getPublishedEspetaculo } from '@/lib/publicContent';
 import { getEntityMetadata, isPublicSitePage } from '@/lib/siteMetadata';
 
@@ -34,12 +31,37 @@ export default async function EspetaculosDetalhes({ params }: EspetaculosDetalhe
     if (!showData) notFound();
 
     // O admin salva a capa separada da galeria; incluí-la no carrossel do detalhe.
-    const imagensGaleria = showData.imgs;
-    const capaDisponivel = Boolean(showData.img && showData.img !== "/padrao2.webp");
-    const capaJaNaGaleria = imagensGaleria.some((imagem) => imagem.img === showData.img);
-    const imagensDetalhe = capaDisponivel && !capaJaNaGaleria
-        ? [{ descricao: "", data: "", img: showData.img, textoAlternativo: `Capa do espetáculo ${showData.title}` }, ...imagensGaleria]
+    const ehEbo = showData.title.trim().toLocaleLowerCase("pt-BR") === "ebó pra consciência";
+    const ehBrechas = showData.title.trim().toLocaleLowerCase("pt-BR") === "brechas da muximba";
+    const capa = ehEbo ? "/espetaculos/ebo-pra-consciencia.webp" : showData.img;
+    const imagensGaleria = showData.imgs.filter((imagem) => !ehEbo || imagem.img !== showData.img);
+    const capaDisponivel = Boolean(capa && capa !== "/padrao2.webp");
+    const capaJaNaGaleria = imagensGaleria.some((imagem) => imagem.img === capa);
+    const imagensDetalhe: ImageInfo[] = capaDisponivel && !capaJaNaGaleria
+        ? [{ descricao: "", data: "", img: capa, textoAlternativo: `Capa do espetáculo ${showData.title}` }, ...imagensGaleria]
         : imagensGaleria;
+    if (ehBrechas) {
+        imagensDetalhe.unshift({
+            descricao: "Cartaz das apresentações de novembro — CEPOMA, Casa da Cultura e Compaz Dom Helder Câmara",
+            data: "",
+            img: "/espetaculos/muximba/cartaz-novembro.jpg",
+            textoAlternativo: "Cartaz de Brechas da Muximba com três apresentações em novembro",
+            ajusteImagem: "conter",
+        });
+    }
+    const [apresentacao, ...demaisSecoes] = showData.sections;
+    const renderizarSecao = (secao: typeof showData.sections[number]) => (
+        <section key={secao.id} className="min-w-0">
+            <h2 className="mb-4 border-l-4 border-site-accent pl-3 font-sedgwick text-2xl font-normal leading-tight text-white sm:text-3xl">
+                {secao.titulo}
+            </h2>
+            <p className="whitespace-pre-wrap text-base leading-7 text-white/90 sm:text-lg sm:leading-8">
+                {secao.titulo.includes('Trajetória') || secao.titulo.includes('Ficha')
+                    ? formatDescription(secao.texto)
+                    : secao.texto}
+            </p>
+        </section>
+    );
 
     return (
         <section
@@ -52,29 +74,19 @@ export default async function EspetaculosDetalhes({ params }: EspetaculosDetalhe
             <BackBtn label={showData.title} />
 
 
-            <div className="max-w-xl lg:max-w-2xl flex flex-col items-center mt-40 mx-2">
-                <div
-                    className="w-full aspect-[4/3] sm:max-w-xl"
-                    style={{ height: "clamp(200px, calc(38vw + 70px), 350px)" }}
-                >
-                    <CarouselWithInfo imagesInfo={imagensDetalhe}/>
+            <div className="mx-auto mt-40 w-full max-w-7xl lg:px-4">
+                <h1 className="sr-only">{showData.title}</h1>
+                <div className="grid items-start gap-10 lg:grid-cols-[22rem_minmax(0,1fr)] lg:gap-8">
+                    <div className="w-full max-w-[22rem]" style={{ aspectRatio: "3 / 4" }}>
+                        <CarouselWithInfo imagesInfo={imagensDetalhe} frameClassName="rounded-xl border border-white/10 bg-black/40" />
+                    </div>
+                    {apresentacao && <div className="min-w-0 lg:pt-2">{renderizarSecao(apresentacao)}</div>}
                 </div>
-                <section className="flex flex-col mt-12 max-w-xl">
-                    {showData.sections.map((section) => (
-                        <React.Fragment key={section.id}>
-                            <Title className='font-sedgwick border-l-4 border-site-accent pl-2' level={3} style={{ color: 'white', width: '70%', fontWeight: 'normal' }}>
-                                {section.titulo}
-                            </Title>
-                            <Paragraph style={{ whiteSpace: 'pre-wrap', textAlign: 'justify', color: 'white' }}>
-                                {   // Adiciona bold apenas às descrições das seções de Ficha Técnica e Trajetória
-                                    section.titulo.includes('Trajetória') || section.titulo.includes("Ficha")
-                                        ? formatDescription(section.texto)
-                                        : section.texto
-                                }
-                            </Paragraph>
-                        </React.Fragment>
-                    ))}
-                </section>
+                {demaisSecoes.length > 0 && (
+                    <div className="mt-12 grid gap-10 border-t border-white/15 pt-10 md:grid-cols-2 lg:mt-14 lg:gap-14">
+                        {demaisSecoes.map(renderizarSecao)}
+                    </div>
+                )}
             </div>
         </section>
     );

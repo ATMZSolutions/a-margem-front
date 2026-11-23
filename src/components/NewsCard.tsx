@@ -27,7 +27,7 @@ export default function NewsCard({ item, index }: NewsCardProps) {
 
   return (
     <motion.article
-      className="relative bg-black/50 rounded-lg overflow-hidden flex flex-col items-center justify-between p-4 hover:scale-[1.03] transition-transform duration-200"
+      className="relative bg-black/50 rounded-lg overflow-hidden flex flex-col items-center justify-between p-4 lg:min-h-56 lg:p-6 hover:scale-[1.03] transition-transform duration-200"
       variants={fadeIn}
       initial="hidden"
       whileInView="visible"

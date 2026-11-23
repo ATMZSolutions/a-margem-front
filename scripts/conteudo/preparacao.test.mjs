@@ -30,7 +30,7 @@ describe('preparação local da migração', () => {
 
     expect(preparado.resumo).toMatchObject({
       bucket: 'site-publico',
-      midiasUnicas: 55,
+      midiasUnicas: 57,
       modelos: {
         configuracoes: 36,
         canaisContato: 4,
