@@ -70,9 +70,9 @@ export default function AgendaPage({
 
       <BackBtn label="Agenda" textKey="tituloAgenda" />
 
-      <div className="relative w-full md:w-[35%] text-white font-sans mx-4 z-10 mt-16 flex flex-col gap-12">
+      <div className="relative w-full md:w-[35%] lg:w-full lg:max-w-7xl text-white font-sans mx-4 lg:mx-auto z-10 mt-16 flex flex-col gap-12 lg:flex-row lg:items-start lg:gap-10 lg:px-4">
         {/* Calendário */}
-        <div className="bg-site-accent rounded-lg p-4 shadow-lg">
+        <div className="bg-site-accent rounded-lg p-4 shadow-lg lg:w-[min(100%,32rem)] lg:shrink-0">
           <div className="flex justify-between items-center mb-3">
             <button
               type="button"
@@ -147,7 +147,7 @@ export default function AgendaPage({
         </div>
 
         {/* Lista de eventos - Card da Home */}
-        <div className="flex flex-col gap-8">
+        <div className="flex flex-col gap-8 lg:min-w-0 lg:flex-1">
           {events.filter((ev) => isSameMonth(new Date(ev.data), currentDate))
             .length > 0 ? (
             Object.entries(
@@ -185,9 +185,9 @@ export default function AgendaPage({
                               {format(eventDate, "MMM", { locale: ptBR })}
                             </span>
                           </div>
-                          {/* <span className="text-[12px] text-white/80 leading-none">
+                          <span className="text-[12px] text-white/80 leading-none">
                             {format(eventDate, "HH:mm")}
-                          </span> */}
+                          </span>
                         </div>
 
                         <div className="flex-1 flex flex-col justify-center text-left leading-none ml-2 gap-1">

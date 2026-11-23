@@ -109,9 +109,9 @@ const AgendaHome = ({ settings }: { settings: AgendaHomeSettings }) => {
         <div className="absolute inset-0 bg-site-primary/80" />
       </div>
 
-      <div className="w-4/5 flex flex-col justify-center md:flex-row gap-16 z-10">
+      <div className="z-10 mx-auto flex w-full max-w-7xl flex-col justify-center gap-12 px-4 md:flex-row md:gap-16">
         <motion.h2
-          className="text-4xl md:text-5xl text-end font-sedgwick font-extrabold uppercase tracking-widest text-white/80 mb-8 md:mb-0"
+          className="mb-8 text-end font-sedgwick text-4xl font-extrabold uppercase tracking-widest text-white/80 md:mb-0 md:min-w-0 md:flex-1 md:text-5xl"
           variants={agendaVariants}
           initial="hidden"
           whileInView="visible"
@@ -120,7 +120,7 @@ const AgendaHome = ({ settings }: { settings: AgendaHomeSettings }) => {
           {settings.titulo}
         </motion.h2>
 
-        <div className="w-full md:w-[30%] lg:w-[40%]">
+        <div className="w-full md:w-[48%] lg:w-[42%]">
           {sortedCities.length === 0 ? (
             <p className="text-center text-white/80">
               {textos?.agendaVazia ?? "Nenhum evento programado no momento."}

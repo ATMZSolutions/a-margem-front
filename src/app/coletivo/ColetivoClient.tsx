@@ -29,7 +29,7 @@ export default function ColetivoClient({ integrantes }: { integrantes: Integrant
       {integrantes.length === 0 ? (
         <p className="mt-40 text-center">{textos?.integrantesVazios ?? "Nenhum integrante publicado no momento."}</p>
       ) : (
-        <div className="w-full max-w-3xl mt-40 grid grid-cols-2 sm:grid-cols-3 gap-6">
+        <div className="w-full max-w-3xl lg:max-w-7xl mt-40 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 lg:gap-8 lg:px-4">
           {integrantes.map((integrante, index) => (
             <motion.div
               key={integrante.id}

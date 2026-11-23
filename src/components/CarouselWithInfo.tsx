@@ -7,13 +7,15 @@ export interface ImageInfo {
   data: string;
   img: string;
   textoAlternativo?: string;
+  ajusteImagem?: "conter" | "conter-no-desktop";
 }
 
 interface CarouselWithInfoProps {
   imagesInfo: ImageInfo[];
+  frameClassName?: string;
 }
 
-export default function CarouselWithInfo({ imagesInfo }: CarouselWithInfoProps) {
+export default function CarouselWithInfo({ imagesInfo, frameClassName }: CarouselWithInfoProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   return (
@@ -22,6 +24,8 @@ export default function CarouselWithInfo({ imagesInfo }: CarouselWithInfoProps) 
       <PhotoCarousel
         images={imagesInfo.map((i) => i.img)}
         imageAlts={imagesInfo.map((i) => i.textoAlternativo || i.descricao)}
+        imageFits={imagesInfo.map((i) => i.ajusteImagem)}
+        frameClassName={frameClassName}
         onIndexChange={(index) => setCurrentIndex(index)}
       />
 

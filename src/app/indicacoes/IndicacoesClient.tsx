@@ -36,7 +36,7 @@ export default function IndicacoesPage({
 
   const openDrawer = (livro: LivroItem) => {
     const paragraphs = livro.descricao
-      .split(/\.(\s+)/)
+      .split(/\n\s*\n/)
       .map((s) => s.trim())
       .filter(Boolean);
     setDrawerTitle(livro.titulo);
@@ -57,7 +57,7 @@ export default function IndicacoesPage({
 
   return (
     <div
-      className="min-h-screen w-full flex justify-center py-24 relative"
+      className="relative flex min-h-screen w-full justify-center px-4 py-24"
       style={{ backgroundColor: bgColor }}
     >
       {bgImage && (
@@ -68,11 +68,11 @@ export default function IndicacoesPage({
       )}
       <BackBtn label="Livros" textKey="tituloIndicacoes" />
 
-      <div className="relative w-full max-w-6xl text-white font-sans mx-4 z-10 mt-16">
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-site-accent mb-2">{textos?.tituloIndicacoes ?? "Nossa Biblioteca"}</h1>
-          <p className="text-lg text-white/80">{textos?.livrosSubtitulo ?? "Livros Recomendados"}</p>
-        </div>
+      <div className="relative z-10 mx-auto mt-16 w-full max-w-7xl font-sans text-white lg:px-4">
+        <header className="mb-8 border-b border-white/15 pb-6 sm:mb-10">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.22em] text-site-accent">{textos?.tituloIndicacoes ?? "Nossa Biblioteca"}</p>
+          <h1 className="font-sedgwick text-3xl font-normal leading-tight text-white sm:text-4xl">{textos?.livrosSubtitulo ?? "Livros Recomendados"}</h1>
+        </header>
 
         {livros.length === 0 ? (
           <div className="text-center text-white/70 py-16">
@@ -80,42 +80,42 @@ export default function IndicacoesPage({
             <p className="text-sm mt-2">{textos?.livrosComplementoVazio ?? "Em breve teremos novos títulos para você!"}</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 lg:gap-6">
             {livros.map((livro) => (
-              <div
+              <article
                 key={livro.id}
-                className="bg-black/20 backdrop-blur-sm rounded-t-lg border-b-3 border-site-accent hover:bg-black/30 transition-all duration-300 flex flex-col items-center p-4 sm:p-6 max-w-xs mx-auto"
+                className="flex min-w-0 items-start gap-4 rounded-xl border border-white/15 bg-black/30 p-4 shadow-lg transition-colors hover:border-site-accent/50 hover:bg-black/40 sm:gap-5 sm:p-5"
               >
-                <div className="mb-4 flex justify-center w-full">
+                <div className="relative aspect-[3/4] w-24 shrink-0 overflow-hidden rounded-lg bg-white/10 shadow-md sm:w-32 lg:w-36">
                   <Image
                     src={livro.imageUrl || livro.imagem || "/padrao2.webp"}
                     alt={livro.titulo}
-                    width={160}
-                    height={224}
-                    sizes="(max-width: 640px) 160px, 128px"
-                    className="w-40 h-56 sm:w-32 sm:h-44 object-cover rounded-lg shadow-lg"
+                    fill
+                    sizes="(max-width: 640px) 96px, (max-width: 1024px) 128px, 144px"
+                    className="object-cover"
                   />
                 </div>
-                <div className="text-end flex flex-col flex-1 w-full">
-                  <h3 className="font-bold text-lg sm:text-xl text-site-accent mb-1 sm:mb-2">
+                <div className="flex min-w-0 flex-1 flex-col self-stretch">
+                  <h2 className="mb-2 text-base font-bold leading-snug text-white sm:text-lg">
                     {livro.titulo}
-                  </h3>
-                  <p className="text-white/90 font-medium text-xs sm:text-sm text-end mb-4">
+                  </h2>
+                  <p className="mb-3 text-xs font-medium text-site-accent sm:text-sm">
                     {livro.autor}
                   </p>
-                  <p className="text-white/70 text-justify indent-4 text-sm leading-tight line-clamp-5">
+                  <p className="line-clamp-3 text-sm leading-6 text-white/80 sm:line-clamp-4">
                     {livro.descricao}
                   </p>
-                  <div className="mt-auto pt-4 flex flex-col items-center w-full">
+                  <div className="mt-auto pt-4">
                     <button
-                      className="text-sm w-full text-site-accent rounded-2xl border border-site-accent px-3 py-1 sm:px-4 sm:py-1"
+                      type="button"
+                      className="min-h-11 rounded-full border border-site-accent px-4 text-sm font-semibold text-site-accent transition hover:bg-site-accent hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-site-accent"
                       onClick={() => openDrawer(livro)}
                     >
                       {textos?.saibaMais ?? "Saiba mais"}
                     </button>
                   </div>
                 </div>
-              </div>
+              </article>
             ))}
           </div>
         )}

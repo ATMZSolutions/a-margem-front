@@ -47,7 +47,7 @@ const Main = ({ settings }: { settings: HomeSettings }) => {
       <div className="absolute inset-0" style={{ backgroundColor: `rgba(0,0,0,${settings.opacidadeOverlay})` }} />
 
       {/* Logo centralizado com animação */}
-      <div className="relative z-10 flex items-center justify-center w-full px-4">
+      <div className="relative z-10 mx-auto flex w-full max-w-7xl items-center justify-center px-4">
         <Image
           src={settings.logoHero.url ?? "/grito-de-guerra.webp"}
           alt={settings.logoHero.alt}

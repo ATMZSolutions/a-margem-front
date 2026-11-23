@@ -9,7 +9,7 @@ import { Menu, X } from "lucide-react";
 import type { NavigationItem } from "@/lib/siteContent";
 import { useSiteTexts } from "@/components/SiteTextProvider";
 
-const Drawer = dynamic(() => import("antd").then((module) => module.Drawer), { ssr: false });
+const Drawer = dynamic(() => import("antd/es/drawer").then((module) => module.default), { ssr: false });
 
 export default function Sidebar({ items, logoUrl, logoAlt, logoHref, nomePublico }: { items: NavigationItem[]; logoUrl: string; logoAlt: string; logoHref: string; nomePublico: string }) {
   const [open, setOpen] = useState(false);
@@ -21,27 +21,29 @@ export default function Sidebar({ items, logoUrl, logoAlt, logoHref, nomePublico
   return (
     <div>
       {/* Barra superior com logo à esquerda e hamburguer à direita */}
-      <div className="w-full flex justify-between items-center px-4 py-1 fixed top-0 left-0 z-50 bg-black/60 backdrop-blur-[5px]">
-        {/* Logo com animação */}
-        <Link href={logoHref} aria-label={`${nomePublico}, página inicial`}>
-          <Image
-            src={logoUrl}
-            alt={logoAlt}
-            height={40}
-            width={160}
-            style={{ height: "2.5rem", width: "auto" }}
-            unoptimized
-            priority
-          />
-        </Link>
+      <div className="fixed top-0 left-0 z-50 w-full bg-black/60 backdrop-blur-[5px]">
+        <div className="mx-auto flex w-full items-center justify-between px-4 py-1 lg:max-w-7xl">
+          {/* Logo com animação */}
+          <Link href={logoHref} aria-label={`${nomePublico}, página inicial`}>
+            <Image
+              src={logoUrl}
+              alt={logoAlt}
+              height={40}
+              width={160}
+              style={{ height: "2.5rem", width: "auto" }}
+              unoptimized
+              priority
+            />
+          </Link>
 
-        <button
-          onClick={() => setOpen(true)}
-          className="text-white text-2xl p-2"
-          aria-label={textos?.abrirMenu ?? "Abrir menu"}
-        >
-          <Menu aria-hidden="true" />
-        </button>
+          <button
+            onClick={() => setOpen(true)}
+            className="text-white text-2xl p-2"
+            aria-label={textos?.abrirMenu ?? "Abrir menu"}
+          >
+            <Menu aria-hidden="true" />
+          </button>
+        </div>
       </div>
 
       {/* Drawer vindo da direita */}

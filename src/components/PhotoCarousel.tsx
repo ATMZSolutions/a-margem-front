@@ -15,11 +15,13 @@ interface TopButtonProps {
 interface PhotoCarouselProps {
   images?: string[];
   imageAlts?: string[];
+  imageFits?: Array<"conter" | "conter-no-desktop" | undefined>;
+  frameClassName?: string;
   topButton?: TopButtonProps;
     onIndexChange?: (index: number) => void; // callback opcional
 }
 
-export default function PhotoCarousel({ images = [], imageAlts = [], topButton, onIndexChange }: PhotoCarouselProps) {
+export default function PhotoCarousel({ images = [], imageAlts = [], imageFits = [], frameClassName, topButton, onIndexChange }: PhotoCarouselProps) {
   const textos = useSiteTexts();
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -52,34 +54,41 @@ export default function PhotoCarousel({ images = [], imageAlts = [], topButton, 
       )}
 
       {/* Botão esquerdo */}
-      <button
+      {images.length > 1 && <button
         onClick={prevSlide}
-        className="absolute left-0 sm:-left-10 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center text-white text-2xl sm:text-3xl z-20 rounded focus:outline-none focus-visible:ring-4 focus-visible:ring-site-accent focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+        className="absolute left-2 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/70 bg-black/75 text-2xl text-white shadow-lg sm:h-12 sm:w-12 sm:text-3xl focus:outline-none focus-visible:ring-4 focus-visible:ring-site-accent focus-visible:ring-offset-2 focus-visible:ring-offset-black"
         aria-label={textos?.slideAnterior ?? "Slide anterior"}
       >
         <LeftOutlined />
-      </button>
+      </button>}
 
       {/* Imagem */}
-      <div className="relative overflow-hidden w-full h-full border-b-8 border border-site-accent/70">
+      <div className={`relative h-full w-full overflow-hidden ${frameClassName ?? "border-b-8 border border-site-accent/70"}`}>
         <Image
           src={images[currentIndex]}
           alt={imageAlts[currentIndex] || `Fotografia do Coletivo À Margem, slide ${currentIndex + 1}`}
           fill
           sizes="(max-width: 640px) 100vw, 60vw"
           unoptimized
-          className="object-cover"
+          priority={currentIndex === 0}
+          className={
+            imageFits[currentIndex] === "conter"
+              ? "object-contain"
+              : imageFits[currentIndex] === "conter-no-desktop"
+                ? "object-cover lg:object-contain"
+                : "object-cover"
+          }
         />
       </div>
 
       {/* Botão direito */}
-      <button
+      {images.length > 1 && <button
         onClick={nextSlide}
-        className="absolute right-0 sm:-right-10 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center text-white text-2xl sm:text-3xl z-20 rounded focus:outline-none focus-visible:ring-4 focus-visible:ring-site-accent focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+        className="absolute right-2 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/70 bg-black/75 text-2xl text-white shadow-lg sm:h-12 sm:w-12 sm:text-3xl focus:outline-none focus-visible:ring-4 focus-visible:ring-site-accent focus-visible:ring-offset-2 focus-visible:ring-offset-black"
         aria-label={textos?.proximoSlide ?? "Próximo slide"}
       >
         <RightOutlined />
-      </button>
+      </button>}
     </div>
   );
 }

@@ -1,11 +1,8 @@
-import React from "react"
 import type { Metadata } from "next";
 import { getPublishedPremio } from "@/lib/publicContent";
-import Premio from "@/components/Premio";
 import BackBtn from "@/components/BackBtn";
 import { notFound } from "next/navigation";
 import Image from "next/image";
-import Paragraph from "antd/es/typography/Paragraph";
 import { getEntityMetadata, isPublicSitePage } from "@/lib/siteMetadata";
 
 interface PremioDetalhesProps {
@@ -33,30 +30,47 @@ const PremioDetalhes = async ({ params }: PremioDetalhesProps) => {
 
     return (
         <section
-            className="relative bg-site-primary min-h-screen flex flex-col items-center text-white px-4 pb-10 bg-cover bg-center"
+            className="relative flex min-h-screen flex-col bg-site-primary bg-cover bg-center px-4 pb-10 text-white"
             style={{
                 backgroundImage: "var(--site-background-image)",
             }}
         >
             <BackBtn label="Prêmios" textKey="tituloPremios" />
 
-            <div className="flex max-w-xl text-white flex-col items-center mt-40 mx-2 justify-center gap-10 ">
-                <Premio
-                    key={`${title}` + `/${year}`}
-                    title={premio.title}
-                    evento={premio.evento}
-                    year={premio.year}
-                    slug={premio.slug}
-                    isSaibaMais={true}
-                />
-                {premio.img && (
-                    <div className="relative w-full h-64 md:h-72 rounded overflow-hidden">
-                        <Image src={premio.img} alt={`Registro do prêmio ${premio.title}`} fill sizes="(max-width: 768px) 100vw, 640px" className="object-cover" />
+            <div className="mx-auto mt-36 w-full max-w-7xl sm:mt-40 lg:px-4">
+                <header className="mb-6 border-b border-white/15 pb-5 md:mb-8 md:pb-7">
+                    <p className="mb-3 text-xs font-semibold uppercase tracking-[0.22em] text-site-accent">
+                        Reconhecimento · {premio.year}
+                    </p>
+                    <h1 className="max-w-4xl font-zen-dots text-2xl font-bold leading-tight text-white sm:text-3xl">
+                        {premio.title}
+                    </h1>
+                    {premio.evento && (
+                        <p className="mt-3 text-sm font-medium tracking-wide text-white/75 sm:text-base">
+                            {premio.evento}
+                        </p>
+                    )}
+                </header>
+
+                <div className="grid items-center gap-6 md:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] md:gap-8 lg:gap-10">
+                    {premio.img && (
+                        <figure className="relative h-44 w-full overflow-hidden rounded-xl border border-white/10 bg-black/20 shadow-xl sm:h-52 md:h-56">
+                            <Image
+                                src={premio.img}
+                                alt={`Registro de ${premio.title}`}
+                                fill
+                                sizes="(max-width: 768px) calc(100vw - 2rem), 352px"
+                                className="object-cover"
+                                priority
+                            />
+                        </figure>
+                    )}
+                    <div className="max-w-3xl border-l-2 border-site-accent pl-4 sm:pl-6">
+                        <p className="whitespace-pre-line text-justify text-base leading-7 text-white/90 [hyphens:auto]">
+                            {premio.description}
+                        </p>
                     </div>
-                )}
-                <Paragraph style={{ whiteSpace: 'pre-wrap', color: 'white', textAlign: 'justify' }}>
-                    {premio.description}
-                </Paragraph>
+                </div>
             </div>
 
         </section>

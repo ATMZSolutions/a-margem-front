@@ -27,13 +27,13 @@ const Sobre = ({ settings }: { settings: HomeSettings["sobre"] }) => {
       <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/70 to-black/90 -z-[5]" />
 
       {/* Conteúdo principal */}
-      <div className="relative z-10 flex flex-col md:flex-row items-center justify-between w-[90%] md:w-[80%] lg:w-[70%] gap-10 md:gap-20 text-white py-12">
+      <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-col items-center justify-between gap-10 px-4 py-12 text-white md:flex-row md:gap-16 lg:gap-20">
         {/* Texto + botão */}
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, ease: "easeOut" }}
-          className="flex flex-col items-start w-full md:w-1/2 space-y-6"
+          className="flex min-w-0 w-full flex-col items-start space-y-6 md:flex-1"
         >
           <h2 className="text-4xl md:text-6xl font-bold uppercase tracking-wide font-sedgwick text-site-accent drop-shadow-[0_2px_10px_rgba(0,0,0,0.3)]">
             {settings.titulo}
@@ -57,7 +57,7 @@ const Sobre = ({ settings }: { settings: HomeSettings["sobre"] }) => {
         </motion.div>
 
         {/* Carousel */}
-        <div className="w-full md:w-1/2 h-[clamp(220px,60vw,350px)] flex justify-center">
+        <div className="flex h-[clamp(220px,60vw,350px)] w-full min-w-0 justify-center md:flex-1">
           <PhotoCarousel
             topButton={{
               show: settings.acaoSecundaria.visivel,

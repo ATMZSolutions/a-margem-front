@@ -1,9 +1,7 @@
 "use client";
 
-import React, { useState, useRef, useLayoutEffect, useEffect } from "react";
-import { ConfigProvider, Timeline, Typography } from "antd";
+import React, { useState } from "react";
 import AppDrawer from "../../components/AppDrawer";
-import { motion, Variants } from "framer-motion";
 import BackBtn from "@/components/BackBtn";
 import Image from "next/image";
 import { useSiteTexts } from "@/components/SiteTextProvider";
@@ -14,124 +12,14 @@ export interface Sobre {
   imageUrl: string | null;
 }
 
-const containerVariants: Variants = {
-  hidden: { opacity: 0 },
-  show: { opacity: 1, transition: { staggerChildren: 0.2 } },
-};
-
-const itemVariants: Variants = {
-  hidden: { opacity: 0, y: 30 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
-};
-
 export default function SobreClient({ initialData }: { initialData: Sobre[] }) {
   const textos = useSiteTexts();
   const [selectedItem, setSelectedItem] = useState<Sobre | null>(null);
-  const [isTruncated, setIsTruncated] = useState<Record<number, boolean>>({});
-  const labelRefs = useRef<Array<HTMLDivElement | null>>([]);
-  const [paddingTops, setPaddingTops] = useState<Record<number, number>>({});
-  const [windowWidth, setWindowWidth] = useState(0);
   const loading = false;
   const [data] = useState<Sobre[]>(initialData);
 
   const showDrawer = (item: Sobre) => setSelectedItem(item);
   const onCloseDrawer = () => setSelectedItem(null);
-
-
-  useEffect(() => setIsTruncated({}), [windowWidth]);
-
-  // âœ… Atualiza tamanho da janela
-  useEffect(() => {
-    const handleResize = () => setWindowWidth(window.innerWidth);
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  // âœ… Calcula padding apÃ³s render
-  useLayoutEffect(() => {
-    if (loading) return;
-    const newPaddingTops: Record<number, number> = {};
-    labelRefs.current.forEach((labelDiv, index) => {
-      if (labelDiv) {
-        const h2 = labelDiv.querySelector("h2");
-        if (h2) newPaddingTops[index] = h2.offsetHeight;
-      }
-    });
-    if (JSON.stringify(newPaddingTops) !== JSON.stringify(paddingTops)) {
-      setPaddingTops(newPaddingTops);
-    }
-  }, [data, windowWidth, loading, paddingTops]);
-
-  // âœ… RenderizaÃ§Ã£o da timeline
-  const timelineItems = data.map((item, index) => ({
-    key: index,
-    color: "var(--site-accent)",
-    label: (
-      <motion.div
-        ref={(el) => {
-          labelRefs.current[index] = el;
-        }}
-        className="flex flex-col min-h-[200px] text-white"
-        variants={itemVariants}
-      >
-        <h2 className="text-lg md:text-xl pb-6">{item.ano}</h2>
-
-        {item.imageUrl && (
-          <div className="relative h-[200px] w-full">
-            <Image
-              key={`img-${item.ano}`}
-              src={item.imageUrl} // ðŸ”¥ sem Date.now() pra permitir cache local
-              alt={`Fotografia de um evento do Coletivo À Margem em ${item.ano}`}
-              fill
-              sizes="(max-width: 768px) 90vw, 50vw"
-              unoptimized
-              className="rounded-t-xl border-b-4 border-b-site-accent bg-purple-950/50 object-cover"
-              onLoad={() =>
-                console.log(`ðŸ–¼ï¸ Imagem carregada: ${item.imageUrl}`)
-              }
-              onError={(err) =>
-                console.error(`âš ï¸ Erro ao carregar: ${item.imageUrl}`, err)
-              }
-            />
-          </div>
-        )}
-      </motion.div>
-    ),
-    children: (
-      <motion.div
-        style={{
-          paddingTop: paddingTops[index] ? `${paddingTops[index]}px` : 0,
-        }}
-        variants={itemVariants}
-      >
-        <div className="bg-site-accent flex flex-col text-left max-w-2xl h-[200px] text-roxo p-4 rounded-lg">
-          <Typography.Paragraph
-            key={`${index}-${windowWidth}`}
-            className="flex-grow"
-            ellipsis={{
-              rows: 6,
-              onEllipsis: (ellipsis) => {
-                if ((isTruncated[index] || false) !== ellipsis) {
-                  setIsTruncated((prev) => ({ ...prev, [index]: ellipsis }));
-                }
-              },
-            }}
-          >
-            {item.descricao}
-          </Typography.Paragraph>
-          {isTruncated[index] && (
-            <button
-              onClick={() => showDrawer(item)}
-              className="text-white cursor-pointer w-full bg-site-primary rounded-full font-semibold mt-auto"
-            >
-              {textos?.mostrarMais ?? "Mostrar mais"}
-            </button>
-          )}
-        </div>
-      </motion.div>
-    ),
-  }));
 
   if (loading) {
     return (
@@ -143,30 +31,67 @@ export default function SobreClient({ initialData }: { initialData: Sobre[] }) {
   }
 
   return (
-    <motion.section
+    <section
       className="relative bg-site-primary min-h-screen flex flex-col items-center text-white px-4 pb-10"
-      variants={containerVariants}
-      initial="hidden"
-      animate="show"
       style={{
         backgroundImage: "var(--site-background-image)",
       }}
     >
       <BackBtn label="Sobre nós" textKey="tituloSobre" />
-      <div className="max-w-3xl mt-48 mx-2">
-        <ConfigProvider
-          theme={{
-            components: {
-              Timeline: {
-                dotBg: "var(--site-accent)",
-                tailColor: "var(--site-accent)",
-                itemPaddingBottom: 40,
-              },
-            },
-          }}
-        >
-          <Timeline mode="alternate" items={timelineItems} />
-        </ConfigProvider>
+      <div className="mx-0 mt-36 w-full max-w-3xl sm:mt-40 lg:mx-auto lg:w-full lg:max-w-7xl lg:px-4">
+        <header className="mb-5 border-b border-white/15 px-1 pb-4 sm:mb-10 sm:px-0 sm:pb-5 lg:mb-12 lg:pb-7">
+          <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-site-accent sm:text-xs lg:mb-3 lg:tracking-[0.24em]">
+            História e trajetória
+          </p>
+          <h1 className="font-sedgwick text-2xl font-normal leading-tight text-white sm:text-4xl xl:text-5xl">
+            A história do Coletivo À Margem
+          </h1>
+        </header>
+
+        <div className="relative mx-auto max-w-6xl pb-8">
+          <div aria-hidden="true" className="absolute bottom-10 left-2 top-3 border-l border-white/20 sm:left-[4.375rem] lg:bottom-12 lg:left-24 lg:top-4" />
+          <ol className="space-y-4 sm:space-y-8">
+            {data.map((item, index) => (
+              <li key={item.ano} className="relative flex flex-col gap-2 sm:grid sm:grid-cols-[4rem_minmax(0,1fr)] sm:items-stretch sm:gap-4 lg:grid-cols-[5rem_minmax(0,1fr)] lg:gap-12">
+                <div className="relative pl-6 text-left sm:px-0 sm:pt-6 sm:text-right lg:pt-7">
+                  <time dateTime={String(item.ano)} className="text-sm font-semibold tracking-tight text-site-accent sm:text-base lg:text-2xl">
+                    {item.ano}
+                  </time>
+                  <span aria-hidden="true" className="absolute left-[0.125rem] top-[0.25rem] h-3 w-3 rounded-full border-2 border-site-accent bg-site-primary shadow-[0_0_0_5px_rgba(0,0,0,0.18)] sm:left-[4rem] sm:top-[1.875rem] lg:left-[5.625rem] lg:top-9" />
+                </div>
+
+                <article className={`ml-5 flex min-w-0 flex-col overflow-hidden rounded-xl border border-white/10 bg-black/35 shadow-lg transition-colors hover:border-site-accent/40 sm:ml-0 sm:rounded-2xl xl:flex-row ${index % 2 === 1 ? "xl:flex-row-reverse" : ""}`}>
+                    {item.imageUrl && (
+                      <div className="relative h-48 w-full shrink-0 sm:h-56 sm:bg-purple-950/50 xl:h-auto xl:min-h-[19rem] xl:w-[42%]">
+                        <Image
+                          src={item.imageUrl}
+                          alt={`Fotografia de um evento do Coletivo À Margem em ${item.ano}`}
+                          fill
+                          sizes="(max-width: 640px) calc(100vw - 2rem), (max-width: 1280px) 42vw, 480px"
+                          unoptimized
+                          className="object-cover"
+                        />
+                      </div>
+                    )}
+                    <div className="flex min-w-0 flex-1 flex-col justify-center p-3 sm:p-6 xl:p-9">
+                      <p className="line-clamp-4 text-[0.9375rem] leading-6 text-white/90 sm:line-clamp-5 sm:text-base sm:leading-7 xl:line-clamp-6">
+                        {item.descricao}
+                      </p>
+                      {item.descricao.length > 220 && (
+                        <button
+                          type="button"
+                          onClick={() => showDrawer(item)}
+                          className="mt-2 min-h-11 w-fit rounded px-1 text-sm font-semibold text-site-accent underline decoration-site-accent/40 underline-offset-4 transition hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-site-accent sm:mt-5"
+                        >
+                          {textos?.mostrarMais ?? "Ler história completa"}
+                        </button>
+                      )}
+                    </div>
+                </article>
+              </li>
+            ))}
+          </ol>
+        </div>
       </div>
       <AppDrawer
         open={selectedItem !== null}
@@ -174,6 +99,6 @@ export default function SobreClient({ initialData }: { initialData: Sobre[] }) {
         title={`Detalhes de ${selectedItem?.ano || ""}`}
         contents={selectedItem ? [selectedItem.descricao] : []}
       />
-    </motion.section>
+    </section>
   );
 }

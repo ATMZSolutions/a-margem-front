@@ -26,7 +26,7 @@ export default function NoticiasClient({ items }: { items: NoticiaFromAPI[] }) {
       style={{ backgroundColor: "var(--site-primary)", backgroundImage: "var(--site-background-image)" }}
     >
       <BackBtn label="Notícias" textKey="tituloNoticias" />
-      <div className="w-full max-w-5xl mt-40 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="w-full max-w-5xl lg:max-w-7xl mt-40 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 lg:px-4">
         {noticias.map((item, idx) => <NewsCard key={item.id} item={item} index={idx} />)}
       </div>
       {noticias.length === 0 && (
